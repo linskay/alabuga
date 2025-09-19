@@ -77,10 +77,10 @@ const HorizontalImageScroll: React.FC = () => {
         const progress = maxScroll > 0 ? currentScroll / maxScroll : 0;
         
         setScrollProgress(progress);
-        // Для изображения 10054x3314: используем полную ширину изображения
-        // Максимальное смещение = ширина изображения - ширина экрана
-        const imageWidth = (10054 * window.innerHeight) / 3314; // Ширина изображения в пикселях
-        const maxOffset = imageWidth - window.innerWidth; // Максимальное смещение
+        // Для видео 3840x2160: растягиваем видео в 1.5 раза для создания горизонтального скролла
+        // Максимальное смещение = ширина растянутого видео - ширина экрана
+        const videoWidth = (3840 * window.innerHeight) / 2160 * 1.5; // Ширина видео в пикселях (растянуто в 1.5 раза)
+        const maxOffset = videoWidth - window.innerWidth; // Максимальное смещение
         setImageOffset(-progress * maxOffset);
       }
     };
@@ -89,7 +89,7 @@ const HorizontalImageScroll: React.FC = () => {
       e.preventDefault();
       if (scrollRef.current) {
         const container = scrollRef.current;
-        const scrollAmount = e.deltaY * 2; // Увеличиваем чувствительность
+        const scrollAmount = e.deltaY * 0.5; // Делаем прокрутку медленнее
         container.scrollLeft += scrollAmount;
       }
     };
@@ -120,23 +120,35 @@ const HorizontalImageScroll: React.FC = () => {
         />
       </div>
 
-      {/* Fixed Background Image that moves with scroll */}
+      {/* Fixed Background Video that moves with scroll */}
       <motion.div
-        className="fixed inset-0 h-full bg-no-repeat"
+        className="fixed inset-0 h-full overflow-hidden"
         style={{
-          backgroundImage: 'url(/images/alabuga-start.jpg)',
-          backgroundSize: 'auto 100vh', // Используем полную высоту экрана
-          backgroundPosition: 'left center',
-          width: `${(10054 * window.innerHeight) / 3314}px`, // Ширина изображения в пикселях
+          width: `${(3840 * window.innerHeight) / 2160 * 1.5}px`, // Ширина видео в пикселях (растянуто в 1.5 раза)
           x: imageOffset
         }}
-      />
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="h-full w-full object-cover"
+          style={{
+            width: `${(3840 * window.innerHeight) / 2160 * 1.5}px`, // Ширина видео в пикселях (растянуто в 1.5 раза)
+            height: '100vh',
+            objectPosition: 'left center'
+          }}
+        >
+          <source src="/images/0_Space_Galaxy_3840x2160.mp4" type="video/mp4" />
+        </video>
+      </motion.div>
 
       {/* Parallax Layer 1 - Background elements moving slower */}
       <motion.div
         className="fixed inset-0 h-full pointer-events-none"
         style={{
-          width: `${(10054 * window.innerHeight) / 3314}px`,
+          width: `${(3840 * window.innerHeight) / 2160 * 1.5}px`,
           x: imageOffset * 0.3, // Движется медленнее основного фона
           backgroundImage: `
             radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
@@ -152,7 +164,7 @@ const HorizontalImageScroll: React.FC = () => {
       <motion.div
         className="fixed inset-0 h-full pointer-events-none"
         style={{
-          width: `${(10054 * window.innerHeight) / 3314}px`,
+          width: `${(3840 * window.innerHeight) / 2160 * 1.5}px`,
           x: imageOffset * 1.2, // Движется быстрее основного фона
           backgroundImage: `
             radial-gradient(circle at 60% 20%, rgba(147, 51, 234, 0.08) 0%, transparent 40%),
@@ -167,7 +179,7 @@ const HorizontalImageScroll: React.FC = () => {
       <motion.div
         className="fixed inset-0 h-full pointer-events-none"
         style={{
-          width: `${(10054 * window.innerHeight) / 3314}px`,
+          width: `${(3840 * window.innerHeight) / 2160 * 1.5}px`,
           x: imageOffset * 0.8 // Дым движется немного медленнее основного фона
         }}
       >
@@ -220,7 +232,7 @@ const HorizontalImageScroll: React.FC = () => {
       <motion.div
         className="fixed inset-0 h-full pointer-events-none"
         style={{
-          width: `${(10054 * window.innerHeight) / 3314}px`,
+          width: `${(3840 * window.innerHeight) / 2160 * 1.5}px`,
           x: imageOffset * 0.5, // Сетка движется медленнее основного фона
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
@@ -246,9 +258,9 @@ const HorizontalImageScroll: React.FC = () => {
             display: none;
           }
         `}</style>
-        <div className="flex h-full" style={{ width: `${(10054 * window.innerHeight) / 3314}px` }}>
+        <div className="flex h-full" style={{ width: `${(3840 * window.innerHeight) / 2160 * 1.5}px` }}>
           {/* Section 1 - Welcome */}
-          <div className="h-full flex items-center justify-center relative" style={{ width: `${(10054 * window.innerHeight) / 3314}px` }}>
+          <div className="h-full flex items-center justify-center relative" style={{ width: `${(3840 * window.innerHeight) / 2160 * 1.5}px` }}>
             <motion.div
               className="text-center px-4 max-w-2xl mx-auto"
               initial={{ opacity: 0, y: 50 }}
@@ -274,7 +286,7 @@ const HorizontalImageScroll: React.FC = () => {
           </div>
 
           {/* Section 2 - Industrial Zone */}
-          <div className="h-full flex items-center justify-center relative" style={{ width: `${(10054 * window.innerHeight) / 3314}px` }}>
+          <div className="h-full flex items-center justify-center relative" style={{ width: `${(3840 * window.innerHeight) / 2160 * 1.5}px` }}>
             <motion.div
               className="text-center px-4 max-w-2xl mx-auto"
               initial={{ opacity: 0, x: 100 }}
@@ -300,7 +312,7 @@ const HorizontalImageScroll: React.FC = () => {
           </div>
 
           {/* Section 3 - Infrastructure */}
-          <div className="h-full flex items-center justify-center relative" style={{ width: `${(10054 * window.innerHeight) / 3314}px` }}>
+          <div className="h-full flex items-center justify-center relative" style={{ width: `${(3840 * window.innerHeight) / 2160 * 1.5}px` }}>
             <motion.div
               className="text-center px-4 max-w-2xl mx-auto"
               initial={{ opacity: 0, y: -50 }}
@@ -326,7 +338,7 @@ const HorizontalImageScroll: React.FC = () => {
           </div>
 
           {/* Section 4 - Technology */}
-          <div className="h-full flex items-center justify-center relative" style={{ width: `${(10054 * window.innerHeight) / 3314}px` }}>
+          <div className="h-full flex items-center justify-center relative" style={{ width: `${(3840 * window.innerHeight) / 2160 * 1.5}px` }}>
             <motion.div
               className="text-center px-4 max-w-2xl mx-auto"
               initial={{ opacity: 0, x: -100 }}
@@ -360,7 +372,7 @@ const HorizontalImageScroll: React.FC = () => {
         className="fixed left-0 top-0 w-20 h-full z-30 cursor-pointer"
         onClick={() => {
           if (scrollRef.current) {
-            const scrollAmount = (10054 * window.innerHeight) / 3314;
+            const scrollAmount = (3840 * window.innerHeight) / 2160 * 1.5;
             scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
           }
         }}
@@ -370,7 +382,7 @@ const HorizontalImageScroll: React.FC = () => {
         className="fixed right-0 top-0 w-20 h-full z-30 cursor-pointer"
         onClick={() => {
           if (scrollRef.current) {
-            const scrollAmount = (10054 * window.innerHeight) / 3314;
+            const scrollAmount = (3840 * window.innerHeight) / 2160 * 1.5;
             scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
           }
         }}
