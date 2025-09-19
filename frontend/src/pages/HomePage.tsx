@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AnimatedCursor from '../components/AnimatedCursor';
 // import ParallaxBackground from '../components/ParallaxBackground';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Loader from '../components/ui/Loader';
+import AnimatedStars from '../components/AnimatedStars';
+import AnimatedText from '../components/AnimatedText';
+import ScrollHint from '../components/ScrollHint';
+import styled from 'styled-components';
 
 interface HomePageProps {
   onEnter: () => void;
@@ -12,10 +15,265 @@ interface HomePageProps {
   onCookiesClick?: () => void;
 }
 
+// Стилизованная кнопка "Войти"
+const StyledButton = styled.div`
+  .entry-button {
+    --line_color: #6acff6;
+    --back_color: #6acff6;
+  }
+  
+  .button {
+    position: relative;
+    z-index: 0;
+    width: 240px;
+    height: 56px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .button__text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .button::before,
+  .button::after,
+  .button__text::before,
+  .button__text::after {
+    content: "";
+    position: absolute;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line_color);
+    transition: all 0.5s ease;
+  }
+  
+  .button::before {
+    top: 0;
+    left: 54px;
+    width: calc(100% - 56px * 2 - 16px);
+  }
+  
+  .button::after {
+    top: 0;
+    right: 54px;
+    width: 8px;
+  }
+  
+  .button__text::before {
+    bottom: 0;
+    right: 54px;
+    width: calc(100% - 56px * 2 - 16px);
+  }
+  
+  .button__text::after {
+    bottom: 0;
+    left: 54px;
+    width: 8px;
+  }
+  
+  .button__line {
+    position: absolute;
+    top: 0;
+    width: 56px;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .button__line::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 150%;
+    height: 100%;
+    box-sizing: border-box;
+    border-radius: 300px;
+    border: solid 3px var(--line_color);
+  }
+  
+  .button__line:nth-child(1),
+  .button__line:nth-child(1)::before {
+    left: 0;
+  }
+  
+  .button__line:nth-child(2),
+  .button__line:nth-child(2)::before {
+    right: 0;
+  }
+  
+  .button:hover {
+    letter-spacing: 6px;
+  }
+  
+  .button:hover::before,
+  .button:hover .button__text::before {
+    width: 8px;
+  }
+  
+  .button:hover::after,
+  .button:hover .button__text::after {
+    width: calc(100% - 56px * 2 - 16px);
+  }
+  
+  .button__drow1,
+  .button__drow2 {
+    position: absolute;
+    z-index: -1;
+    border-radius: 16px;
+    transform-origin: 16px 16px;
+  }
+  
+  .button__drow1 {
+    top: -16px;
+    left: 40px;
+    width: 32px;
+    height: 0;
+    transform: rotate(30deg);
+  }
+  
+  .button__drow2 {
+    top: 44px;
+    left: 77px;
+    width: 32px;
+    height: 0;
+    transform: rotate(-127deg);
+  }
+  
+  .button__drow1::before,
+  .button__drow1::after,
+  .button__drow2::before,
+  .button__drow2::after {
+    content: "";
+    position: absolute;
+  }
+  
+  .button__drow1::before {
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 32px;
+    border-radius: 16px;
+    transform-origin: 16px 16px;
+    transform: rotate(-60deg);
+  }
+  
+  .button__drow1::after {
+    top: -10px;
+    left: 45px;
+    width: 0;
+    height: 32px;
+    border-radius: 16px;
+    transform-origin: 16px 16px;
+    transform: rotate(69deg);
+  }
+  
+  .button__drow2::before {
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 32px;
+    border-radius: 16px;
+    transform-origin: 16px 16px;
+    transform: rotate(-146deg);
+  }
+  
+  .button__drow2::after {
+    bottom: 26px;
+    left: -40px;
+    width: 0;
+    height: 32px;
+    border-radius: 16px;
+    transform-origin: 16px 16px;
+    transform: rotate(-262deg);
+  }
+  
+  .button__drow1,
+  .button__drow1::before,
+  .button__drow1::after,
+  .button__drow2,
+  .button__drow2::before,
+  .button__drow2::after {
+    background: var(--back_color);
+    opacity: 0.7;
+  }
+  
+  .button:hover .button__drow1 {
+    animation: drow1 ease-in 0.06s;
+    animation-fill-mode: forwards;
+  }
+  
+  .button:hover .button__drow1::before {
+    animation: drow2 linear 0.08s 0.06s;
+    animation-fill-mode: forwards;
+  }
+  
+  .button:hover .button__drow1::after {
+    animation: drow3 linear 0.03s 0.14s;
+    animation-fill-mode: forwards;
+  }
+  
+  .button:hover .button__drow2 {
+    animation: drow4 linear 0.06s 0.2s;
+    animation-fill-mode: forwards;
+  }
+  
+  .button:hover .button__drow2::before {
+    animation: drow3 linear 0.03s 0.26s;
+    animation-fill-mode: forwards;
+  }
+  
+  .button:hover .button__drow2::after {
+    animation: drow5 linear 0.06s 0.32s;
+    animation-fill-mode: forwards;
+  }
+  
+  @keyframes drow1 {
+    0% { height: 0; }
+    100% { height: 100px; }
+  }
+  
+  @keyframes drow2 {
+    0% { width: 0; opacity: 0; }
+    10% { opacity: 0; }
+    11% { opacity: 1; }
+    100% { width: 120px; }
+  }
+  
+  @keyframes drow3 {
+    0% { width: 0; }
+    100% { width: 80px; }
+  }
+  
+  @keyframes drow4 {
+    0% { height: 0; }
+    100% { height: 120px; }
+  }
+  
+  @keyframes drow5 {
+    0% { width: 0; }
+    100% { width: 124px; }
+  }
+`;
+
 const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesClick }) => {
   const [showLoader, setShowLoader] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [showVideo, setShowVideo] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [showText, setShowText] = useState(false);
 
   useEffect(() => {
     // Проверяем, загружена ли страница
@@ -23,6 +281,19 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
       if (document.readyState === 'complete') {
         setShowLoader(false);
         setIsLoaded(true);
+        
+        // Последовательность анимаций
+        setTimeout(() => {
+          setShowVideo(true);
+        }, 500);
+        
+        setTimeout(() => {
+          setShowText(true);
+        }, 2000);
+        
+        setTimeout(() => {
+          setShowButton(true);
+        }, 20000);
       }
     };
 
@@ -30,6 +301,19 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
     if (document.readyState === 'complete') {
       setShowLoader(false);
       setIsLoaded(true);
+      
+      // Последовательность анимаций
+      setTimeout(() => {
+        setShowVideo(true);
+      }, 500);
+      
+      setTimeout(() => {
+        setShowText(true);
+      }, 2000);
+      
+      setTimeout(() => {
+        setShowButton(true);
+      }, 20000);
     } else {
       // Слушаем событие загрузки
       window.addEventListener('load', checkLoaded);
@@ -40,6 +324,27 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
     };
   }, []);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      // Если пользователь скроллит вниз, переходим на лендинговую страницу
+      if (e.deltaY > 0) {
+        onEnter();
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel);
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [onEnter]);
+
   const handleLearnMore = () => {
     onEnter(); // Переходим на страницу с горизонтальной прокруткой
   };
@@ -49,12 +354,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
   };
 
   return (
-    <div 
-      className="relative w-screen h-screen overflow-hidden"
-      style={{
-        background: 'linear-gradient(to bottom, #148cdc 0%, #148cdc 20%, white 40%, white 60%, #148cdc 80%, #148cdc 100%)'
-      }}
-    >
+    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
       {/* Loader */}
       <AnimatePresence>
         {showLoader && (
@@ -69,8 +369,6 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
         )}
       </AnimatePresence>
 
-      {/* Animated Cursor */}
-      <AnimatedCursor />
 
       {/* Parallax Background - убираем, так как используем градиент */}
       {/* <ParallaxBackground scrollY={0} /> */}
@@ -78,59 +376,109 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
       {/* Header */}
       <Header onMenuToggle={toggleMenu} />
 
+      {/* Animated Cosmic Background */}
+      <div className="absolute inset-0">
+        <AnimatedStars />
+        <div className="cosmic-orb cosmic-orb-1"></div>
+        <div className="cosmic-orb cosmic-orb-2"></div>
+        <div className="cosmic-orb cosmic-orb-3"></div>
+        
+        {/* Mouse-following gradient */}
+        <div 
+          className="mouse-gradient"
+          style={{
+            left: mousePosition.x - 200,
+            top: mousePosition.y - 200,
+          }}
+        ></div>
+      </div>
+
       {/* Main Content */}
       <div className="relative w-full h-full flex flex-col">
         <motion.main
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ duration: 0.5 }}
-          className="relative z-10 w-full flex-1 flex items-center justify-center"
+          className="relative z-10 w-full flex-1 flex items-end justify-center pb-20"
         >
-          <div className="text-center px-8 max-w-6xl mx-auto">
-            <motion.h1
-              className="text-6xl sm:text-8xl lg:text-9xl font-black mb-6 bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              АЛАБУГА
-            </motion.h1>
-
-            <motion.p
-              className="text-2xl sm:text-3xl lg:text-4xl font-light mb-4 text-blue-200 tracking-widest"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            >
-              Самая эффективная особая экономическая зона России
-            </motion.p>
-
-            <motion.p
-              className="text-lg sm:text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed"
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.8 }}
-            >
-              Инновации, технологии и возможности для вашего бизнеса. 
-              Присоединяйтесь к лидерам экономического развития.
-            </motion.p>
-
-            <motion.div
-              className="flex justify-center items-center"
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1, duration: 0.8 }}
-            >
-              <motion.button
-                onClick={handleLearnMore}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all duration-300 shadow-lg hover:shadow-xl"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+          {/* Видео с эффектом размытия */}
+          <AnimatePresence>
+            {showVideo && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0, filter: "blur(20px)" }}
+                animate={{ 
+                  scale: 1, 
+                  opacity: 1, 
+                  filter: "blur(0px)" 
+                }}
+                exit={{ scale: 0.8, opacity: 0, filter: "blur(20px)" }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="absolute top-20 left-0 right-0 bottom-0 flex items-center justify-center z-20"
               >
-                Узнать больше
-              </motion.button>
-            </motion.div>
-          </div>
+                <div className="relative w-full h-full max-w-4xl max-h-4xl">
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover rounded-2xl shadow-2xl"
+                    style={{
+                      filter: 'blur(0px)',
+                      transition: 'filter 2s ease-in-out',
+                      maskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 100%)',
+                      WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 100%)'
+                    }}
+                  >
+                    <source src="/images/cosmosstart.mp4" type="video/mp4" />
+                  </video>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Анимированный текст */}
+          <AnimatePresence>
+            {showText && <AnimatedText />}
+          </AnimatePresence>
+
+          {/* Кнопка Войти */}
+          <AnimatePresence>
+            {showButton && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative z-30"
+              >
+                <StyledButton>
+                  <div className="flex justify-center items-center">
+                    <div 
+                      className="button entry-button"
+                      onClick={handleLearnMore}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="button__line" />
+                      <div className="button__line" />
+                      <span className="button__text">ВОЙТИ</span>
+                      <div className="button__drow1" />
+                      <div className="button__drow2" />
+                    </div>
+                  </div>
+                </StyledButton>
+                
+                {/* Scroll Hint */}
+                <motion.div
+                  className="mt-12"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 1 }}
+                >
+                  <ScrollHint />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Floating White Circles and Rings */}
           {/* Left side circles */}
