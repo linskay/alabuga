@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import AnimatedBackground from '../components/AnimatedBackground';
+import AnimatedStars from '../components/AnimatedStars';
 
 interface PrivacyPolicyPageProps {
   onBack?: () => void;
@@ -14,17 +14,19 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen relative text-white cursor-default overflow-hidden">
-      <AnimatedBackground />
+    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
+      {/* Animated Stars */}
+      <AnimatedStars />
+      
       <Header onMenuToggle={handleMenuToggle} showBackButton={true} onBack={onBack} />
       
-      <main className="relative z-10 pt-20 pb-8 max-h-screen overflow-y-auto">
+      <main className="relative z-20 pt-20 pb-8 max-h-screen overflow-y-auto">
         <div className="max-w-4xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="bg-white/10 backdrop-blur-sm rounded-lg p-8"
+            className="bg-white/10 backdrop-blur-sm rounded-lg p-8 text-white"
           >
             <h1 className="text-3xl font-bold mb-6 text-center">
               ПОЛИТИКА ОБРАБОТКИ И ЗАЩИТЫ ПЕРСОНАЛЬНЫХ ДАННЫХ
