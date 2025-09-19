@@ -118,9 +118,11 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="relative text-white overflow-hidden border-t border-blue-500/30"
+      className="relative text-white overflow-hidden border-t border-white/20 backdrop-blur-xl"
       style={{
-        background: 'linear-gradient(to bottom, #0464b3 0%, #242b8c 70%)'
+        background: 'rgba(36, 43, 140, 0.1)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)'
       }}
     >
       {/* Animated background elements */}

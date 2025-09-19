@@ -50,13 +50,18 @@ const AnimatedCursor: React.FC = () => {
           top: mousePosition.y - 56,
         }}
         animate={{
-          scale: isHovering ? 1.3 : isClicking ? 0.9 : 1,
+          scale: isHovering ? 1.3 : isClicking ? 0.9 : [1, 1.2, 1],
           opacity: isHovering ? 1 : 0.9,
         }}
         transition={{
           type: "spring",
           stiffness: 400,
           damping: 25,
+          scale: {
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }
         }}
       />
 
