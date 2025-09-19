@@ -374,7 +374,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
       {/* <ParallaxBackground scrollY={0} /> */}
 
       {/* Header */}
-      <Header onMenuToggle={toggleMenu} />
+      <Header onMenuToggle={toggleMenu} showLoginButton={false} />
 
       {/* Animated Cosmic Background */}
       <div className="absolute inset-0">

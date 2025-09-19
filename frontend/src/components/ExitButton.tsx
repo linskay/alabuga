@@ -9,7 +9,7 @@ const ExitButton: React.FC<ExitButtonProps> = ({ onClick }) => {
     <div className="inline-block">
       <button 
         onClick={onClick}
-        className="group flex items-center justify-start w-11 h-11 border-none rounded-md cursor-pointer relative overflow-hidden transition-all duration-300 shadow-lg bg-slate-800 hover:bg-slate-700 hover:w-32 active:translate-x-0.5 active:translate-y-0.5"
+        className="group flex items-center justify-start w-11 h-11 border-none rounded-md cursor-pointer relative overflow-hidden transition-all duration-300 shadow-lg bg-white/20 backdrop-blur-sm hover:bg-white/30 hover:w-32 active:translate-x-0.5 active:translate-y-0.5"
       >
         {/* Icon */}
         <div className="w-full transition-all duration-300 flex items-center justify-center group-hover:w-[30%] group-hover:pl-5">
