@@ -78,7 +78,7 @@ public class ArtifactMapper {
                 .shortDescription(dto.getShortDescription())
                 .imageUrl(dto.getImageUrl())
                 .rarity(dto.getRarity())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .isActive(dto.getIsActive())
                 .build();
     }
 

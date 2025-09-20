@@ -31,8 +31,6 @@ public class CompetencyController {
 
     private final CompetencyRepository competencyRepository;
     
-    // ========== COMPETENCY MANAGEMENT ==========
-    
     @GetMapping("/competencies")
     @Operation(summary = "Получить все компетенции")
     public ResponseEntity<List<Competency>> getAllCompetencies() {

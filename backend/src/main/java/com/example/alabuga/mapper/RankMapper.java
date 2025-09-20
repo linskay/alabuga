@@ -81,7 +81,7 @@ public class RankMapper {
                 .requiredMissionName(dto.getRequiredMissionName())
                 .requiredCompetencyPoints(dto.getRequiredCompetencyPoints())
                 .competencyNames(dto.getCompetencyNames())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .isActive(Boolean.TRUE.equals(dto.getIsActive()))
                 .description(dto.getDescription())
                 .build();
     }
