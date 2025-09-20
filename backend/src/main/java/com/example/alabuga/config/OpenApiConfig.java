@@ -15,7 +15,7 @@ public class OpenApiConfig {
     public OpenAPI alabugaOpenAPI() {
         return new OpenAPI()
                 .info(new Info().title("Alabuga API")
-                        .description("API documentation for Alabuga project")
+                        .description("API documentation for Alabuga.Tech")
                         .version("v0.0.1")
                         .contact(new Contact()
                                 .name("No php - no problems")

@@ -1,7 +1,6 @@
 package com.example.alabuga.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
+import com.example.alabuga.exception.ResourceNotFoundException;
 import com.example.alabuga.repository.ArtifactRepository;
 import com.example.alabuga.repository.CompetencyRepository;
 
@@ -47,9 +47,9 @@ public class CompetencyArtifactController {
     @Operation(summary = "Получить компетенцию по ID")
     public ResponseEntity<Competency> getCompetencyById(
             @Parameter(description = "ID компетенции") @PathVariable Long id) {
-        Optional<Competency> competency = competencyRepository.findById(id);
-        return competency.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Competency competency = competencyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Компетенция", id));
+        return ResponseEntity.ok(competency);
     }
     
     @PostMapping("/competencies")
@@ -64,29 +64,27 @@ public class CompetencyArtifactController {
     public ResponseEntity<Competency> updateCompetency(
             @Parameter(description = "ID компетенции") @PathVariable Long id,
             @RequestBody Competency competencyDetails) {
-        Optional<Competency> competency = competencyRepository.findById(id);
-        if (competency.isPresent()) {
-            Competency existingCompetency = competency.get();
-            existingCompetency.setName(competencyDetails.getName());
-            existingCompetency.setDescription(competencyDetails.getDescription());
-            existingCompetency.setMaxLevel(competencyDetails.getMaxLevel());
-            existingCompetency.setIsActive(competencyDetails.getIsActive());
-            
-            Competency updatedCompetency = competencyRepository.save(existingCompetency);
-            return ResponseEntity.ok(updatedCompetency);
-        }
-        return ResponseEntity.notFound().build();
+        Competency existingCompetency = competencyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Компетенция", id));
+        
+        existingCompetency.setName(competencyDetails.getName());
+        existingCompetency.setDescription(competencyDetails.getDescription());
+        existingCompetency.setMaxLevel(competencyDetails.getMaxLevel());
+        existingCompetency.setIsActive(competencyDetails.getIsActive());
+        
+        Competency updatedCompetency = competencyRepository.save(existingCompetency);
+        return ResponseEntity.ok(updatedCompetency);
     }
     
     @DeleteMapping("/competencies/{id}")
     @Operation(summary = "Удалить компетенцию")
     public ResponseEntity<Void> deleteCompetency(
             @Parameter(description = "ID компетенции") @PathVariable Long id) {
-        if (competencyRepository.existsById(id)) {
-            competencyRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        Competency competency = competencyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Компетенция", id));
+        
+        competencyRepository.delete(competency);
+        return ResponseEntity.noContent().build();
     }
     
     @GetMapping("/competencies/search")
@@ -110,9 +108,9 @@ public class CompetencyArtifactController {
     @Operation(summary = "Получить артефакт по ID")
     public ResponseEntity<Artifact> getArtifactById(
             @Parameter(description = "ID артефакта") @PathVariable Long id) {
-        Optional<Artifact> artifact = artifactRepository.findById(id);
-        return artifact.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Artifact artifact = artifactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
+        return ResponseEntity.ok(artifact);
     }
     
     @PostMapping("/artifacts")
@@ -127,30 +125,28 @@ public class CompetencyArtifactController {
     public ResponseEntity<Artifact> updateArtifact(
             @Parameter(description = "ID артефакта") @PathVariable Long id,
             @RequestBody Artifact artifactDetails) {
-        Optional<Artifact> artifact = artifactRepository.findById(id);
-        if (artifact.isPresent()) {
-            Artifact existingArtifact = artifact.get();
-            existingArtifact.setName(artifactDetails.getName());
-            existingArtifact.setDescription(artifactDetails.getDescription());
-            existingArtifact.setRarity(artifactDetails.getRarity());
-            existingArtifact.setPowerLevel(artifactDetails.getPowerLevel());
-            existingArtifact.setIsActive(artifactDetails.getIsActive());
-            
-            Artifact updatedArtifact = artifactRepository.save(existingArtifact);
-            return ResponseEntity.ok(updatedArtifact);
-        }
-        return ResponseEntity.notFound().build();
+        Artifact existingArtifact = artifactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
+        
+        existingArtifact.setName(artifactDetails.getName());
+        existingArtifact.setDescription(artifactDetails.getDescription());
+        existingArtifact.setRarity(artifactDetails.getRarity());
+        existingArtifact.setPowerLevel(artifactDetails.getPowerLevel());
+        existingArtifact.setIsActive(artifactDetails.getIsActive());
+        
+        Artifact updatedArtifact = artifactRepository.save(existingArtifact);
+        return ResponseEntity.ok(updatedArtifact);
     }
     
     @DeleteMapping("/artifacts/{id}")
     @Operation(summary = "Удалить артефакт")
     public ResponseEntity<Void> deleteArtifact(
             @Parameter(description = "ID артефакта") @PathVariable Long id) {
-        if (artifactRepository.existsById(id)) {
-            artifactRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        Artifact artifact = artifactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
+        
+        artifactRepository.delete(artifact);
+        return ResponseEntity.noContent().build();
     }
     
     @GetMapping("/artifacts/rarity/{rarity}")

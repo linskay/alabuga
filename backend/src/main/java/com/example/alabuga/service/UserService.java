@@ -7,25 +7,36 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
+import com.example.alabuga.dto.ArtifactDTO;
+import com.example.alabuga.dto.CompetencyDTO;
+import com.example.alabuga.dto.UserArtifactDTO;
+import com.example.alabuga.dto.UserCompetencyDTO;
+import com.example.alabuga.dto.UserCreateDTO;
+import com.example.alabuga.dto.UserDTO;
+import com.example.alabuga.dto.UserUpdateDTO;
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
 import com.example.alabuga.entity.User;
 import com.example.alabuga.entity.UserArtifact;
 import com.example.alabuga.entity.UserCompetency;
 import com.example.alabuga.entity.UserRole;
+import com.example.alabuga.exception.BusinessLogicException;
+import com.example.alabuga.exception.DuplicateResourceException;
+import com.example.alabuga.exception.ResourceNotFoundException;
+import com.example.alabuga.mapper.ArtifactMapper;
+import com.example.alabuga.mapper.CompetencyMapper;
+import com.example.alabuga.mapper.UserMapper;
 import com.example.alabuga.repository.ArtifactRepository;
 import com.example.alabuga.repository.CompetencyRepository;
 import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserCompetencyRepository;
 import com.example.alabuga.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Slf4j
 public class UserService {
     
     private final UserRepository userRepository;
@@ -33,131 +44,119 @@ public class UserService {
     private final ArtifactRepository artifactRepository;
     private final UserCompetencyRepository userCompetencyRepository;
     private final UserArtifactRepository userArtifactRepository;
+    private final UserMapper userMapper;
+    private final CompetencyMapper competencyMapper;
+    private final ArtifactMapper artifactMapper;
     
   
-    public List<User> getAllUsers() {
-        log.info("Получение всех пользователей");
-        return userRepository.findAll();
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return userMapper.toDTOList(users);
     }
     
-    public Optional<User> getUserById(Long id) {
-        log.info("Получение пользователя по ID: {}", id);
-        return userRepository.findById(id);
+    public Optional<UserDTO> getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toDTO);
     }
     
-    public Optional<User> getUserByLogin(String login) {
-        log.info("Получение пользователя по логину: {}", login);
-        return userRepository.findByLogin(login);
+    public Optional<UserDTO> getUserByLogin(String login) {
+        return userRepository.findByLogin(login)
+                .map(userMapper::toDTO);
     }
     
-    public Optional<User> getUserByEmail(String email) {
-        log.info("Получение пользователя по email: {}", email);
-        return userRepository.findByEmail(email);
+    public Optional<UserDTO> getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(userMapper::toDTO);
     }
     
     @Transactional
-    public User createUser(User user) {
-        log.info("Создание нового пользователя: {}", user.getLogin());
-        
+    public UserDTO createUser(UserCreateDTO userCreateDTO) {
         // Проверяем уникальность логина и email
-        if (userRepository.existsByLogin(user.getLogin())) {
-            throw new IllegalArgumentException("Пользователь с логином " + user.getLogin() + " уже существует");
+        if (userRepository.existsByLogin(userCreateDTO.getLogin())) {
+            throw new DuplicateResourceException("Пользователь", "логином", userCreateDTO.getLogin());
         }
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Пользователь с email " + user.getEmail() + " уже существует");
+        if (userRepository.existsByEmail(userCreateDTO.getEmail())) {
+            throw new DuplicateResourceException("Пользователь", "email", userCreateDTO.getEmail());
         }
         
-        return userRepository.save(user);
+        User user = userMapper.toEntity(userCreateDTO);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
     
     @Transactional
-    public User updateUser(Long id, User userDetails) {
-        log.info("Обновление пользователя с ID: {}", id);
-        
+    public UserDTO updateUser(Long id, UserUpdateDTO userUpdateDTO) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", id));
         
         // Проверяем уникальность логина и email (если они изменились)
-        if (!user.getLogin().equals(userDetails.getLogin()) && 
-            userRepository.existsByLogin(userDetails.getLogin())) {
-            throw new IllegalArgumentException("Пользователь с логином " + userDetails.getLogin() + " уже существует");
+        if (userUpdateDTO.getLogin() != null && !user.getLogin().equals(userUpdateDTO.getLogin()) && 
+            userRepository.existsByLogin(userUpdateDTO.getLogin())) {
+            throw new DuplicateResourceException("Пользователь", "логином", userUpdateDTO.getLogin());
         }
-        if (!user.getEmail().equals(userDetails.getEmail()) && 
-            userRepository.existsByEmail(userDetails.getEmail())) {
-            throw new IllegalArgumentException("Пользователь с email " + userDetails.getEmail() + " уже существует");
+        if (userUpdateDTO.getEmail() != null && !user.getEmail().equals(userUpdateDTO.getEmail()) && 
+            userRepository.existsByEmail(userUpdateDTO.getEmail())) {
+            throw new DuplicateResourceException("Пользователь", "email", userUpdateDTO.getEmail());
         }
         
-        // Обновляем поля
-        user.setLogin(userDetails.getLogin());
-        user.setEmail(userDetails.getEmail());
-        user.setPasswordHash(userDetails.getPasswordHash());
-        user.setFirstName(userDetails.getFirstName());
-        user.setLastName(userDetails.getLastName());
-        user.setRole(userDetails.getRole());
-        user.setExperience(userDetails.getExperience());
-        user.setMana(userDetails.getMana());
-        user.setRank(userDetails.getRank());
-        user.setIsActive(userDetails.getIsActive());
+        // Обновляем поля через маппер
+        userMapper.updateEntity(user, userUpdateDTO);
         
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
     
     @Transactional
     public void deleteUser(Long id) {
-        log.info("Удаление пользователя с ID: {}", id);
-        
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", id));
         
         userRepository.delete(user);
     }
     
     @Transactional
-    public User deactivateUser(Long id) {
-        log.info("Деактивация пользователя с ID: {}", id);
-        
+    public UserDTO deactivateUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", id));
         
         user.setIsActive(false);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
     
     // ========== SEARCH OPERATIONS ==========
     
-    public List<User> searchUsersByName(String name) {
-        log.info("Поиск пользователей по имени: {}", name);
-        return userRepository.findByNameContaining(name);
+    public List<UserDTO> searchUsersByName(String name) {
+        List<User> users = userRepository.findByNameContaining(name);
+        return userMapper.toDTOList(users);
     }
     
-    public List<User> getUsersByRole(UserRole role) {
-        log.info("Получение пользователей по роли: {}", role);
-        return userRepository.findByRole(role);
+    public List<UserDTO> getUsersByRole(UserRole role) {
+        List<User> users = userRepository.findByRole(role);
+        return userMapper.toDTOList(users);
     }
     
-    public List<User> getActiveUsers() {
-        log.info("Получение активных пользователей");
-        return userRepository.findByIsActive(true);
+    public List<UserDTO> getActiveUsers() {
+        List<User> users = userRepository.findByIsActive(true);
+        return userMapper.toDTOList(users);
     }
     
-    public List<User> getUsersByMinRank(Integer minRank) {
-        log.info("Получение пользователей с рангом >= {}", minRank);
-        return userRepository.findByRankGreaterThanEqualOrderByRankDesc(minRank);
+    public List<UserDTO> getUsersByMinRank(Integer minRank) {
+        List<User> users = userRepository.findByRankGreaterThanEqualOrderByRankDesc(minRank);
+        return userMapper.toDTOList(users);
     }
     
-    public List<User> getUsersByMinExperience(Integer minExperience) {
-        log.info("Получение пользователей с опытом >= {}", minExperience);
-        return userRepository.findByExperienceGreaterThanEqualOrderByExperienceDesc(minExperience);
+    public List<UserDTO> getUsersByMinExperience(Integer minExperience) {
+        List<User> users = userRepository.findByExperienceGreaterThanEqualOrderByExperienceDesc(minExperience);
+        return userMapper.toDTOList(users);
     }
     
     // ========== USER STATS OPERATIONS ==========
     
     @Transactional
-    public User addExperience(Long userId, Integer experience) {
-        log.info("Добавление опыта пользователю {}: {}", userId, experience);
-        
+    public UserDTO addExperience(Long userId, Integer experience) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
         user.setExperience(user.getExperience() + experience);
         
@@ -165,61 +164,58 @@ public class UserService {
         int newRank = (user.getExperience() / 1000) + 1;
         user.setRank(newRank);
         
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
     
     @Transactional
-    public User addMana(Long userId, Integer mana) {
-        log.info("Добавление маны пользователю {}: {}", userId, mana);
-        
+    public UserDTO addMana(Long userId, Integer mana) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
         user.setMana(user.getMana() + mana);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
     
     @Transactional
-    public User spendMana(Long userId, Integer mana) {
-        log.info("Трата маны пользователем {}: {}", userId, mana);
-        
+    public UserDTO spendMana(Long userId, Integer mana) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
         if (user.getMana() < mana) {
-            throw new IllegalArgumentException("Недостаточно маны. Текущая мана: " + user.getMana() + ", требуется: " + mana);
+            throw new BusinessLogicException("Недостаточно маны. Текущая мана: %d, требуется: %d", user.getMana(), mana);
         }
         
         user.setMana(user.getMana() - mana);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
     }
     
     // ========== COMPETENCY OPERATIONS ==========
     
-    public List<Competency> getAllCompetencies() {
-        log.info("Получение всех компетенций");
-        return competencyRepository.findByIsActive(true);
+    public List<CompetencyDTO> getAllCompetencies() {
+        List<Competency> competencies = competencyRepository.findByIsActive(true);
+        return competencyMapper.toDTOList(competencies);
     }
     
-    public List<UserCompetency> getUserCompetencies(Long userId) {
-        log.info("Получение компетенций пользователя: {}", userId);
-        return userCompetencyRepository.findByUserId(userId);
+    public List<UserCompetencyDTO> getUserCompetencies(Long userId) {
+        List<UserCompetency> userCompetencies = userCompetencyRepository.findByUserId(userId);
+        return competencyMapper.toUserCompetencyDTOList(userCompetencies);
     }
     
     @Transactional
-    public UserCompetency addUserCompetency(Long userId, Long competencyId, Integer initialLevel) {
-        log.info("Добавление компетенции пользователю {}: компетенция {}, уровень {}", userId, competencyId, initialLevel);
-        
+    public UserCompetencyDTO addUserCompetency(Long userId, Long competencyId, Integer initialLevel) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
         Competency competency = competencyRepository.findById(competencyId)
-                .orElseThrow(() -> new IllegalArgumentException("Компетенция с ID " + competencyId + " не найдена"));
+                .orElseThrow(() -> new ResourceNotFoundException("Компетенция", competencyId));
         
         // Проверяем, есть ли уже такая компетенция у пользователя
         Optional<UserCompetency> existingCompetency = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId);
         if (existingCompetency.isPresent()) {
-            throw new IllegalArgumentException("У пользователя уже есть компетенция " + competency.getName());
+            throw new DuplicateResourceException("У пользователя уже есть компетенция " + competency.getName());
         }
         
         UserCompetency userCompetency = UserCompetency.builder()
@@ -229,45 +225,43 @@ public class UserService {
                 .experiencePoints(0)
                 .build();
         
-        return userCompetencyRepository.save(userCompetency);
+        UserCompetency savedUserCompetency = userCompetencyRepository.save(userCompetency);
+        return competencyMapper.toDTO(savedUserCompetency);
     }
     
     @Transactional
-    public UserCompetency updateCompetencyLevel(Long userId, Long competencyId, Integer newLevel, Integer experiencePoints) {
-        log.info("Обновление уровня компетенции пользователя {}: компетенция {}, новый уровень {}", userId, competencyId, newLevel);
-        
+    public UserCompetencyDTO updateCompetencyLevel(Long userId, Long competencyId, Integer newLevel, Integer experiencePoints) {
         UserCompetency userCompetency = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId)
-                .orElseThrow(() -> new IllegalArgumentException("Компетенция не найдена у пользователя"));
+                .orElseThrow(() -> new ResourceNotFoundException("Компетенция у пользователя"));
         
         userCompetency.setCurrentLevel(newLevel);
         if (experiencePoints != null) {
             userCompetency.setExperiencePoints(experiencePoints);
         }
         
-        return userCompetencyRepository.save(userCompetency);
+        UserCompetency savedUserCompetency = userCompetencyRepository.save(userCompetency);
+        return competencyMapper.toDTO(savedUserCompetency);
     }
     
     // ========== ARTIFACT OPERATIONS ==========
     
-    public List<Artifact> getAllArtifacts() {
-        log.info("Получение всех артефактов");
-        return artifactRepository.findByIsActive(true);
+    public List<ArtifactDTO> getAllArtifacts() {
+        List<Artifact> artifacts = artifactRepository.findByIsActive(true);
+        return artifactMapper.toDTOList(artifacts);
     }
     
-    public List<UserArtifact> getUserArtifacts(Long userId) {
-        log.info("Получение артефактов пользователя: {}", userId);
-        return userArtifactRepository.findByUserId(userId);
+    public List<UserArtifactDTO> getUserArtifacts(Long userId) {
+        List<UserArtifact> userArtifacts = userArtifactRepository.findByUserId(userId);
+        return artifactMapper.toUserArtifactDTOList(userArtifacts);
     }
     
     @Transactional
-    public UserArtifact addUserArtifact(Long userId, Long artifactId) {
-        log.info("Добавление артефакта пользователю {}: артефакт {}", userId, artifactId);
-        
+    public UserArtifactDTO addUserArtifact(Long userId, Long artifactId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
         Artifact artifact = artifactRepository.findById(artifactId)
-                .orElseThrow(() -> new IllegalArgumentException("Артефакт с ID " + artifactId + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", artifactId));
         
         UserArtifact userArtifact = UserArtifact.builder()
                 .user(user)
@@ -276,32 +270,31 @@ public class UserService {
                 .isEquipped(false)
                 .build();
         
-        return userArtifactRepository.save(userArtifact);
+        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
+        return artifactMapper.toDTO(savedUserArtifact);
     }
     
     @Transactional
-    public UserArtifact equipArtifact(Long userId, Long artifactId) {
-        log.info("Экипировка артефакта пользователем {}: артефакт {}", userId, artifactId);
-        
+    public UserArtifactDTO equipArtifact(Long userId, Long artifactId) {
         UserArtifact userArtifact = userArtifactRepository.findByUserId(userId).stream()
                 .filter(ua -> ua.getArtifact().getId().equals(artifactId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Артефакт не найден у пользователя"));
+                .orElseThrow(() -> new ResourceNotFoundException("Артефакт у пользователя"));
         
         userArtifact.setIsEquipped(true);
-        return userArtifactRepository.save(userArtifact);
+        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
+        return artifactMapper.toDTO(savedUserArtifact);
     }
     
     @Transactional
-    public UserArtifact unequipArtifact(Long userId, Long artifactId) {
-        log.info("Снятие артефакта пользователем {}: артефакт {}", userId, artifactId);
-        
+    public UserArtifactDTO unequipArtifact(Long userId, Long artifactId) {
         UserArtifact userArtifact = userArtifactRepository.findByUserId(userId).stream()
                 .filter(ua -> ua.getArtifact().getId().equals(artifactId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Артефакт не найден у пользователя"));
+                .orElseThrow(() -> new ResourceNotFoundException("Артефакт у пользователя"));
         
         userArtifact.setIsEquipped(false);
-        return userArtifactRepository.save(userArtifact);
+        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
+        return artifactMapper.toDTO(savedUserArtifact);
     }
 }
