@@ -110,7 +110,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(UserRole.HR)
                     .experience(5000)
                     .energy(200)
-                    .rank(5)
+                    .rank(1)
                     .isActive(true)
                     .build();
             userRepository.save(admin);
@@ -124,7 +124,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(UserRole.ORGANIZER)
                     .experience(3000)
                     .energy(150)
-                    .rank(3)
+                    .rank(1)
                     .isActive(true)
                     .build();
             userRepository.save(organizer);
@@ -138,7 +138,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(UserRole.USER)
                     .experience(1500)
                     .energy(100)
-                    .rank(2)
+                    .rank(0)
                     .isActive(true)
                     .build();
             userRepository.save(developer);
@@ -152,7 +152,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(UserRole.USER)
                     .experience(800)
                     .energy(80)
-                    .rank(1)
+                    .rank(0)
                     .isActive(true)
                     .build();
             userRepository.save(frontendDev);
@@ -165,7 +165,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(UserRole.USER)
                     .experience(200)
                     .energy(50)
-                    .rank(1)
+                    .rank(0)
                     .isActive(true)
                     .build();
             userRepository.save(juniorDev);
@@ -229,7 +229,7 @@ public class DataInitializer implements CommandLineRunner {
             updateUserCompetency(organizer.getId(), communicationChannelComp.getId(), 300);
         }
         
-        // Обновляем компетенции разработчика
+        // Обновляем компетенции 
         if (developer != null && analyticsModuleComp != null) {
             updateUserCompetency(developer.getId(), analyticsModuleComp.getId(), 250);
         }
@@ -237,12 +237,12 @@ public class DataInitializer implements CommandLineRunner {
             updateUserCompetency(developer.getId(), breakthroughImpulseComp.getId(), 200);
         }
         
-        // Обновляем компетенции фронтенд разработчика
+        // Обновляем компетенции 
         if (frontendDev != null && breakthroughImpulseComp != null) {
             updateUserCompetency(frontendDev.getId(), breakthroughImpulseComp.getId(), 150);
         }
         
-        // Обновляем компетенции джуниора
+        // Обновляем компетенции
         if (juniorDev != null && missionPowerComp != null) {
             updateUserCompetency(juniorDev.getId(), missionPowerComp.getId(), 50);
         }
