@@ -21,8 +21,8 @@ public class CompetencyMapper {
         return CompetencyDTO.builder()
                 .id(competency.getId())
                 .name(competency.getName())
+                .shortDescription(competency.getShortDescription())
                 .description(competency.getDescription())
-                .maxLevel(competency.getMaxLevel())
                 .isActive(competency.getIsActive())
                 .build();
     }
@@ -37,8 +37,8 @@ public class CompetencyMapper {
                 .userId(userCompetency.getUser() != null ? userCompetency.getUser().getId() : null)
                 .competencyId(userCompetency.getCompetency() != null ? userCompetency.getCompetency().getId() : null)
                 .competencyName(userCompetency.getCompetency() != null ? userCompetency.getCompetency().getName() : null)
+                .competencyShortDescription(userCompetency.getCompetency() != null ? userCompetency.getCompetency().getShortDescription() : null)
                 .competencyDescription(userCompetency.getCompetency() != null ? userCompetency.getCompetency().getDescription() : null)
-                .level(userCompetency.getCurrentLevel())
                 .experiencePoints(userCompetency.getExperiencePoints())
                 .isActive(true) // UserCompetency не имеет поля isActive, используем true по умолчанию
                 .build();

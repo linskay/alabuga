@@ -1,10 +1,9 @@
 package com.example.alabuga.config;
 
+import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
@@ -17,6 +16,9 @@ import com.example.alabuga.repository.CompetencyRepository;
 import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserCompetencyRepository;
 import com.example.alabuga.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
@@ -34,62 +36,20 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("Инициализация тестовых данных...");
 
-        createCompetencies();
-
         createArtifacts();
  
         createUsers();
      
-        linkUsersWithCompetenciesAndArtifacts();
+        addAllCompetenciesToExistingUsers();
+        
+        // Обновляем существующие компетенции с тестовыми данными
+        updateExistingUserCompetencies();
+        
+        linkUsersWithArtifacts();
         
         log.info("Тестовые данные успешно созданы!");
     }
     
-    private void createCompetencies() {
-        if (competencyRepository.count() == 0) {
-            log.info("Создание компетенций...");
-            
-            Competency java = Competency.builder()
-                    .name("Java Programming")
-                    .description("Программирование на Java")
-                    .maxLevel(100)
-                    .isActive(true)
-                    .build();
-            competencyRepository.save(java);
-            
-            Competency spring = Competency.builder()
-                    .name("Spring Framework")
-                    .description("Работа с Spring Framework")
-                    .maxLevel(100)
-                    .isActive(true)
-                    .build();
-            competencyRepository.save(spring);
-            
-            Competency react = Competency.builder()
-                    .name("React Development")
-                    .description("Разработка на React")
-                    .maxLevel(100)
-                    .isActive(true)
-                    .build();
-            competencyRepository.save(react);
-            
-            Competency leadership = Competency.builder()
-                    .name("Leadership")
-                    .description("Лидерские качества")
-                    .maxLevel(100)
-                    .isActive(true)
-                    .build();
-            competencyRepository.save(leadership);
-            
-            Competency communication = Competency.builder()
-                    .name("Communication")
-                    .description("Коммуникативные навыки")
-                    .maxLevel(100)
-                    .isActive(true)
-                    .build();
-            competencyRepository.save(communication);
-        }
-    }
     
     private void createArtifacts() {
         if (artifactRepository.count() == 0) {
@@ -218,114 +178,105 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
     
-    private void linkUsersWithCompetenciesAndArtifacts() {
-        log.info("Связывание пользователей с компетенциями и артефактами...");
+    private void addAllCompetenciesToExistingUsers() {
+        log.info("Добавление всех компетенций существующим пользователям...");
+        
+        List<User> allUsers = userRepository.findAll();
+        List<Competency> allCompetencies = competencyRepository.findByIsActive(true);
+        
+        for (User user : allUsers) {
+            for (Competency competency : allCompetencies) {
+                // Проверяем, есть ли уже такая компетенция у пользователя
+                boolean exists = userCompetencyRepository.findByUserIdAndCompetencyId(user.getId(), competency.getId()).isPresent();
+                
+                if (!exists) {
+                    UserCompetency userCompetency = UserCompetency.builder()
+                            .user(user)
+                            .competency(competency)
+                            .experiencePoints(0)
+                            .build();
+                    
+                    userCompetencyRepository.save(userCompetency);
+                }
+            }
+        }
+    }
+    
+    private void updateExistingUserCompetencies() {
+        log.info("Обновление существующих компетенций пользователей с тестовыми данными...");
         
         // Получаем пользователей
-        var admin = userRepository.findByLogin("admin").orElse(null);
-        var organizer = userRepository.findByLogin("organizer").orElse(null);
-        var developer = userRepository.findByLogin("developer").orElse(null);
-        var frontendDev = userRepository.findByLogin("frontend").orElse(null);
-        var juniorDev = userRepository.findByLogin("junior").orElse(null);
+        User admin = userRepository.findByLogin("admin").orElse(null);
+        User organizer = userRepository.findByLogin("organizer").orElse(null);
+        User developer = userRepository.findByLogin("developer").orElse(null);
+        User frontendDev = userRepository.findByLogin("frontend").orElse(null);
+        User juniorDev = userRepository.findByLogin("junior").orElse(null);
         
         // Получаем компетенции
-        var javaComp = competencyRepository.findByNameContainingIgnoreCase("Java").stream().findFirst().orElse(null);
-        var springComp = competencyRepository.findByNameContainingIgnoreCase("Spring").stream().findFirst().orElse(null);
-        var reactComp = competencyRepository.findByNameContainingIgnoreCase("React").stream().findFirst().orElse(null);
-        var leadershipComp = competencyRepository.findByNameContainingIgnoreCase("Leadership").stream().findFirst().orElse(null);
-        var communicationComp = competencyRepository.findByNameContainingIgnoreCase("Communication").stream().findFirst().orElse(null);
+        Competency missionPowerComp = competencyRepository.findByNameContainingIgnoreCase("Сила Миссии").stream().findFirst().orElse(null);
+        Competency breakthroughImpulseComp = competencyRepository.findByNameContainingIgnoreCase("Импульс Прорыва").stream().findFirst().orElse(null);
+        Competency communicationChannelComp = competencyRepository.findByNameContainingIgnoreCase("Канал Связи").stream().findFirst().orElse(null);
+        Competency analyticsModuleComp = competencyRepository.findByNameContainingIgnoreCase("Модуль Аналитики").stream().findFirst().orElse(null);
+        Competency commandConsoleComp = competencyRepository.findByNameContainingIgnoreCase("Пульт Командования").stream().findFirst().orElse(null);
+        
+        // Обновляем компетенции админа
+        if (admin != null && missionPowerComp != null) {
+            updateUserCompetency(admin.getId(), missionPowerComp.getId(), 450);
+        }
+        if (admin != null && commandConsoleComp != null) {
+            updateUserCompetency(admin.getId(), commandConsoleComp.getId(), 400);
+        }
+        
+        // Обновляем компетенции организатора
+        if (organizer != null && commandConsoleComp != null) {
+            updateUserCompetency(organizer.getId(), commandConsoleComp.getId(), 350);
+        }
+        if (organizer != null && communicationChannelComp != null) {
+            updateUserCompetency(organizer.getId(), communicationChannelComp.getId(), 300);
+        }
+        
+        // Обновляем компетенции разработчика
+        if (developer != null && analyticsModuleComp != null) {
+            updateUserCompetency(developer.getId(), analyticsModuleComp.getId(), 250);
+        }
+        if (developer != null && breakthroughImpulseComp != null) {
+            updateUserCompetency(developer.getId(), breakthroughImpulseComp.getId(), 200);
+        }
+        
+        // Обновляем компетенции фронтенд разработчика
+        if (frontendDev != null && breakthroughImpulseComp != null) {
+            updateUserCompetency(frontendDev.getId(), breakthroughImpulseComp.getId(), 150);
+        }
+        
+        // Обновляем компетенции джуниора
+        if (juniorDev != null && missionPowerComp != null) {
+            updateUserCompetency(juniorDev.getId(), missionPowerComp.getId(), 50);
+        }
+    }
+    
+    private void updateUserCompetency(Long userId, Long competencyId, Integer experiencePoints) {
+        userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId)
+                .ifPresent(userCompetency -> {
+                    userCompetency.setExperiencePoints(experiencePoints);
+                    userCompetencyRepository.save(userCompetency);
+                });
+    }
+    
+    private void linkUsersWithArtifacts() {
+        log.info("Связывание пользователей с артефактами...");
+        
+        // Получаем пользователей
+        User admin = userRepository.findByLogin("admin").orElse(null);
+        User developer = userRepository.findByLogin("developer").orElse(null);
+        User frontendDev = userRepository.findByLogin("frontend").orElse(null);
+        User juniorDev = userRepository.findByLogin("junior").orElse(null);
         
         // Получаем артефакты
-        var sword = artifactRepository.findByNameContainingIgnoreCase("Меч").stream().findFirst().orElse(null);
-        var shield = artifactRepository.findByNameContainingIgnoreCase("Щит").stream().findFirst().orElse(null);
-        var ring = artifactRepository.findByNameContainingIgnoreCase("Кольцо").stream().findFirst().orElse(null);
-        var potion = artifactRepository.findByNameContainingIgnoreCase("Зелье").stream().findFirst().orElse(null);
-        var staff = artifactRepository.findByNameContainingIgnoreCase("Посох").stream().findFirst().orElse(null);
-        
-        // Связываем админа с компетенциями
-        if (admin != null && javaComp != null) {
-            UserCompetency adminJava = UserCompetency.builder()
-                    .user(admin)
-                    .competency(javaComp)
-                    .currentLevel(95)
-                    .experiencePoints(9500)
-                    .build();
-            userCompetencyRepository.save(adminJava);
-        }
-        
-        if (admin != null && leadershipComp != null) {
-            UserCompetency adminLeadership = UserCompetency.builder()
-                    .user(admin)
-                    .competency(leadershipComp)
-                    .currentLevel(90)
-                    .experiencePoints(9000)
-                    .build();
-            userCompetencyRepository.save(adminLeadership);
-        }
-        
-        // Связываем организатора с компетенциями
-        if (organizer != null && leadershipComp != null) {
-            UserCompetency orgLeadership = UserCompetency.builder()
-                    .user(organizer)
-                    .competency(leadershipComp)
-                    .currentLevel(85)
-                    .experiencePoints(8500)
-                    .build();
-            userCompetencyRepository.save(orgLeadership);
-        }
-        
-        if (organizer != null && communicationComp != null) {
-            UserCompetency orgCommunication = UserCompetency.builder()
-                    .user(organizer)
-                    .competency(communicationComp)
-                    .currentLevel(80)
-                    .experiencePoints(8000)
-                    .build();
-            userCompetencyRepository.save(orgCommunication);
-        }
-        
-        // Связываем разработчика с компетенциями
-        if (developer != null && javaComp != null) {
-            UserCompetency devJava = UserCompetency.builder()
-                    .user(developer)
-                    .competency(javaComp)
-                    .currentLevel(70)
-                    .experiencePoints(7000)
-                    .build();
-            userCompetencyRepository.save(devJava);
-        }
-        
-        if (developer != null && springComp != null) {
-            UserCompetency devSpring = UserCompetency.builder()
-                    .user(developer)
-                    .competency(springComp)
-                    .currentLevel(65)
-                    .experiencePoints(6500)
-                    .build();
-            userCompetencyRepository.save(devSpring);
-        }
-        
-        // Связываем фронтенд разработчика с компетенциями
-        if (frontendDev != null && reactComp != null) {
-            UserCompetency frontendReact = UserCompetency.builder()
-                    .user(frontendDev)
-                    .competency(reactComp)
-                    .currentLevel(60)
-                    .experiencePoints(6000)
-                    .build();
-            userCompetencyRepository.save(frontendReact);
-        }
-        
-        // Связываем джуниора с компетенциями
-        if (juniorDev != null && javaComp != null) {
-            UserCompetency juniorJava = UserCompetency.builder()
-                    .user(juniorDev)
-                    .competency(javaComp)
-                    .currentLevel(25)
-                    .experiencePoints(2500)
-                    .build();
-            userCompetencyRepository.save(juniorJava);
-        }
+        Artifact sword = artifactRepository.findByNameContainingIgnoreCase("Меч").stream().findFirst().orElse(null);
+        Artifact shield = artifactRepository.findByNameContainingIgnoreCase("Щит").stream().findFirst().orElse(null);
+        Artifact ring = artifactRepository.findByNameContainingIgnoreCase("Кольцо").stream().findFirst().orElse(null);
+        Artifact potion = artifactRepository.findByNameContainingIgnoreCase("Зелье").stream().findFirst().orElse(null);
+        Artifact staff = artifactRepository.findByNameContainingIgnoreCase("Посох").stream().findFirst().orElse(null);
         
         // Связываем пользователей с артефактами
         if (admin != null && sword != null) {

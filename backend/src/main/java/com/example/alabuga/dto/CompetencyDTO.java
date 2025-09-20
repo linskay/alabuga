@@ -16,14 +16,15 @@ public class CompetencyDTO {
     @Schema(description = "Уникальный идентификатор компетенции", example = "1")
     private Long id;
     
-    @Schema(description = "Название компетенции", example = "Java Programming")
+    @Schema(description = "Название компетенции", example = "Сила Миссии")
     private String name;
-    
-    @Schema(description = "Описание компетенции", example = "Программирование на Java")
+
+    @Schema(description = "Краткое описание компетенции", example = "Вера в дело")
+    private String shortDescription;
+
+    @Schema(description = "Полное описание компетенции", example = "Умение держать курс даже тогда, когда звёзды гаснут. Показывает преданность цели и устойчивость в испытаниях.")
     private String description;
     
-    @Schema(description = "Максимальный уровень компетенции", example = "100")
-    private Integer maxLevel;
     
     @Schema(description = "Активна ли компетенция", example = "true")
     private Boolean isActive;
