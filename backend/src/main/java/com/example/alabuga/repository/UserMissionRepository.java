@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.alabuga.entity.MissionStatus;
 import com.example.alabuga.entity.UserMission;
 
 @Repository
@@ -24,4 +25,6 @@ public interface UserMissionRepository extends JpaRepository<UserMission, Long> 
     
     @Query("SELECT um FROM UserMission um WHERE um.user.id = :userId AND um.mission.branchId = :branchId")
     List<UserMission> findByUserIdAndBranchId(@Param("userId") Long userId, @Param("branchId") Long branchId);
+    
+    List<UserMission> findByMissionIdAndStatusIn(Long missionId, List<MissionStatus> statuses);
 }

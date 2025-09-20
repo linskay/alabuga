@@ -7,7 +7,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.alabuga.dto.MissionCreateDTO;
 import com.example.alabuga.dto.MissionDTO;
+import com.example.alabuga.dto.MissionUpdateDTO;
 import com.example.alabuga.dto.UserMissionDTO;
 import com.example.alabuga.entity.Mission;
 import com.example.alabuga.entity.MissionStatus;
@@ -102,18 +104,23 @@ public class MissionService {
             userMission.setNotes(notes);
         }
         
-        // Если прогресс достиг 100%, завершаем миссию
+        // Если прогресс достиг 100%, проверяем нужна ли модерация
         if (userMission.getProgress() >= 100) {
-            userMission.setStatus(MissionStatus.COMPLETED);
-            userMission.setCompletedAt(LocalDateTime.now());
-            
-            // Начисляем награды пользователю
-            User user = userMission.getUser();
             Mission mission = userMission.getMission();
-            
-            user.setExperience(user.getExperience() + mission.getExperienceReward());
-            user.setMana(user.getMana() + mission.getManaReward());
-            userRepository.save(user);
+            if (mission.getRequiresModeration()) {
+                // Миссия требует модерации - оставляем в статусе IN_PROGRESS
+                // Пользователь не может завершить миссию самостоятельно
+            } else {
+                // Миссия не требует модерации - завершаем автоматически
+                userMission.setStatus(MissionStatus.COMPLETED);
+                userMission.setCompletedAt(LocalDateTime.now());
+                
+                // Начисляем награды пользователю
+                User user = userMission.getUser();
+                user.setExperience(user.getExperience() + mission.getExperienceReward());
+                user.setMana(user.getMana() + mission.getManaReward());
+                userRepository.save(user);
+            }
         }
         
         UserMission savedUserMission = userMissionRepository.save(userMission);
@@ -129,17 +136,85 @@ public class MissionService {
             throw new BusinessLogicException("Миссия уже завершена");
         }
         
+        Mission mission = userMission.getMission();
+        if (mission.getRequiresModeration()) {
+            throw new BusinessLogicException("Миссия требует модерации и не может быть завершена пользователем");
+        }
+        
         userMission.setStatus(MissionStatus.COMPLETED);
         userMission.setProgress(100);
         userMission.setCompletedAt(LocalDateTime.now());
         
         // Начисляем награды пользователю
         User user = userMission.getUser();
-        Mission mission = userMission.getMission();
-        
         user.setExperience(user.getExperience() + mission.getExperienceReward());
         user.setMana(user.getMana() + mission.getManaReward());
         userRepository.save(user);
+        
+        UserMission savedUserMission = userMissionRepository.save(userMission);
+        return missionMapper.toUserMissionDTO(savedUserMission);
+    }
+
+    @Transactional
+    public MissionDTO createMission(MissionCreateDTO missionCreateDTO) {
+        Mission mission = missionMapper.toEntity(missionCreateDTO);
+        Mission savedMission = missionRepository.save(mission);
+        return missionMapper.toDTO(savedMission);
+    }
+
+    @Transactional
+    public MissionDTO updateMission(Long id, MissionUpdateDTO missionUpdateDTO) {
+        Mission mission = missionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Миссия", id));
+        
+        missionMapper.updateEntity(mission, missionUpdateDTO);
+        Mission savedMission = missionRepository.save(mission);
+        return missionMapper.toDTO(savedMission);
+    }
+
+    @Transactional
+    public void deleteMission(Long id) {
+        Mission mission = missionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Миссия", id));
+        
+        // Проверяем, есть ли активные пользовательские миссии
+        List<UserMission> activeUserMissions = userMissionRepository.findByMissionIdAndStatusIn(
+                id, List.of(MissionStatus.IN_PROGRESS, MissionStatus.NOT_STARTED));
+        
+        if (!activeUserMissions.isEmpty()) {
+            throw new BusinessLogicException("Нельзя удалить миссию с активными пользователями");
+        }
+        
+        missionRepository.delete(mission);
+    }
+
+    @Transactional
+    public UserMissionDTO moderateMission(Long userId, Long missionId, boolean approved) {
+        UserMission userMission = userMissionRepository.findByUserIdAndMissionId(userId, missionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Прогресс миссии", missionId));
+        
+        Mission mission = userMission.getMission();
+        if (!mission.getRequiresModeration()) {
+            throw new BusinessLogicException("Миссия не требует модерации");
+        }
+        
+        if (userMission.getStatus() != MissionStatus.IN_PROGRESS) {
+            throw new BusinessLogicException("Миссия не в процессе выполнения");
+        }
+        
+        if (approved) {
+            userMission.setStatus(MissionStatus.COMPLETED);
+            userMission.setProgress(100);
+            userMission.setCompletedAt(LocalDateTime.now());
+            
+            // Начисляем награды пользователю
+            User user = userMission.getUser();
+            user.setExperience(user.getExperience() + mission.getExperienceReward());
+            user.setMana(user.getMana() + mission.getManaReward());
+            userRepository.save(user);
+        } else {
+            userMission.setStatus(MissionStatus.FAILED);
+        }
         
         UserMission savedUserMission = userMissionRepository.save(userMission);
         return missionMapper.toUserMissionDTO(savedUserMission);
