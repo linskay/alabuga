@@ -66,4 +66,13 @@ public class Mission {
     @Builder.Default
     @Schema(description = "Активна ли миссия", example = "true", defaultValue = "true")
     private Boolean isActive = true;
+
+    @Column(name = "requires_moderation", nullable = false)
+    @Builder.Default
+    @Schema(description = "Требует ли миссия модерации", example = "false", defaultValue = "false")
+    private Boolean requiresModeration = false;
+
+    @Column(name = "artifact_reward_id")
+    @Schema(description = "ID артефакта в качестве награды", example = "1")
+    private Long artifactRewardId;
 }

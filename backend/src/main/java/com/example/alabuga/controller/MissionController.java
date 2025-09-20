@@ -3,15 +3,19 @@ package com.example.alabuga.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.alabuga.dto.MissionCreateDTO;
 import com.example.alabuga.dto.MissionDTO;
+import com.example.alabuga.dto.MissionUpdateDTO;
 import com.example.alabuga.dto.UserMissionDTO;
 import com.example.alabuga.service.MissionService;
 
@@ -94,6 +98,40 @@ public class MissionController {
             @Parameter(description = "ID пользователя") @RequestParam Long userId,
             @Parameter(description = "ID миссии") @RequestParam Long missionId) {
         UserMissionDTO userMission = missionService.completeMission(userId, missionId);
+        return ResponseEntity.ok(userMission);
+    }
+
+    @PostMapping
+    @Operation(summary = "Создать миссию")
+    public ResponseEntity<MissionDTO> createMission(@RequestBody MissionCreateDTO missionCreateDTO) {
+        MissionDTO mission = missionService.createMission(missionCreateDTO);
+        return ResponseEntity.ok(mission);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Обновить миссию")
+    public ResponseEntity<MissionDTO> updateMission(
+            @Parameter(description = "ID миссии") @PathVariable Long id,
+            @RequestBody MissionUpdateDTO missionUpdateDTO) {
+        MissionDTO mission = missionService.updateMission(id, missionUpdateDTO);
+        return ResponseEntity.ok(mission);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить миссию")
+    public ResponseEntity<Void> deleteMission(
+            @Parameter(description = "ID миссии") @PathVariable Long id) {
+        missionService.deleteMission(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/moderate")
+    @Operation(summary = "Модерировать миссию")
+    public ResponseEntity<UserMissionDTO> moderateMission(
+            @Parameter(description = "ID пользователя") @RequestParam Long userId,
+            @Parameter(description = "ID миссии") @RequestParam Long missionId,
+            @Parameter(description = "Одобрено ли") @RequestParam Boolean approved) {
+        UserMissionDTO userMission = missionService.moderateMission(userId, missionId, approved);
         return ResponseEntity.ok(userMission);
     }
 }
