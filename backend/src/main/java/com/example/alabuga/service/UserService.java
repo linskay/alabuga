@@ -81,6 +81,10 @@ public class UserService {
         
         User user = userMapper.toEntity(userCreateDTO);
         User savedUser = userRepository.save(user);
+        
+        // Добавляем все компетенции новому пользователю
+        addAllCompetenciesToUser(savedUser.getId());
+        
         return userMapper.toDTO(savedUser);
     }
     
@@ -221,7 +225,6 @@ public class UserService {
         UserCompetency userCompetency = UserCompetency.builder()
                 .user(user)
                 .competency(competency)
-                .currentLevel(initialLevel != null ? initialLevel : 0)
                 .experiencePoints(0)
                 .build();
         
@@ -230,14 +233,13 @@ public class UserService {
     }
     
     @Transactional
-    public UserCompetencyDTO updateCompetencyLevel(Long userId, Long competencyId, Integer newLevel, Integer experiencePoints) {
+    public UserCompetencyDTO updateCompetencyExperience(Long userId, Long competencyId, Integer experiencePoints) {
         UserCompetency userCompetency = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Компетенция у пользователя"));
         
-        userCompetency.setCurrentLevel(newLevel);
-        if (experiencePoints != null) {
-            userCompetency.setExperiencePoints(experiencePoints);
-        }
+        // Устанавливаем очки опыта (максимум 500)
+        int newExperiencePoints = Math.min(experiencePoints, 500);
+        userCompetency.setExperiencePoints(newExperiencePoints);
         
         UserCompetency savedUserCompetency = userCompetencyRepository.save(userCompetency);
         return competencyMapper.toDTO(savedUserCompetency);
@@ -297,4 +299,43 @@ public class UserService {
         UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
         return artifactMapper.toDTO(savedUserArtifact);
     }
+    
+    // ========== COMPETENCY TRACKING METHODS ==========
+    
+    @Transactional
+    public void addAllCompetenciesToUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
+        
+        List<Competency> allCompetencies = competencyRepository.findByIsActive(true);
+        
+        for (Competency competency : allCompetencies) {
+            // Проверяем, есть ли уже такая компетенция у пользователя
+            boolean exists = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competency.getId()).isPresent();
+            
+            if (!exists) {
+                UserCompetency userCompetency = UserCompetency.builder()
+                        .user(user)
+                        .competency(competency)
+                        .experiencePoints(0)
+                        .build();
+                
+                userCompetencyRepository.save(userCompetency);
+            }
+        }
+    }
+    
+    @Transactional
+    public UserCompetencyDTO addExperienceToCompetency(Long userId, Long competencyId, Integer experiencePoints) {
+        UserCompetency userCompetency = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Компетенция у пользователя"));
+        
+        // Добавляем очки опыта (максимум 500)
+        int newExperiencePoints = Math.min(userCompetency.getExperiencePoints() + experiencePoints, 500);
+        userCompetency.setExperiencePoints(newExperiencePoints);
+        
+        UserCompetency savedUserCompetency = userCompetencyRepository.save(userCompetency);
+        return competencyMapper.toDTO(savedUserCompetency);
+    }
+    
 }

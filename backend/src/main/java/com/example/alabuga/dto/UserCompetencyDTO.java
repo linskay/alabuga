@@ -22,14 +22,15 @@ public class UserCompetencyDTO {
     @Schema(description = "ID компетенции", example = "1")
     private Long competencyId;
     
-    @Schema(description = "Название компетенции", example = "Java Programming")
+    @Schema(description = "Название компетенции", example = "Сила Миссии")
     private String competencyName;
-    
-    @Schema(description = "Описание компетенции", example = "Программирование на Java")
+
+    @Schema(description = "Краткое описание компетенции", example = "Вера в дело")
+    private String competencyShortDescription;
+
+    @Schema(description = "Полное описание компетенции", example = "Умение держать курс даже тогда, когда звёзды гаснут. Показывает преданность цели и устойчивость в испытаниях.")
     private String competencyDescription;
     
-    @Schema(description = "Текущий уровень компетенции", example = "95")
-    private Integer level;
     
     @Schema(description = "Очки опыта в компетенции", example = "9500")
     private Integer experiencePoints;

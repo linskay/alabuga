@@ -206,13 +206,12 @@ public class UserController {
     }
     
     @PutMapping("/{id}/competencies/{competencyId}")
-    @Operation(summary = "Обновить уровень компетенции пользователя")
-    public ResponseEntity<UserCompetencyDTO> updateCompetencyLevel(
+    @Operation(summary = "Обновить очки опыта компетенции пользователя")
+    public ResponseEntity<UserCompetencyDTO> updateCompetencyExperience(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "ID компетенции") @PathVariable Long competencyId,
-            @Parameter(description = "Новый уровень") @RequestParam Integer newLevel,
-            @Parameter(description = "Очки опыта") @RequestParam(required = false) Integer experiencePoints) {
-        UserCompetencyDTO userCompetency = userService.updateCompetencyLevel(id, competencyId, newLevel, experiencePoints);
+            @Parameter(description = "Очки опыта (максимум 500)") @RequestParam Integer experiencePoints) {
+        UserCompetencyDTO userCompetency = userService.updateCompetencyExperience(id, competencyId, experiencePoints);
         return ResponseEntity.ok(userCompetency);
     }
     
@@ -258,5 +257,17 @@ public class UserController {
             @Parameter(description = "ID артефакта") @PathVariable Long artifactId) {
         UserArtifactDTO userArtifact = userService.unequipArtifact(id, artifactId);
         return ResponseEntity.ok(userArtifact);
+    }
+    
+    // ========== COMPETENCY TRACKING ENDPOINTS ==========
+    
+    @PostMapping("/{id}/competencies/{competencyId}/experience")
+    @Operation(summary = "Добавить опыт к компетенции")
+    public ResponseEntity<UserCompetencyDTO> addExperienceToCompetency(
+            @Parameter(description = "ID пользователя") @PathVariable Long id,
+            @Parameter(description = "ID компетенции") @PathVariable Long competencyId,
+            @Parameter(description = "Количество очков опыта") @RequestParam Integer experiencePoints) {
+        UserCompetencyDTO userCompetency = userService.addExperienceToCompetency(id, competencyId, experiencePoints);
+        return ResponseEntity.ok(userCompetency);
     }
 }

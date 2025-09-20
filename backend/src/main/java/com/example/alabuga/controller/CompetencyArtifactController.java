@@ -68,8 +68,8 @@ public class CompetencyArtifactController {
                 .orElseThrow(() -> new ResourceNotFoundException("Компетенция", id));
         
         existingCompetency.setName(competencyDetails.getName());
+        existingCompetency.setShortDescription(competencyDetails.getShortDescription());
         existingCompetency.setDescription(competencyDetails.getDescription());
-        existingCompetency.setMaxLevel(competencyDetails.getMaxLevel());
         existingCompetency.setIsActive(competencyDetails.getIsActive());
         
         Competency updatedCompetency = competencyRepository.save(existingCompetency);

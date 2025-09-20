@@ -27,17 +27,17 @@ public class Competency {
     private Long id;
 
     @Column(name = "name", nullable = false, length = 100)
-    @Schema(description = "Название компетенции", example = "Java Programming")
+    @Schema(description = "Название компетенции", example = "Сила Миссии")
     private String name;
 
-    @Column(name = "description", length = 500)
-    @Schema(description = "Описание компетенции", example = "Программирование на Java")
+    @Column(name = "short_description", length = 200)
+    @Schema(description = "Краткое описание компетенции", example = "Вера в дело")
+    private String shortDescription;
+
+    @Column(name = "description", length = 1000)
+    @Schema(description = "Полное описание компетенции", example = "Умение держать курс даже тогда, когда звёзды гаснут. Показывает преданность цели и устойчивость в испытаниях.")
     private String description;
 
-    @Column(name = "max_level", nullable = false)
-    @Builder.Default
-    @Schema(description = "Максимальный уровень компетенции", example = "100", defaultValue = "100")
-    private Integer maxLevel = 100;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default

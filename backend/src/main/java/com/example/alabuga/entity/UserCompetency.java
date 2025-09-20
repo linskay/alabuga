@@ -44,13 +44,8 @@ public class UserCompetency {
     @Schema(description = "Компетенция")
     private Competency competency;
 
-    @Column(name = "current_level", nullable = false)
-    @Builder.Default
-    @Schema(description = "Текущий уровень компетенции", example = "95", defaultValue = "0")
-    private Integer currentLevel = 0;
-
     @Column(name = "experience_points", nullable = false)
     @Builder.Default
-    @Schema(description = "Очки опыта в компетенции", example = "9500", defaultValue = "0")
+    @Schema(description = "Очки опыта в компетенции (максимум 500)", example = "450", defaultValue = "0")
     private Integer experiencePoints = 0;
 }
