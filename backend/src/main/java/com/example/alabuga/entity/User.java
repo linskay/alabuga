@@ -49,8 +49,9 @@ public class User {
     private String email;
     
     @Column(name = "password_hash", nullable = false)
+    @Builder.Default
     @Schema(description = "Хеш пароля пользователя", example = "$2a$10$...")
-    private String passwordHash;
+    private String passwordHash = "default_password";
     
     @Column(name = "first_name", nullable = false, length = 50)
     @Schema(description = "Имя пользователя", example = "Админ")
@@ -78,8 +79,8 @@ public class User {
     
     @Column(name = "rank", nullable = false)
     @Builder.Default
-    @Schema(description = "Ранг пользователя", example = "5")
-    private Integer rank = 1;
+    @Schema(description = "Ранг пользователя", example = "0")
+    private Integer rank = 0;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
