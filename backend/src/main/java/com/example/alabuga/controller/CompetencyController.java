@@ -14,10 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
 import com.example.alabuga.exception.ResourceNotFoundException;
-import com.example.alabuga.repository.ArtifactRepository;
 import com.example.alabuga.repository.CompetencyRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,13 +24,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api")
-@Tag(name = "Competency & Artifact Management", description = "API для управления компетенциями и артефактами")
+@RequestMapping("/api/competencies")
+@Tag(name = "Competency Management", description = "API для управления компетенциями")
 @RequiredArgsConstructor
-public class CompetencyArtifactController {
+public class CompetencyController {
 
     private final CompetencyRepository competencyRepository;
-    private final ArtifactRepository artifactRepository;
     
     // ========== COMPETENCY MANAGEMENT ==========
     
@@ -95,73 +92,4 @@ public class CompetencyArtifactController {
         return ResponseEntity.ok(competencies);
     }
     
-    // ========== ARTIFACT MANAGEMENT ==========
-    
-    @GetMapping("/artifacts")
-    @Operation(summary = "Получить все артефакты")
-    public ResponseEntity<List<Artifact>> getAllArtifacts() {
-        List<Artifact> artifacts = artifactRepository.findByIsActive(true);
-        return ResponseEntity.ok(artifacts);
-    }
-    
-    @GetMapping("/artifacts/{id}")
-    @Operation(summary = "Получить артефакт по ID")
-    public ResponseEntity<Artifact> getArtifactById(
-            @Parameter(description = "ID артефакта") @PathVariable Long id) {
-        Artifact artifact = artifactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
-        return ResponseEntity.ok(artifact);
-    }
-    
-    @PostMapping("/artifacts")
-    @Operation(summary = "Создать новый артефакт")
-    public ResponseEntity<Artifact> createArtifact(@RequestBody Artifact artifact) {
-        Artifact savedArtifact = artifactRepository.save(artifact);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedArtifact);
-    }
-    
-    @PutMapping("/artifacts/{id}")
-    @Operation(summary = "Обновить артефакт")
-    public ResponseEntity<Artifact> updateArtifact(
-            @Parameter(description = "ID артефакта") @PathVariable Long id,
-            @RequestBody Artifact artifactDetails) {
-        Artifact existingArtifact = artifactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
-        
-        existingArtifact.setName(artifactDetails.getName());
-        existingArtifact.setDescription(artifactDetails.getDescription());
-        existingArtifact.setRarity(artifactDetails.getRarity());
-        existingArtifact.setPowerLevel(artifactDetails.getPowerLevel());
-        existingArtifact.setIsActive(artifactDetails.getIsActive());
-        
-        Artifact updatedArtifact = artifactRepository.save(existingArtifact);
-        return ResponseEntity.ok(updatedArtifact);
-    }
-    
-    @DeleteMapping("/artifacts/{id}")
-    @Operation(summary = "Удалить артефакт")
-    public ResponseEntity<Void> deleteArtifact(
-            @Parameter(description = "ID артефакта") @PathVariable Long id) {
-        Artifact artifact = artifactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
-        
-        artifactRepository.delete(artifact);
-        return ResponseEntity.noContent().build();
-    }
-    
-    @GetMapping("/artifacts/rarity/{rarity}")
-    @Operation(summary = "Получить артефакты по редкости")
-    public ResponseEntity<List<Artifact>> getArtifactsByRarity(
-            @Parameter(description = "Редкость артефакта") @PathVariable Artifact.ArtifactRarity rarity) {
-        List<Artifact> artifacts = artifactRepository.findByRarity(rarity);
-        return ResponseEntity.ok(artifacts);
-    }
-    
-    @GetMapping("/artifacts/search")
-    @Operation(summary = "Поиск артефактов по названию")
-    public ResponseEntity<List<Artifact>> searchArtifacts(
-            @Parameter(description = "Название для поиска") @RequestParam String name) {
-        List<Artifact> artifacts = artifactRepository.findByNameContainingIgnoreCase(name);
-        return ResponseEntity.ok(artifacts);
-    }
 }

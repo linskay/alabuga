@@ -25,8 +25,11 @@ public class UserArtifactDTO {
     @Schema(description = "Название артефакта", example = "Меч Кодера")
     private String artifactName;
     
-    @Schema(description = "Описание артефакта", example = "Легендарный меч, увеличивающий скорость программирования")
-    private String artifactDescription;
+    @Schema(description = "Краткое описание артефакта", example = "Увеличивает скорость программирования")
+    private String artifactShortDescription;
+    
+    @Schema(description = "URL изображения артефакта", example = "https://example.com/images/sword-coder.jpg")
+    private String artifactImageUrl;
     
     @Schema(description = "Редкость артефакта", example = "LEGENDARY")
     private String artifactRarity;

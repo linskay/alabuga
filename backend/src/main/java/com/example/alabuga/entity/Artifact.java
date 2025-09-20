@@ -32,18 +32,18 @@ public class Artifact {
     @Schema(description = "Название артефакта", example = "Меч Кодера")
     private String name;
 
-    @Column(name = "description", length = 500)
-    @Schema(description = "Описание артефакта", example = "Легендарный меч, увеличивающий скорость программирования")
-    private String description;
+    @Column(name = "short_description", length = 200)
+    @Schema(description = "Краткое описание артефакта", example = "Увеличивает скорость программирования")
+    private String shortDescription;
+
+    @Column(name = "image_url", length = 500)
+    @Schema(description = "URL изображения артефакта", example = "https://example.com/images/sword-coder.jpg")
+    private String imageUrl;
 
     @Column(name = "rarity", nullable = false)
     @Enumerated(EnumType.STRING)
     @Schema(description = "Редкость артефакта", example = "LEGENDARY")
     private ArtifactRarity rarity;
-
-    @Column(name = "power_level", nullable = false)
-    @Schema(description = "Уровень силы артефакта", example = "100")
-    private Integer powerLevel;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default

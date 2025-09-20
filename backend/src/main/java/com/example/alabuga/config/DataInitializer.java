@@ -56,46 +56,41 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Создание артефактов...");
             
             Artifact sword = Artifact.builder()
-                    .name("Меч Кодера")
-                    .description("Легендарный меч, увеличивающий скорость программирования")
+                    .name("Меч Звёздного Воина")
+                    .shortDescription("За успешное завершение миссии приведи друга")
                     .rarity(Artifact.ArtifactRarity.LEGENDARY)
-                    .powerLevel(95)
                     .isActive(true)
                     .build();
             artifactRepository.save(sword);
             
             Artifact shield = Artifact.builder()
-                    .name("Щит Тестировщика")
-                    .description("Защищает от багов и ошибок")
+                    .name("Щит Галактического Защитника")
+                    .shortDescription("Защищает от космических угроз")
                     .rarity(Artifact.ArtifactRarity.EPIC)
-                    .powerLevel(80)
                     .isActive(true)
                     .build();
             artifactRepository.save(shield);
             
             Artifact ring = Artifact.builder()
-                    .name("Кольцо Алгоритмов")
-                    .description("Улучшает понимание алгоритмов")
+                    .name("Кольцо Навигатора")
+                    .shortDescription("Улучшает ориентацию в космосе")
                     .rarity(Artifact.ArtifactRarity.RARE)
-                    .powerLevel(65)
                     .isActive(true)
                     .build();
             artifactRepository.save(ring);
             
             Artifact potion = Artifact.builder()
-                    .name("Зелье Мотивации")
-                    .description("Восстанавливает энергию разработчика")
+                    .name("Энергетический Концентрат")
+                    .shortDescription("Восстанавливает энергию космонавта")
                     .rarity(Artifact.ArtifactRarity.COMMON)
-                    .powerLevel(30)
                     .isActive(true)
                     .build();
             artifactRepository.save(potion);
             
             Artifact staff = Artifact.builder()
-                    .name("Посох Архитектора")
-                    .description("Помогает проектировать системы")
+                    .name("Посох Космического Архитектора")
+                    .shortDescription("Помогает проектировать космические станции")
                     .rarity(Artifact.ArtifactRarity.EPIC)
-                    .powerLevel(85)
                     .isActive(true)
                     .build();
             artifactRepository.save(staff);
@@ -107,11 +102,11 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Создание пользователей...");
             
             User admin = User.builder()
-                    .login("admin")
-                    .email("admin@alabuga.com")
+                    .login("commander")
+                    .email("commander@alabuga.com")
                     .passwordHash("admin123")
-                    .firstName("Админ")
-                    .lastName("Системы")
+                    .firstName("Командир")
+                    .lastName("Звёздного Флота")
                     .role(UserRole.HR)
                     .experience(5000)
                     .mana(200)
@@ -121,11 +116,11 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
             
             User organizer = User.builder()
-                    .login("organizer")
-                    .email("organizer@alabuga.com")
+                    .login("coordinator")
+                    .email("coordinator@alabuga.com")
                     .passwordHash("org123")
-                    .firstName("Организатор")
-                    .lastName("Событий")
+                    .firstName("Координатор")
+                    .lastName("Миссий")
                     .role(UserRole.ORGANIZER)
                     .experience(3000)
                     .mana(150)
@@ -135,11 +130,11 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(organizer);
             
             User developer = User.builder()
-                    .login("developer")
-                    .email("dev@alabuga.com")
+                    .login("pilot")
+                    .email("pilot@alabuga.com")
                     .passwordHash("dev123")
-                    .firstName("Разработчик")
-                    .lastName("Java")
+                    .firstName("Пилот")
+                    .lastName("Космического Корабля")
                     .role(UserRole.USER)
                     .experience(1500)
                     .mana(100)
@@ -149,11 +144,11 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(developer);
             
             User frontendDev = User.builder()
-                    .login("frontend")
-                    .email("frontend@alabuga.com")
+                    .login("navigator")
+                    .email("navigator@alabuga.com")
                     .passwordHash("front123")
-                    .firstName("Фронтенд")
-                    .lastName("Разработчик")
+                    .firstName("Навигатор")
+                    .lastName("Галактики")
                     .role(UserRole.USER)
                     .experience(800)
                     .mana(80)
@@ -163,11 +158,10 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(frontendDev);
             
             User juniorDev = User.builder()
-                    .login("junior")
-                    .email("junior@alabuga.com")
-                    .passwordHash("junior123")
-                    .firstName("Джуниор")
-                    .lastName("Программист")
+                    .login("cadet")
+                    .email("cadet@alabuga.com")
+                    .firstName("Кадет")
+                    .lastName("Академии")
                     .role(UserRole.USER)
                     .experience(200)
                     .mana(50)
@@ -206,11 +200,11 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Обновление существующих компетенций пользователей с тестовыми данными...");
         
         // Получаем пользователей
-        User admin = userRepository.findByLogin("admin").orElse(null);
-        User organizer = userRepository.findByLogin("organizer").orElse(null);
-        User developer = userRepository.findByLogin("developer").orElse(null);
-        User frontendDev = userRepository.findByLogin("frontend").orElse(null);
-        User juniorDev = userRepository.findByLogin("junior").orElse(null);
+        User admin = userRepository.findByLogin("commander").orElse(null);
+        User organizer = userRepository.findByLogin("coordinator").orElse(null);
+        User developer = userRepository.findByLogin("pilot").orElse(null);
+        User frontendDev = userRepository.findByLogin("navigator").orElse(null);
+        User juniorDev = userRepository.findByLogin("cadet").orElse(null);
         
         // Получаем компетенции
         Competency missionPowerComp = competencyRepository.findByNameContainingIgnoreCase("Сила Миссии").stream().findFirst().orElse(null);
@@ -266,57 +260,57 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Связывание пользователей с артефактами...");
         
         // Получаем пользователей
-        User admin = userRepository.findByLogin("admin").orElse(null);
-        User developer = userRepository.findByLogin("developer").orElse(null);
-        User frontendDev = userRepository.findByLogin("frontend").orElse(null);
-        User juniorDev = userRepository.findByLogin("junior").orElse(null);
+        User admin = userRepository.findByLogin("commander").orElse(null);
+        User developer = userRepository.findByLogin("pilot").orElse(null);
+        User frontendDev = userRepository.findByLogin("navigator").orElse(null);
+        User juniorDev = userRepository.findByLogin("cadet").orElse(null);
         
         // Получаем артефакты
-        Artifact sword = artifactRepository.findByNameContainingIgnoreCase("Меч").stream().findFirst().orElse(null);
-        Artifact shield = artifactRepository.findByNameContainingIgnoreCase("Щит").stream().findFirst().orElse(null);
-        Artifact ring = artifactRepository.findByNameContainingIgnoreCase("Кольцо").stream().findFirst().orElse(null);
-        Artifact potion = artifactRepository.findByNameContainingIgnoreCase("Зелье").stream().findFirst().orElse(null);
-        Artifact staff = artifactRepository.findByNameContainingIgnoreCase("Посох").stream().findFirst().orElse(null);
+        Artifact sword = artifactRepository.findByNameContainingIgnoreCase("Меч Звёздного").stream().findFirst().orElse(null);
+        Artifact shield = artifactRepository.findByNameContainingIgnoreCase("Щит Галактического").stream().findFirst().orElse(null);
+        Artifact ring = artifactRepository.findByNameContainingIgnoreCase("Кольцо Навигатора").stream().findFirst().orElse(null);
+        Artifact potion = artifactRepository.findByNameContainingIgnoreCase("Энергетический").stream().findFirst().orElse(null);
+        Artifact staff = artifactRepository.findByNameContainingIgnoreCase("Посох Космического").stream().findFirst().orElse(null);
         
-        // Связываем пользователей с артефактами
+        // Связываем космонавтов с артефактами
         if (admin != null && sword != null) {
-            UserArtifact adminSword = UserArtifact.builder()
+            UserArtifact commanderSword = UserArtifact.builder()
                     .user(admin)
                     .artifact(sword)
                     .acquiredAt(java.time.LocalDateTime.now())
                     .isEquipped(true)
                     .build();
-            userArtifactRepository.save(adminSword);
+            userArtifactRepository.save(commanderSword);
         }
         
         if (developer != null && shield != null) {
-            UserArtifact devShield = UserArtifact.builder()
+            UserArtifact pilotShield = UserArtifact.builder()
                     .user(developer)
                     .artifact(shield)
                     .acquiredAt(java.time.LocalDateTime.now())
                     .isEquipped(true)
                     .build();
-            userArtifactRepository.save(devShield);
+            userArtifactRepository.save(pilotShield);
         }
         
         if (frontendDev != null && ring != null) {
-            UserArtifact frontendRing = UserArtifact.builder()
+            UserArtifact navigatorRing = UserArtifact.builder()
                     .user(frontendDev)
                     .artifact(ring)
                     .acquiredAt(java.time.LocalDateTime.now())
                     .isEquipped(false)
                     .build();
-            userArtifactRepository.save(frontendRing);
+            userArtifactRepository.save(navigatorRing);
         }
         
         if (juniorDev != null && potion != null) {
-            UserArtifact juniorPotion = UserArtifact.builder()
+            UserArtifact cadetPotion = UserArtifact.builder()
                     .user(juniorDev)
                     .artifact(potion)
                     .acquiredAt(java.time.LocalDateTime.now())
                     .isEquipped(true)
                     .build();
-            userArtifactRepository.save(juniorPotion);
+            userArtifactRepository.save(cadetPotion);
         }
     }
 }
