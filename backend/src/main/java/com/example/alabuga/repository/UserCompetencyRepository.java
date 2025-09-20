@@ -1,13 +1,14 @@
 package com.example.alabuga.repository;
 
-import com.example.alabuga.entity.UserCompetency;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.alabuga.entity.UserCompetency;
 
 @Repository
 public interface UserCompetencyRepository extends JpaRepository<UserCompetency, Long> {
@@ -16,6 +17,6 @@ public interface UserCompetencyRepository extends JpaRepository<UserCompetency, 
     
     Optional<UserCompetency> findByUserIdAndCompetencyId(Long userId, Long competencyId);
     
-    @Query("SELECT uc FROM UserCompetency uc WHERE uc.user.id = :userId AND uc.currentLevel >= :minLevel")
-    List<UserCompetency> findByUserIdAndCurrentLevelGreaterThanEqual(@Param("userId") Long userId, @Param("minLevel") Integer minLevel);
+    @Query("SELECT uc FROM UserCompetency uc WHERE uc.user.id = :userId AND uc.experiencePoints >= :minExperience")
+    List<UserCompetency> findByUserIdAndExperiencePointsGreaterThanEqual(@Param("userId") Long userId, @Param("minExperience") Integer minExperience);
 }
