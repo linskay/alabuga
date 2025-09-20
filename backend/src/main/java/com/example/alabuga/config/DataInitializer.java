@@ -109,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
                     .lastName("Звёздного Флота")
                     .role(UserRole.HR)
                     .experience(5000)
-                    .mana(200)
+                    .energy(200)
                     .rank(5)
                     .isActive(true)
                     .build();
@@ -123,7 +123,7 @@ public class DataInitializer implements CommandLineRunner {
                     .lastName("Миссий")
                     .role(UserRole.ORGANIZER)
                     .experience(3000)
-                    .mana(150)
+                    .energy(150)
                     .rank(3)
                     .isActive(true)
                     .build();
@@ -137,7 +137,7 @@ public class DataInitializer implements CommandLineRunner {
                     .lastName("Космического Корабля")
                     .role(UserRole.USER)
                     .experience(1500)
-                    .mana(100)
+                    .energy(100)
                     .rank(2)
                     .isActive(true)
                     .build();
@@ -151,7 +151,7 @@ public class DataInitializer implements CommandLineRunner {
                     .lastName("Галактики")
                     .role(UserRole.USER)
                     .experience(800)
-                    .mana(80)
+                    .energy(80)
                     .rank(1)
                     .isActive(true)
                     .build();
@@ -164,7 +164,7 @@ public class DataInitializer implements CommandLineRunner {
                     .lastName("Академии")
                     .role(UserRole.USER)
                     .experience(200)
-                    .mana(50)
+                    .energy(50)
                     .rank(1)
                     .isActive(true)
                     .build();

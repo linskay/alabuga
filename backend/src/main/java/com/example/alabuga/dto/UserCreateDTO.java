@@ -53,8 +53,8 @@ public class UserCreateDTO {
     private Integer experience = 0;
     
     @Builder.Default
-    @Schema(description = "Начальная мана пользователя", example = "100", defaultValue = "100")
-    private Integer mana = 100;
+    @Schema(description = "Начальные Энергоны пользователя", example = "100", defaultValue = "100")
+    private Integer energy = 100;
     
     @Builder.Default
     @Schema(description = "Начальный ранг пользователя", example = "1", defaultValue = "1")

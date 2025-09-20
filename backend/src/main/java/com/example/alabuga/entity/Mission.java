@@ -54,9 +54,9 @@ public class Mission {
     @Schema(description = "Награда опыта", example = "50")
     private Integer experienceReward;
 
-    @Column(name = "mana_reward", nullable = false)
-    @Schema(description = "Награда маны", example = "25")
-    private Integer manaReward;
+    @Column(name = "energy_reward", nullable = false)
+    @Schema(description = "Награда Энергонов", example = "25")
+    private Integer energyReward;
 
     @Column(name = "required_competencies", length = 500)
     @Schema(description = "Требуемые компетенции (JSON)", example = "[\"navigation\", \"engineering\"]")

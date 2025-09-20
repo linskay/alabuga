@@ -9,8 +9,6 @@ import com.example.alabuga.dto.UserCreateDTO;
 import com.example.alabuga.dto.UserDTO;
 import com.example.alabuga.dto.UserUpdateDTO;
 import com.example.alabuga.entity.User;
-import com.example.alabuga.entity.UserArtifact;
-import com.example.alabuga.entity.UserCompetency;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +32,7 @@ public class UserMapper {
                 .lastName(user.getLastName())
                 .role(user.getRole())
                 .experience(user.getExperience())
-                .mana(user.getMana())
+                .energy(user.getEnergy())
                 .rank(user.getRank())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
@@ -58,12 +56,11 @@ public class UserMapper {
         return User.builder()
                 .login(dto.getLogin())
                 .email(dto.getEmail())
-                .passwordHash(dto.getPassword()) // В реальном приложении здесь должно быть хеширование
-                .firstName(dto.getFirstName())
+                .passwordHash(dto.getPassword()) // toDo: хеширование
                 .lastName(dto.getLastName())
                 .role(dto.getRole())
                 .experience(dto.getExperience())
-                .mana(dto.getMana())
+                .energy(dto.getEnergy())
                 .rank(dto.getRank())
                 .isActive(true)
                 .build();
@@ -81,7 +78,7 @@ public class UserMapper {
             user.setEmail(dto.getEmail());
         }
         if (dto.getPassword() != null) {
-            user.setPasswordHash(dto.getPassword()); // В реальном приложении здесь должно быть хеширование
+            user.setPasswordHash(dto.getPassword()); // toDo: хеширование
         }
         if (dto.getFirstName() != null) {
             user.setFirstName(dto.getFirstName());
@@ -95,8 +92,8 @@ public class UserMapper {
         if (dto.getExperience() != null) {
             user.setExperience(dto.getExperience());
         }
-        if (dto.getMana() != null) {
-            user.setMana(dto.getMana());
+        if (dto.getEnergy() != null) {
+            user.setEnergy(dto.getEnergy());
         }
         if (dto.getRank() != null) {
             user.setRank(dto.getRank());

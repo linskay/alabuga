@@ -39,8 +39,8 @@ public class UserDTO {
     @Schema(description = "Опыт пользователя", example = "5000")
     private Integer experience;
     
-    @Schema(description = "Мана пользователя", example = "200")
-    private Integer mana;
+    @Schema(description = "Энергоны пользователя", example = "200")
+    private Integer energy;
     
     @Schema(description = "Ранг пользователя", example = "5")
     private Integer rank;

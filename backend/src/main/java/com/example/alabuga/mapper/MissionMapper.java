@@ -34,7 +34,7 @@ public class MissionMapper {
                 .type(mission.getType().name())
                 .difficulty(mission.getDifficulty().name())
                 .experienceReward(mission.getExperienceReward())
-                .manaReward(mission.getManaReward())
+                .energyReward(mission.getEnergyReward())
                 .requiredCompetencies(mission.getRequiredCompetencies())
                 .isActive(mission.getIsActive())
                 .requiresModeration(mission.getRequiresModeration())
@@ -95,7 +95,7 @@ public class MissionMapper {
                 .type(parseMissionType(dto.getType()))
                 .difficulty(parseMissionDifficulty(dto.getDifficulty()))
                 .experienceReward(dto.getExperienceReward())
-                .manaReward(dto.getManaReward())
+                .energyReward(dto.getEnergyReward())
                 .requiredCompetencies(dto.getRequiredCompetencies())
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .requiresModeration(dto.getRequiresModeration() != null ? dto.getRequiresModeration() : false)
@@ -126,8 +126,8 @@ public class MissionMapper {
         if (dto.getExperienceReward() != null) {
             mission.setExperienceReward(dto.getExperienceReward());
         }
-        if (dto.getManaReward() != null) {
-            mission.setManaReward(dto.getManaReward());
+        if (dto.getEnergyReward() != null) {
+            mission.setEnergyReward(dto.getEnergyReward());
         }
         if (dto.getRequiredCompetencies() != null) {
             mission.setRequiredCompetencies(dto.getRequiredCompetencies());
