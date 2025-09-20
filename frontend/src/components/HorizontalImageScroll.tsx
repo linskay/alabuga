@@ -408,7 +408,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               <img
                 src="/images/1.png"
-                alt="Space Image 1"
+                alt="Space 1"
                 className="w-[800px] h-[800px] object-contain drop-shadow-2xl"
               />
             </motion.div>
@@ -547,7 +547,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               <img
                 src="/images/2.png"
-                alt="Space Image 2"
+                alt="Space 2"
                 className="w-[800px] h-[800px] object-contain drop-shadow-2xl"
               />
             </motion.div>
@@ -714,9 +714,10 @@ const HorizontalImageScroll: React.FC = () => {
 
               <img
                 src="/images/3.png"
-                alt="Space Image 3"
+                alt="Space 3"
                 className="w-[1020px] h-[1020px] object-contain drop-shadow-2xl"
               />
+
             </motion.div>
           </div>
         </div>

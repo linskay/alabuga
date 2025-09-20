@@ -2,11 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import HomePage from './HomePage';
 import ScrollPage from './ScrollPage';
+import DashboardPage from './DashboardPage';
+import MapPage from './MapPage';
+import MissionsPage from './MissionsPage';
+import ShipPage from './ShipPage';
+import CrewPage from './CrewPage';
+import TerminalPage from './TerminalPage';
+import AdminPage from './AdminPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 import CookiesPage from './CookiesPage';
 
-const LandingPage: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'scroll' | 'privacy' | 'cookies'>('home');
+interface LandingPageProps {
+  onEnter: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
+  const [currentPage, setCurrentPage] = useState<'home' | 'scroll' | 'dashboard' | 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin' | 'privacy' | 'cookies'>('home');
 
   useEffect(() => {
     // Check current page based on hash
@@ -32,10 +43,35 @@ const LandingPage: React.FC = () => {
   }, []);
 
   const handleEnter = () => {
-    setCurrentPage('scroll');
+    setCurrentPage('dashboard'); // Переходим сразу на Dashboard
+  };
+
+  const handleScroll = () => {
+    setCurrentPage('scroll'); // Переходим на ScrollPage при скролле
   };
 
   const handleBack = () => {
+    setCurrentPage('home');
+  };
+
+  const handleEnterDashboard = () => {
+    setCurrentPage('dashboard'); // Переходим на Dashboard
+  };
+
+  const handleBackFromDashboard = () => {
+    setCurrentPage('scroll'); // Возвращаемся к ScrollPage
+  };
+
+  // Handlers for individual pages
+  const handleNavigateToPage = (page: 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin') => {
+    setCurrentPage(page);
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentPage('dashboard');
+  };
+
+  const handleExit = () => {
     setCurrentPage('home');
   };
 
@@ -62,9 +98,25 @@ const LandingPage: React.FC = () => {
   return (
     <AnimatePresence mode="wait">
       {currentPage === 'home' ? (
-        <HomePage key="home" onEnter={handleEnter} onPrivacyClick={handlePrivacyClick} onCookiesClick={handleCookiesClick} />
+        <HomePage key="home" onEnter={handleEnter} onScroll={handleScroll} onPrivacyClick={handlePrivacyClick} onCookiesClick={handleCookiesClick} />
       ) : currentPage === 'scroll' ? (
-        <ScrollPage key="scroll" onBack={handleBack} onPrivacyClick={handlePrivacyClick} onCookiesClick={handleCookiesClick} />
+        <ScrollPage key="scroll" onBack={handleBack} onEnterDashboard={handleEnterDashboard} onPrivacyClick={handlePrivacyClick} onCookiesClick={handleCookiesClick} />
+      ) : currentPage === 'dashboard' ? (
+        <DashboardPage key="dashboard" onBack={handleBackFromDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'profile' ? (
+        <DashboardPage key="profile" onBack={handleBackFromDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'map' ? (
+        <MapPage key="map" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'missions' ? (
+        <MissionsPage key="missions" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'ship' ? (
+        <ShipPage key="ship" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'crew' ? (
+        <CrewPage key="crew" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'terminal' ? (
+        <TerminalPage key="terminal" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
+      ) : currentPage === 'admin' ? (
+        <AdminPage key="admin" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
       ) : currentPage === 'privacy' ? (
         <PrivacyPolicyPage key="privacy" onBack={handlePrivacyBack} />
       ) : (

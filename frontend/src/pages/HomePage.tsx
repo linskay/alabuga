@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // import ParallaxBackground from '../components/ParallaxBackground';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import Loader from '../components/ui/Loader';
+import Loader from '../components/Loader';
 import AnimatedStars from '../components/AnimatedStars';
 import AnimatedText from '../components/AnimatedText';
 import ScrollHint from '../components/ScrollHint';
@@ -11,6 +11,7 @@ import styled from 'styled-components';
 
 interface HomePageProps {
   onEnter: () => void;
+  onScroll?: () => void;
   onPrivacyClick?: () => void;
   onCookiesClick?: () => void;
 }
@@ -266,7 +267,8 @@ const StyledButton = styled.div`
   }
 `;
 
-const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesClick }) => {
+
+const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, onCookiesClick }) => {
   const [showLoader, setShowLoader] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -335,18 +337,18 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      // Если пользователь скроллит вниз, переходим на лендинговую страницу
+      // Если пользователь скроллит вниз, переходим на ScrollPage
       if (e.deltaY > 0) {
-        onEnter();
+        onScroll?.();
       }
     };
 
     window.addEventListener('wheel', handleWheel);
     return () => window.removeEventListener('wheel', handleWheel);
-  }, [onEnter]);
+  }, [onScroll]);
 
   const handleLearnMore = () => {
-    onEnter(); // Переходим на страницу с горизонтальной прокруткой
+    onEnter(); // Переходим сразу на Dashboard
   };
 
   const toggleMenu = () => {

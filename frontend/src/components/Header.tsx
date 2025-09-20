@@ -3,15 +3,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LoginForm from './LoginForm';
 import BackButton from './BackButton';
 import LoginButton from './LoginButton';
+import ExitButton from './ExitButton';
 
 interface HeaderProps {
   onMenuToggle: () => void;
   showBackButton?: boolean;
   onBack?: () => void;
   showLoginButton?: boolean;
+  onLoginClick?: () => void;
+  showExitButton?: boolean;
+  onExitClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, onBack, showLoginButton = true }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, onBack, showLoginButton = true, onLoginClick, showExitButton = false, onExitClick }) => {
   const [showLogin, setShowLogin] = useState(false);
 
   const handleMouseEnter = () => {
@@ -52,34 +56,42 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
         </h1>
       </motion.div>
 
-      {/* Кнопка входа справа */}
-      {showLoginButton && (
-        <div className="relative">
-          <div
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            <LoginButton onClick={() => {}}>
-              <span className="hidden sm:inline">Вход в систему</span>
-              <span className="sm:hidden">Вход</span>
-            </LoginButton>
-          </div>
+      {/* Кнопки справа */}
+      <div className="flex items-center space-x-3">
+        {/* Кнопка входа */}
+        {showLoginButton && (
+          <div className="relative">
+            <div
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <LoginButton onClick={onLoginClick || (() => {})}>
+                <span className="hidden sm:inline">Вход в систему</span>
+                <span className="sm:hidden">Вход</span>
+              </LoginButton>
+            </div>
 
-          <AnimatePresence>
-            {showLogin && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="absolute top-full right-0 mt-2 z-50"
-              >
-                <LoginForm />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
+            <AnimatePresence>
+              {showLogin && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full right-0 mt-2 z-50"
+                >
+                  <LoginForm />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Кнопка выхода */}
+        {showExitButton && (
+          <ExitButton onClick={onExitClick} />
+        )}
+      </div>
     </motion.header>
   );
 };
