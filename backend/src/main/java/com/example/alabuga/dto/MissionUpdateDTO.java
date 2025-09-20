@@ -36,9 +36,9 @@ public class MissionUpdateDTO {
     @Schema(description = "Награда опыта", example = "50")
     private Integer experienceReward;
 
-    @Positive(message = "Награда маны должна быть положительной")
-    @Schema(description = "Награда маны", example = "25")
-    private Integer manaReward;
+    @Positive(message = "Награда Энергонов должна быть положительной")
+    @Schema(description = "Награда Энергонов", example = "25")
+    private Integer energyReward;
 
     @Size(max = 500, message = "Требуемые компетенции не могут превышать 500 символов")
     @Schema(description = "Требуемые компетенции (JSON)", example = "[\"navigation\", \"engineering\"]")

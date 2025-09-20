@@ -173,25 +173,25 @@ public class UserService {
     }
     
     @Transactional
-    public UserDTO addMana(Long userId, Integer mana) {
+    public UserDTO addEnergy(Long userId, Integer energy) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
-        user.setMana(user.getMana() + mana);
+        user.setEnergy(user.getEnergy() + energy);
         User savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
     }
     
     @Transactional
-    public UserDTO spendMana(Long userId, Integer mana) {
+    public UserDTO spendEnergy(Long userId, Integer energy) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
-        if (user.getMana() < mana) {
-            throw new BusinessLogicException("Недостаточно маны. Текущая мана: %d, требуется: %d", user.getMana(), mana);
+        if (user.getEnergy() < energy) {
+            throw new BusinessLogicException("Недостаточно Энергонов. Текущие Энергоны: %d, требуется: %d", user.getEnergy(), energy);
         }
         
-        user.setMana(user.getMana() - mana);
+        user.setEnergy(user.getEnergy() - energy);
         User savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
     }

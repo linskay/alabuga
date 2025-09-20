@@ -35,7 +35,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.QUEST)
                 .difficulty(MissionDifficulty.EASY)
                 .experienceReward(50)
-                .manaReward(25)
+                .energyReward(25)
                 .requiredCompetencies("[]")
                 .isActive(true)
                 .build(),
@@ -47,7 +47,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.QUEST)
                 .difficulty(MissionDifficulty.EASY)
                 .experienceReward(75)
-                .manaReward(30)
+                .energyReward(30)
                 .requiredCompetencies("[]")
                 .isActive(true)
                 .build(),
@@ -60,7 +60,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.CHALLENGE)
                 .difficulty(MissionDifficulty.MEDIUM)
                 .experienceReward(100)
-                .manaReward(50)
+                .energyReward(50)
                 .requiredCompetencies("[\"communication\"]")
                 .isActive(true)
                 .build(),
@@ -72,7 +72,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.QUEST)
                 .difficulty(MissionDifficulty.MEDIUM)
                 .experienceReward(80)
-                .manaReward(40)
+                .energyReward(40)
                 .requiredCompetencies("[\"communication\", \"creativity\"]")
                 .isActive(true)
                 .build(),
@@ -85,7 +85,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.TEST)
                 .difficulty(MissionDifficulty.MEDIUM)
                 .experienceReward(120)
-                .manaReward(60)
+                .energyReward(60)
                 .requiredCompetencies("[\"navigation\"]")
                 .isActive(true)
                 .build(),
@@ -97,7 +97,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.TEST)
                 .difficulty(MissionDifficulty.HARD)
                 .experienceReward(150)
-                .manaReward(75)
+                .energyReward(75)
                 .requiredCompetencies("[\"engineering\", \"science\"]")
                 .isActive(true)
                 .build(),
@@ -110,7 +110,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.SIMULATION)
                 .difficulty(MissionDifficulty.HARD)
                 .experienceReward(200)
-                .manaReward(100)
+                .energyReward(100)
                 .requiredCompetencies("[\"navigation\", \"engineering\", \"science\"]")
                 .isActive(true)
                 .build(),
@@ -122,7 +122,7 @@ public class MissionInitializer implements CommandLineRunner {
                 .type(MissionType.SIMULATION)
                 .difficulty(MissionDifficulty.EXPERT)
                 .experienceReward(300)
-                .manaReward(150)
+                .energyReward(150)
                 .requiredCompetencies("[\"navigation\", \"engineering\", \"science\", \"problem_solving\"]")
                 .isActive(true)
                 .build()

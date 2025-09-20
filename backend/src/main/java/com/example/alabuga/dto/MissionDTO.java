@@ -37,8 +37,8 @@ public class MissionDTO {
     @Schema(description = "Награда опыта", example = "50")
     private Integer experienceReward;
 
-    @Schema(description = "Награда маны", example = "25")
-    private Integer manaReward;
+    @Schema(description = "Награда Энергонов", example = "25")
+    private Integer energyReward;
 
     @Schema(description = "Требуемые компетенции", example = "[\"navigation\", \"engineering\"]")
     private String requiredCompetencies;

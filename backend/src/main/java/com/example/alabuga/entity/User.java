@@ -71,10 +71,10 @@ public class User {
     @Schema(description = "Опыт пользователя", example = "5000")
     private Integer experience = 0;
     
-    @Column(name = "mana", nullable = false)
+    @Column(name = "energy", nullable = false)
     @Builder.Default
-    @Schema(description = "Мана пользователя", example = "200")
-    private Integer mana = 100;
+    @Schema(description = "Энергоны пользователя", example = "200")
+    private Integer energy = 100;
     
     @Column(name = "rank", nullable = false)
     @Builder.Default

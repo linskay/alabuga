@@ -118,7 +118,7 @@ public class MissionService {
                 // Начисляем награды пользователю
                 User user = userMission.getUser();
                 user.setExperience(user.getExperience() + mission.getExperienceReward());
-                user.setMana(user.getMana() + mission.getManaReward());
+                        user.setEnergy(user.getEnergy() + mission.getEnergyReward());
                 userRepository.save(user);
             }
         }
@@ -148,7 +148,7 @@ public class MissionService {
         // Начисляем награды пользователю
         User user = userMission.getUser();
         user.setExperience(user.getExperience() + mission.getExperienceReward());
-        user.setMana(user.getMana() + mission.getManaReward());
+                        user.setEnergy(user.getEnergy() + mission.getEnergyReward());
         userRepository.save(user);
         
         UserMission savedUserMission = userMissionRepository.save(userMission);
@@ -210,7 +210,7 @@ public class MissionService {
             // Начисляем награды пользователю
             User user = userMission.getUser();
             user.setExperience(user.getExperience() + mission.getExperienceReward());
-            user.setMana(user.getMana() + mission.getManaReward());
+                        user.setEnergy(user.getEnergy() + mission.getEnergyReward());
             userRepository.save(user);
         } else {
             userMission.setStatus(MissionStatus.FAILED);

@@ -43,10 +43,10 @@ public class MissionCreateDTO {
     @Schema(description = "Награда опыта", example = "50", required = true)
     private Integer experienceReward;
 
-    @NotNull(message = "Награда маны обязательна")
-    @Positive(message = "Награда маны должна быть положительной")
-    @Schema(description = "Награда маны", example = "25", required = true)
-    private Integer manaReward;
+    @NotNull(message = "Награда Энергонов обязательна")
+    @Positive(message = "Награда Энергонов должна быть положительной")
+    @Schema(description = "Награда Энергонов", example = "25", required = true)
+    private Integer energyReward;
 
     @Size(max = 500, message = "Требуемые компетенции не могут превышать 500 символов")
     @Schema(description = "Требуемые компетенции (JSON)", example = "[\"navigation\", \"engineering\"]")

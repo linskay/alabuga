@@ -160,21 +160,21 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
     
-    @PostMapping("/{id}/mana")
-    @Operation(summary = "Добавить ману пользователю")
-    public ResponseEntity<UserDTO> addMana(
+    @PostMapping("/{id}/energy")
+    @Operation(summary = "Добавить Энергоны пользователю")
+    public ResponseEntity<UserDTO> addEnergy(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
-            @Parameter(description = "Количество маны") @RequestParam Integer mana) {
-        UserDTO user = userService.addMana(id, mana);
+            @Parameter(description = "Количество Энергонов") @RequestParam Integer energy) {
+        UserDTO user = userService.addEnergy(id, energy);
         return ResponseEntity.ok(user);
     }
     
-    @PostMapping("/{id}/mana/spend")
-    @Operation(summary = "Потратить ману пользователя")
-    public ResponseEntity<UserDTO> spendMana(
+    @PostMapping("/{id}/energy/spend")
+    @Operation(summary = "Потратить Энергоны пользователя")
+    public ResponseEntity<UserDTO> spendEnergy(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
-            @Parameter(description = "Количество маны для траты") @RequestParam Integer mana) {
-        UserDTO user = userService.spendMana(id, mana);
+            @Parameter(description = "Количество Энергонов для траты") @RequestParam Integer energy) {
+        UserDTO user = userService.spendEnergy(id, energy);
         return ResponseEntity.ok(user);
     }
     
