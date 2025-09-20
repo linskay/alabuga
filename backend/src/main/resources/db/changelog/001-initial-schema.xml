@@ -81,7 +81,40 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="005-create-indexes" author="developer">
+    <changeSet id="005-create-notifications-table" author="developer">
+        <createTable tableName="notifications">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notification_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_read" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata" type="VARCHAR(1000)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="006-add-foreign-keys" author="developer">
+        <addForeignKeyConstraint baseTableName="notifications" baseColumnNames="user_id" 
+                                 constraintName="fk_notifications_user" 
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="007-create-indexes" author="developer">
         <createIndex tableName="users" indexName="idx_users_login">
             <column name="login"/>
         </createIndex>
@@ -93,6 +126,15 @@
         </createIndex>
         <createIndex tableName="rank_requirements" indexName="idx_rank_requirements_level">
             <column name="rank_level"/>
+        </createIndex>
+        <createIndex tableName="notifications" indexName="idx_notifications_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="notifications" indexName="idx_notifications_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="notifications" indexName="idx_notifications_type">
+            <column name="notification_type"/>
         </createIndex>
     </changeSet>
 

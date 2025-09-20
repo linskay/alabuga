@@ -312,5 +312,17 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             userArtifactRepository.save(cadetPotion);
         }
+        
+        // Связываем организатора с посохом
+        User organizer = userRepository.findByLogin("coordinator").orElse(null);
+        if (organizer != null && staff != null) {
+            UserArtifact coordinatorStaff = UserArtifact.builder()
+                    .user(organizer)
+                    .artifact(staff)
+                    .acquiredAt(java.time.LocalDateTime.now())
+                    .isEquipped(true)
+                    .build();
+            userArtifactRepository.save(coordinatorStaff);
+        }
     }
 }

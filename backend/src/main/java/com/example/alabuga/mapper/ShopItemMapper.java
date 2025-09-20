@@ -44,12 +44,17 @@ public class ShopItemMapper {
             return null;
         }
 
+        Boolean isActive = dto.getIsActive();
+        if (isActive == null) {
+            isActive = Boolean.TRUE;
+        }
+
         return ShopItem.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .price(dto.getPrice())
                 .imageUrl(dto.getImageUrl())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .isActive(isActive)
                 .stockQuantity(dto.getStockQuantity())
                 .build();
     }

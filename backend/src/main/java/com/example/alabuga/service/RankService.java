@@ -33,6 +33,7 @@ public class RankService {
     private final UserCompetencyRepository userCompetencyRepository;
     private final UserMissionRepository userMissionRepository;
     private final RankMapper rankMapper;
+    private final NotificationService notificationService;
     
     // ========== RANK MANAGEMENT ==========
     
@@ -134,6 +135,9 @@ public class RankService {
         // Повышаем ранг
         user.setRank(nextRank.getLevel());
         User savedUser = userRepository.save(user);
+        
+        // Создаем уведомление о повышении ранга
+        notificationService.createRankPromotionNotification(savedUser, currentRank, nextRank);
         
         return savedUser;
     }

@@ -16,6 +16,7 @@ import com.example.alabuga.dto.UserDTO;
 import com.example.alabuga.dto.UserUpdateDTO;
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
+import com.example.alabuga.entity.Rank;
 import com.example.alabuga.entity.User;
 import com.example.alabuga.entity.UserArtifact;
 import com.example.alabuga.entity.UserCompetency;
@@ -47,6 +48,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final CompetencyMapper competencyMapper;
     private final ArtifactMapper artifactMapper;
+    private final NotificationService notificationService;
     
   
     public List<UserDTO> getAllUsers() {
@@ -84,6 +86,10 @@ public class UserService {
         
         // Добавляем все компетенции новому пользователю
         addAllCompetenciesToUser(savedUser.getId());
+        
+        // Создаем уведомление о присвоении начального ранга
+        Rank initialRank = Rank.fromLevel(savedUser.getRank());
+        notificationService.createRankAssignmentNotification(savedUser, initialRank);
         
         return userMapper.toDTO(savedUser);
     }

@@ -26,6 +26,7 @@ public class ShopService {
     private final ShopItemRepository shopItemRepository;
     private final UserRepository userRepository;
     private final ShopItemMapper shopItemMapper;
+    private final NotificationService notificationService;
     
     public List<ShopItemDTO> getAllShopItems() {
         List<ShopItem> shopItems = shopItemRepository.findAll();
@@ -116,6 +117,9 @@ public class ShopService {
             shopItem.setStockQuantity(shopItem.getStockQuantity() - 1);
             shopItemRepository.save(shopItem);
         }
+        
+        // Создаем уведомление о покупке
+        notificationService.createShopPurchaseNotification(user, shopItem.getName(), shopItem.getPrice());
         
         // Формируем сообщение подтверждения
         String confirmationMessage = String.format(

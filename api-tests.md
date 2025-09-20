@@ -443,7 +443,74 @@ curl -X GET "http://localhost:8080/api/ranks/can-promote?userId=1" \
   -H "Content-Type: application/json"
 ```
 
-## 11. Swagger UI
+## 11. Системные Уведомления (Notifications)
+
+### Получить все уведомления пользователя
+```bash
+curl -X GET "http://localhost:8080/api/notifications/user/1" \
+  -H "Content-Type: application/json"
+```
+
+### Получить непрочитанные уведомления пользователя
+```bash
+curl -X GET "http://localhost:8080/api/notifications/user/1/unread" \
+  -H "Content-Type: application/json"
+```
+
+### Получить уведомление по ID
+```bash
+curl -X GET "http://localhost:8080/api/notifications/1" \
+  -H "Content-Type: application/json"
+```
+
+### Создать новое уведомление
+```bash
+curl -X POST "http://localhost:8080/api/notifications" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 1,
+    "title": "Тестовое уведомление",
+    "content": "Содержимое уведомления",
+    "notificationType": "SYSTEM_MESSAGE",
+    "metadata": "{\"test\": true}"
+  }'
+```
+
+### Обновить уведомление
+```bash
+curl -X PUT "http://localhost:8080/api/notifications/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Обновленное уведомление",
+    "isRead": true
+  }'
+```
+
+### Удалить уведомление
+```bash
+curl -X DELETE "http://localhost:8080/api/notifications/1" \
+  -H "Content-Type: application/json"
+```
+
+### Отметить уведомление как прочитанное
+```bash
+curl -X PUT "http://localhost:8080/api/notifications/1/read" \
+  -H "Content-Type: application/json"
+```
+
+### Отметить все уведомления пользователя как прочитанные
+```bash
+curl -X PUT "http://localhost:8080/api/notifications/user/1/read-all" \
+  -H "Content-Type: application/json"
+```
+
+### Получить количество непрочитанных уведомлений
+```bash
+curl -X GET "http://localhost:8080/api/notifications/user/1/unread-count" \
+  -H "Content-Type: application/json"
+```
+
+## 12. Swagger UI
 
 ### Открыть Swagger UI в браузере
 ```
@@ -471,6 +538,9 @@ curl -X GET "http://localhost:8080/api/shop" | jq '.[0]'
 
 # Ранги
 curl -X GET "http://localhost:8080/api/ranks" | jq '.[0]'
+
+# Уведомления
+curl -X GET "http://localhost:8080/api/notifications/user/1" | jq '.[0]'
 ```
 
 ## Примечания

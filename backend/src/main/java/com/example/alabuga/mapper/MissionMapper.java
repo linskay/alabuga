@@ -97,8 +97,8 @@ public class MissionMapper {
                 .experienceReward(dto.getExperienceReward())
                 .energyReward(dto.getEnergyReward())
                 .requiredCompetencies(dto.getRequiredCompetencies())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
-                .requiresModeration(dto.getRequiresModeration() != null ? dto.getRequiresModeration() : false)
+                .isActive(dto.getIsActive() != null ? dto.getIsActive() : Boolean.TRUE)
+                .requiresModeration(dto.getRequiresModeration() != null ? dto.getRequiresModeration() : Boolean.FALSE)
                 .artifactRewardId(dto.getArtifactRewardId())
                 .build();
     }
