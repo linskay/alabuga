@@ -21,7 +21,7 @@ const AstronautCard = () => {
 
 const ProfileScreen: React.FC = () => {
   return (
-    <div className="h-full pb-8 overflow-y-auto">
+    <div className="h-full pb-8 overflow-y-auto max-h-screen">
       {/* PyramidLoader2 Component */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}

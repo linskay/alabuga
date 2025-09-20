@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const MapScreen: React.FC = () => {
   return (
-    <div className="h-full pb-8 overflow-y-auto">
+    <div className="h-full pb-8 overflow-y-auto max-h-screen">
 
       {/* Map Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

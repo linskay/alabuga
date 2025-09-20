@@ -165,9 +165,9 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex-1 flex justify-center"
+          className="flex-1 flex justify-center overflow-hidden"
         >
-          <div className="w-full max-w-7xl mx-auto px-4">
+          <div className="w-full max-w-7xl mx-auto px-4 h-full">
             {children}
           </div>
         </motion.div>

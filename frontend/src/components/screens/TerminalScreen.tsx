@@ -242,7 +242,7 @@ const TerminalScreen: React.FC = () => {
   );
 
   return (
-    <div className="h-full pb-8 overflow-y-auto">
+    <div className="h-full pb-8 overflow-y-auto max-h-screen">
 
       {/* Tabs */}
       <motion.div

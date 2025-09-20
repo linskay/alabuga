@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const ShipScreen: React.FC = () => {
   return (
-    <div className="h-full pb-8 overflow-y-auto">
+    <div className="h-full pb-8 overflow-y-auto max-h-screen">
 
       {/* Ship Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
