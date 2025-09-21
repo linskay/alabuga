@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import AnimatedStars from '../components/AnimatedStars';
 import StonesMenu from '../components/StonesMenu';
 import ProfileScreen from '../components/screens/ProfileScreen';
+import { use404 } from '../hooks/use404';
 
 export type ScreenType = 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin';
 
@@ -18,6 +19,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('profile');
   const [isLoaded, setIsLoaded] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { show404 } = use404();
 
   useEffect(() => {
     // Анимация загрузки
@@ -76,14 +78,16 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         showLoginButton={false} 
         showExitButton={true}
         onExitClick={onExit}
+        show404Button={true}
+        on404Click={show404}
       />
 
-      {/* Cosmic Radial Menu */}
+      {/* Stones Menu */}
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="fixed top-20 left-8 z-50"
+        className="w-full flex justify-center pt-20 pb-4 z-50"
       >
         <StonesMenu 
           onNavigateToPage={onNavigateToPage || (() => {})}
@@ -95,7 +99,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full h-full"
+        className="relative z-10 w-full h-full flex flex-col"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -104,9 +108,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="w-full h-full"
+            className="flex-1 flex justify-center overflow-hidden"
           >
-            {renderCurrentScreen()}
+            <div className="w-full max-w-7xl mx-auto h-full">
+              {renderCurrentScreen()}
+            </div>
           </motion.div>
         </AnimatePresence>
       </motion.div>

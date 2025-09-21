@@ -295,7 +295,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
         
         setTimeout(() => {
           setShowButton(true);
-        }, 20000);
+        }, 3000);
       }
     };
 
@@ -315,7 +315,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
       
       setTimeout(() => {
         setShowButton(true);
-      }, 20000);
+      }, 3000);
     } else {
       // Слушаем событие загрузки
       window.addEventListener('load', checkLoaded);
@@ -401,7 +401,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ duration: 0.5 }}
-          className="relative z-10 w-full flex-1 flex items-end justify-center pb-20"
+          className="relative z-10 w-full flex-1 flex items-center justify-center"
         >
           {/* Видео с эффектом размытия */}
           <AnimatePresence>
@@ -443,7 +443,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
             {showText && <AnimatedText />}
           </AnimatePresence>
 
-          {/* Кнопка Войти */}
+          {/* Кнопка Войти и Scroll Hint - внизу экрана */}
           <AnimatePresence>
             {showButton && (
               <motion.div
@@ -451,7 +451,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-30"
+                className="absolute bottom-8 left-2/5 transform -translate-x-1/2 z-30"
               >
                 <StyledButton>
                   <div className="flex justify-center items-center">
@@ -471,7 +471,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
                 
                 {/* Scroll Hint */}
                 <motion.div
-                  className="mt-12"
+                  className="mt-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 1 }}

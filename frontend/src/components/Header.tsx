@@ -4,6 +4,7 @@ import LoginForm from './LoginForm';
 import BackButton from './BackButton';
 import LoginButton from './LoginButton';
 import ExitButton from './ExitButton';
+import AnimatedTitle from './AnimatedTitle';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -13,9 +14,11 @@ interface HeaderProps {
   onLoginClick?: () => void;
   showExitButton?: boolean;
   onExitClick?: () => void;
+  show404Button?: boolean;
+  on404Click?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, onBack, showLoginButton = true, onLoginClick, showExitButton = false, onExitClick }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, onBack, showLoginButton = true, onLoginClick, showExitButton = false, onExitClick, show404Button = false, on404Click }) => {
   const [showLogin, setShowLogin] = useState(false);
 
   const handleMouseEnter = () => {
@@ -38,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
         WebkitBackdropFilter: 'blur(20px)'
       }}
     >
-      {/* Логотип с надписью слева */}
+      {/* Логотип с анимированной надписью слева */}
       <motion.div
         className="flex items-center space-x-3"
         whileHover={{ scale: 1.05 }}
@@ -46,14 +49,53 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
         {showBackButton && onBack && (
           <BackButton onBack={onBack} />
         )}
-        <img 
-          src="/images/logo.png" 
-          alt="Алабуга.TECH" 
-          className="w-8 h-8 sm:w-10 sm:h-10"
-        />
-        <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent">
-          Алабуга.TECH
-        </h1>
+        <div className="relative group">
+          <img 
+            src="/images/logo.png" 
+            alt="Алабуга.TECH" 
+            className="w-8 h-8 sm:w-10 sm:h-10 relative z-10 transition-all duration-300 group-hover:scale-110"
+            style={{
+              filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 30px rgba(0, 255, 255, 0.2))',
+              animation: 'pulse 2s ease-in-out infinite alternate'
+            }}
+            onError={(e) => {
+              // Fallback к текстовому логотипу если изображение не загружается
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) {
+                fallback.style.display = 'flex';
+                console.log('Logo image failed to load, showing fallback');
+              }
+            }}
+            onLoad={() => {
+              console.log('Logo image loaded successfully');
+            }}
+          />
+          {/* Fallback логотип */}
+          <div 
+            className="w-8 h-8 sm:w-10 sm:h-10 relative z-10 transition-all duration-300 group-hover:scale-110 items-center justify-center font-bold text-cyan-400 text-xs sm:text-sm"
+            style={{
+              display: 'none',
+              filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 30px rgba(0, 255, 255, 0.2))',
+              animation: 'pulse 2s ease-in-out infinite alternate'
+            }}
+          >
+            AT
+          </div>
+          {/* Дополнительное свечение */}
+          <div 
+            className="absolute inset-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full opacity-30 transition-all duration-300 group-hover:opacity-50 group-hover:scale-150"
+            style={{
+              background: 'radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%)',
+              animation: 'pulse 2s ease-in-out infinite alternate',
+              transform: 'scale(1.5)',
+              zIndex: 1
+            }}
+          />
+        </div>
+        <div className="relative">
+          <AnimatedTitle />
+        </div>
       </motion.div>
 
       {/* Кнопки справа */}
@@ -87,11 +129,35 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
           </div>
         )}
 
+        {/* Кнопка 404 (для демонстрации) */}
+        {show404Button && (
+          <button
+            onClick={on404Click}
+            className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
+          >
+            404
+          </button>
+        )}
+
         {/* Кнопка выхода */}
         {showExitButton && (
           <ExitButton onClick={onExitClick} />
         )}
       </div>
+      
+      {/* CSS для анимации свечения */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse {
+            0% {
+              filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 30px rgba(0, 255, 255, 0.2));
+            }
+            100% {
+              filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.8)) drop-shadow(0 0 25px rgba(0, 255, 255, 0.6)) drop-shadow(0 0 35px rgba(0, 255, 255, 0.4));
+            }
+          }
+        `
+      }} />
     </motion.header>
   );
 };

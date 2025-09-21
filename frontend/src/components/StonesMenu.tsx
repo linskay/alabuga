@@ -91,17 +91,19 @@ const StonesMenu: React.FC<StonesMenuProps> = ({ onNavigateToPage }) => {
       <div className="card">
         <div className="stones-container">
           {stones.map((stone) => (
-            <div key={stone.id} className="stone-wrapper" onClick={() => onNavigateToPage(stone.id as 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin')}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="stone">
-                <defs>
-                  <radialGradient r="50%" cy="50%" cx="50%" id={stone.gradientId}>
-                    <stop style={{stopColor: stone.lightColor}} offset="0%" />
-                    <stop style={{stopColor: stone.mediumColor}} offset="20%" />
-                    <stop style={{stopColor: stone.darkColor}} offset="100%" />
-                  </radialGradient>
-                </defs>
-                <path fill={`url(#${stone.gradientId})`} d={stone.path} className="glow" stroke={stone.strokeColor} />
-              </svg>
+            <div key={stone.id} className="stone-item">
+              <div className="stone-wrapper" onClick={() => onNavigateToPage(stone.id as 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin')}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="stone">
+                  <defs>
+                    <radialGradient r="50%" cy="50%" cx="50%" id={stone.gradientId}>
+                      <stop style={{stopColor: stone.lightColor}} offset="0%" />
+                      <stop style={{stopColor: stone.mediumColor}} offset="20%" />
+                      <stop style={{stopColor: stone.darkColor}} offset="100%" />
+                    </radialGradient>
+                  </defs>
+                  <path fill={`url(#${stone.gradientId})`} d={stone.path} className="glow" stroke={stone.strokeColor} />
+                </svg>
+              </div>
               <div style={{color: stone.textColor}} className="stone-name">{stone.name}</div>
             </div>
           ))}
@@ -136,6 +138,14 @@ const StyledWrapper = styled.div`
     flex-wrap: nowrap;
     gap: 0.4rem;
     margin: 0 auto;
+  }
+
+  .stone-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
   }
 
   .stone-wrapper {
@@ -173,7 +183,8 @@ const StyledWrapper = styled.div`
     text-transform: uppercase;
     letter-spacing: 2px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
     text-shadow: 
       0 0 1px #fff,
       0 0 2px #fff,
@@ -187,8 +198,9 @@ const StyledWrapper = styled.div`
       0 0 10px #fff;
   }
 
-  .stone:hover + .stone-name {
+  .stone-item:hover .stone-name {
     opacity: 1;
+    transform: translateY(0);
   }
 
   @keyframes float {
@@ -223,6 +235,7 @@ const StyledWrapper = styled.div`
   .stone-wrapper:nth-child(7) {
     animation-delay: -3s;
   }
+
 
   /* Large screens */
   @media (min-width: 1200px) {

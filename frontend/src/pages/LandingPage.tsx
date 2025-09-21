@@ -11,13 +11,14 @@ import TerminalPage from './TerminalPage';
 import AdminPage from './AdminPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 import CookiesPage from './CookiesPage';
+import NotFoundPage from '../components/NotFoundPage';
 
 interface LandingPageProps {
   onEnter: () => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'scroll' | 'dashboard' | 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin' | 'privacy' | 'cookies'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'scroll' | 'dashboard' | 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin' | 'privacy' | 'cookies' | '404'>('home');
 
   useEffect(() => {
     // Check current page based on hash
@@ -95,6 +96,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
     window.history.pushState(null, '', '#');
   };
 
+  const handle404Back = () => {
+    setCurrentPage('dashboard');
+  };
+
+  const show404 = () => {
+    setCurrentPage('404');
+  };
+
+  // Экспортируем функцию для использования в других компонентах
+  (window as any).show404 = show404;
+
   return (
     <AnimatePresence mode="wait">
       {currentPage === 'home' ? (
@@ -119,8 +131,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
         <AdminPage key="admin" onBack={handleBackToDashboard} onNavigateToPage={handleNavigateToPage} onExit={handleExit} />
       ) : currentPage === 'privacy' ? (
         <PrivacyPolicyPage key="privacy" onBack={handlePrivacyBack} />
-      ) : (
+      ) : currentPage === 'cookies' ? (
         <CookiesPage key="cookies" onBack={handleCookiesBack} />
+      ) : currentPage === '404' ? (
+        <NotFoundPage key="404" onBack={handle404Back} />
+      ) : (
+        <NotFoundPage key="404-fallback" onBack={handle404Back} />
       )}
     </AnimatePresence>
   );

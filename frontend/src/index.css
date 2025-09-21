@@ -67,17 +67,17 @@ html, body, #root {
 }
 
 .cosmic-orb-1 {
-  width: 400px;
-  height: 400px;
+  width: 200px;
+  height: 200px;
   background: radial-gradient(circle, var(--custom-cyan), transparent);
-  top: 15%;
-  left: 10%;
+  top: 20%;
+  left: 5%;
   animation-delay: 0s;
 }
 
 .cosmic-orb-2 {
-  width: 300px;
-  height: 300px;
+  width: 200px;
+  height: 200px;
   background: radial-gradient(circle, var(--custom-purple), transparent);
   top: 50%;
   right: 15%;
@@ -85,8 +85,8 @@ html, body, #root {
 }
 
 .cosmic-orb-3 {
-  width: 350px;
-  height: 350px;
+  width: 200px;
+  height: 200px;
   background: radial-gradient(circle, var(--neon-purple), transparent);
   bottom: 25%;
   left: 20%;
@@ -126,18 +126,18 @@ html, body, #root {
   }
   
   .cosmic-orb-1 {
-    width: 250px;
-    height: 250px;
+    width: 150px;
+    height: 150px;
   }
   
   .cosmic-orb-2 {
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
   }
   
   .cosmic-orb-3 {
-    width: 220px;
-    height: 220px;
+    width: 150px;
+    height: 150px;
   }
   
   .mouse-gradient {

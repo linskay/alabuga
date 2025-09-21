@@ -3,13 +3,20 @@ import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import AnimatedServer from '../AnimatedServer';
 import PyramidLoader2 from '../PyramidLoader2';
+import CosmicButton from '../CosmicButton';
+import HoloNotificationButton from '../HoloNotificationButton';
+import NotificationPanel from '../NotificationPanel';
+import FrequencySpectrum from '../FrequencySpectrum';
+import CosmicTooltip from '../CosmicTooltip';
+import CosmicProgressBar from '../CosmicProgressBar';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const AstronautCard = () => {
   return (
     <StyledWrapper>
       <div className="card">
         <img src="https://uiverse.io/astronaut.png" alt="Astronaut" className="image" />
-        <div className="heading">КОМАНДИР КОСМИЧЕСКОГО КОРАБЛЯ</div>
+        <div className="heading">КОМАНДИР НЕКСУС</div>
         <div className="rank-info">
           <div className="rank-badge">КАПИТАН</div>
           <div className="level-info">Уровень 42</div>
@@ -20,16 +27,49 @@ const AstronautCard = () => {
 };
 
 const ProfileScreen: React.FC = () => {
+  const {
+    notifications,
+    isPanelOpen,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    togglePanel,
+    closePanel
+  } = useNotifications();
+
   return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen">
-      {/* PyramidLoader2 Component */}
+    <div className="relative pb-8 pt-2 px-8 h-screen overflow-y-auto sm:pt-4 md:pt-6 lg:pt-8">
+      {/* PyramidLoader2 Component - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
+        animate={{ opacity: 0.3, scale: 1 }}
         transition={{ duration: 0.8, delay: 0.3 }}
-        className="absolute top-8 right-8 z-10"
+        className="fixed top-4 right-16 z-0"
       >
         <PyramidLoader2 />
+      </motion.div>
+
+      {/* AnimatedServer Component - Background */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.4, scale: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="fixed bottom-8 left-8 z-0"
+      >
+        <AnimatedServer />
+      </motion.div>
+
+      {/* Notification Button */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="absolute top-2 left-2 z-[9998] sm:left-4 md:left-6 lg:left-10 xl:left-14"
+            >
+        <HoloNotificationButton 
+          count={unreadCount} 
+          onClick={togglePanel}
+        />
       </motion.div>
 
       {/* Profile Content */}
@@ -39,9 +79,37 @@ const ProfileScreen: React.FC = () => {
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-1 flex justify-center"
+          className="lg:col-span-1 flex flex-col items-center space-y-6 mt-2 sm:mt-4"
         >
           <AstronautCard />
+          
+          {/* Frequency Spectrum */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="w-full flex justify-start"
+          >
+            <FrequencySpectrum />
+          </motion.div>
+          
+          {/* Cosmic Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="flex flex-col space-y-3 w-full max-w-xs"
+          >
+            <CosmicButton href="https://hr.alabuga.ru">
+              HR-платформа
+            </CosmicButton>
+            <CosmicButton href="https://career.alabuga.space">
+              Карьера.100 лидеров
+            </CosmicButton>
+            <CosmicButton href="https://alga.alabuga.ru">
+              Алга.Алабуга
+            </CosmicButton>
+          </motion.div>
         </motion.div>
 
         {/* Stats and Skills */}
@@ -52,7 +120,7 @@ const ProfileScreen: React.FC = () => {
           className="lg:col-span-2 space-y-6"
         >
           {/* Stats */}
-          <div className="bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border border-cyan-400/20 rounded-3xl p-8 shadow-2xl shadow-cyan-500/10">
+          <div className="relative bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border-2 border-cyan-400/30 rounded-3xl p-8 shadow-2xl shadow-cyan-500/10">
             <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
               <span className="mr-3 text-3xl">📊</span>
               СТАТИСТИКА ПИЛОТА
@@ -62,7 +130,7 @@ const ProfileScreen: React.FC = () => {
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
                   <span className="text-gray-300 flex items-center">
                     <span className="mr-2">⚡</span>
-                    Опыт
+                    Энергоны
                   </span>
                   <span className="text-cyan-400 font-bold">15,420 / 20,000</span>
                 </div>
@@ -123,46 +191,50 @@ const ProfileScreen: React.FC = () => {
           </div>
 
           {/* Skills */}
-          <div className="bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border border-purple-400/20 rounded-3xl p-8 shadow-2xl shadow-purple-500/10">
+          <div className="relative bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border-2 border-purple-400/30 rounded-3xl p-8 shadow-2xl shadow-purple-500/10">
             <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
               <span className="mr-3 text-3xl">⚡</span>
               НАВЫКИ И КОМПЕТЕНЦИИ
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
               {[
-                { name: 'Пилотирование', level: 85, color: 'from-green-400 to-emerald-500' },
-                { name: 'Навигация', level: 72, color: 'from-blue-400 to-cyan-500' },
-                { name: 'Боевые системы', level: 68, color: 'from-purple-400 to-violet-500' },
-                { name: 'Ремонт', level: 91, color: 'from-orange-400 to-red-500' },
-                { name: 'Исследования', level: 76, color: 'from-pink-400 to-rose-500' },
-                { name: 'Коммуникации', level: 83, color: 'from-yellow-400 to-amber-500' }
+                { name: 'Сила Миссии', description: 'Вера в дело', level: 350, maxLevel: 500 },
+                { name: 'Импульс Прорыва', description: 'Стремление к большему', level: 420, maxLevel: 500 },
+                { name: 'Канал Связи', description: 'Общение', level: 280, maxLevel: 500 },
+                { name: 'Модуль Аналитики', description: 'Аналитика', level: 450, maxLevel: 500 },
+                { name: 'Пульт Командования', description: 'Командование', level: 380, maxLevel: 500 },
+                { name: 'Кодекс Звёздного Права', description: 'Юриспруденция', level: 320, maxLevel: 500 },
+                { name: 'Голограммное Мышление', description: 'Трёхмерное мышление', level: 410, maxLevel: 500 },
+                { name: 'Кредитный Поток', description: 'Базовая экономика', level: 290, maxLevel: 500 },
+                { name: 'Курс Аэронавигации', description: 'Основы аэронавигации', level: 360, maxLevel: 500 }
               ].map((skill, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                  className="p-4 bg-white/5 rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300"
+                  className="w-full"
+                  style={{ minWidth: '200px' }}
                 >
-                  <div className="flex justify-between text-sm mb-3">
-                    <span className="text-white font-semibold">{skill.name}</span>
-                    <span className="text-cyan-400 font-bold">{skill.level}%</span>
-                  </div>
-                  <div className="w-full bg-gray-800/50 rounded-full h-3 border border-gray-600/30">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${skill.level}%` }}
-                      transition={{ duration: 1, delay: 0.6 + index * 0.1 }}
-                      className={`bg-gradient-to-r ${skill.color} h-3 rounded-full shadow-lg`}
+                  <CosmicTooltip tooltip={skill.description}>
+                    <CosmicProgressBar
+                      value={skill.level}
+                      maxValue={skill.maxLevel}
+                      size="md"
+                      label={skill.name}
+                      color="from-cyan-400 to-purple-500"
+                      animated={true}
+                      showValue={true}
+                      className="w-full"
                     />
-                  </div>
+                  </CosmicTooltip>
                 </motion.div>
               ))}
             </div>
           </div>
 
           {/* Recent Achievements */}
-          <div className="bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border border-yellow-400/20 rounded-3xl p-8 shadow-2xl shadow-yellow-500/10">
+          <div className="relative bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border-2 border-yellow-400/30 rounded-3xl p-8 shadow-2xl shadow-yellow-500/10">
             <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
               <span className="mr-3 text-3xl">🏆</span>
               ПОСЛЕДНИЕ ДОСТИЖЕНИЯ
@@ -195,14 +267,22 @@ const ProfileScreen: React.FC = () => {
       </div>
 
       {/* Animated Server Component */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
-        className="mt-12 flex justify-start"
-      >
-        <AnimatedServer />
-      </motion.div>
+
+      {/* Additional content to ensure scrolling works */}
+      <div className="mt-8 mb-8">
+        <div className="h-32 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+          <p className="text-white text-lg">Scroll down to see the animated server above</p>
+        </div>
+      </div>
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        notifications={notifications}
+        isOpen={isPanelOpen}
+        onClose={closePanel}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
+      />
     </div>
   );
 };
@@ -443,5 +523,6 @@ const StyledWrapper = styled.div`
     }
   }
 `;
+
 
 export default ProfileScreen;

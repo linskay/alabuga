@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import PyramidLoader from '../PyramidLoader';
+import MainButton from '../MainButton';
+import CardTsup from '../CardTsup';
 
 const AdminScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop'>('crew');
@@ -33,9 +35,9 @@ const AdminScreen: React.FC = () => {
   ];
 
   const shopItems = [
-    { id: 1, name: 'Премиум подписка', price: 1000, currency: '₵', category: 'subscription', status: 'active', sales: 45 },
+    { id: 1, name: 'Премиум подписка', price: 1000, currency: '⚡', category: 'subscription', status: 'active', sales: 45 },
     { id: 2, name: 'Ускоритель опыта', price: 50, currency: '⚡', category: 'boost', status: 'active', sales: 127 },
-    { id: 3, name: 'Космический костюм', price: 500, currency: '₵', category: 'cosmetic', status: 'inactive', sales: 23 }
+    { id: 3, name: 'Космический костюм', price: 500, currency: '⚡', category: 'cosmetic', status: 'inactive', sales: 23 }
   ];
 
   const renderCrewTab = () => (
@@ -45,15 +47,13 @@ const AdminScreen: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-white flex items-center">
             <span className="mr-2">👥</span>
-            УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ
+            УПРАВЛЕНИЕ ЭКИПАЖЕМ НЕКСУС
           </h3>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <MainButton
             className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300"
           >
             Добавить пользователя
-          </motion.button>
+          </MainButton>
         </div>
         
         <div className="space-y-4">
@@ -92,20 +92,16 @@ const AdminScreen: React.FC = () => {
                   {user.role}
                 </div>
                 <div className="flex space-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  <MainButton
                     className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm hover:bg-white/20 transition-all duration-300"
                   >
                     Редактировать
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  </MainButton>
+                  <MainButton
                     className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
                   >
                     Удалить
-                  </motion.button>
+                  </MainButton>
                 </div>
               </div>
             </motion.div>
@@ -124,13 +120,11 @@ const AdminScreen: React.FC = () => {
             <span className="mr-2">⚡</span>
             КОНСТРУКТОР МИССИЙ
           </h3>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <MainButton
             className="px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
           >
             Создать миссию
-          </motion.button>
+          </MainButton>
         </div>
         
         <div className="space-y-4">
@@ -193,7 +187,7 @@ const AdminScreen: React.FC = () => {
 
   const renderAnalyticsTab = () => (
     <div className="space-y-6">
-      {/* Analytics Overview */}
+      {/* Analytics Overview with CardTsup */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {analytics.map((stat, index) => (
           <motion.div
@@ -201,33 +195,57 @@ const AdminScreen: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-            className="bg-black/30 backdrop-blur-md border border-white/20 rounded-xl p-6"
           >
-            <div className="text-center">
-              <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-1`}>
-                {stat.value}
+            <CardTsup width="280px" height="200px">
+              <div className="text-center p-4">
+                <div className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2`}>
+                  {stat.value}
+                </div>
+                <div className="text-gray-300 text-sm mb-2">{stat.title}</div>
+                <div className="text-green-400 text-xs">{stat.change} за месяц</div>
               </div>
-              <div className="text-gray-300 text-sm mb-2">{stat.title}</div>
-              <div className="text-green-400 text-xs">{stat.change} за месяц</div>
-            </div>
+            </CardTsup>
           </motion.div>
         ))}
       </div>
 
-      {/* Charts Placeholder */}
+      {/* Charts with CardTsup */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Активность пользователей</h3>
-          <div className="h-64 bg-white/5 rounded-lg flex items-center justify-center">
-            <span className="text-gray-400">График активности</span>
-          </div>
-        </div>
-        <div className="bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Завершение миссий</h3>
-          <div className="h-64 bg-white/5 rounded-lg flex items-center justify-center">
-            <span className="text-gray-400">График завершений</span>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <CardTsup width="100%" height="300px">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                <span className="mr-2">📊</span>
+                Активность пользователей
+              </h3>
+              <div className="h-48 bg-white/5 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400">График активности</span>
+              </div>
+            </div>
+          </CardTsup>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0 }}
+        >
+          <CardTsup width="100%" height="300px">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                <span className="mr-2">📈</span>
+                Завершение миссий
+              </h3>
+              <div className="h-48 bg-white/5 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400">График завершений</span>
+              </div>
+            </div>
+          </CardTsup>
+        </motion.div>
       </div>
     </div>
   );
@@ -239,7 +257,7 @@ const AdminScreen: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-white flex items-center">
             <span className="mr-2">🛒</span>
-            УПРАВЛЕНИЕ МАГАЗИНОМ
+            МАГАЗИН НЕКСУС
           </h3>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -250,49 +268,65 @@ const AdminScreen: React.FC = () => {
           </motion.button>
         </div>
         
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {shopItems.map((item, index) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-              className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
             >
-              <div className="flex items-center space-x-4">
-                <div className="text-2xl">🛍️</div>
-                <div>
-                  <h4 className="text-white font-semibold">{item.name}</h4>
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    <span>{item.price} {item.currency}</span>
-                    <span>Продаж: {item.sales}</span>
-                    <span className="capitalize">{item.category}</span>
+              <CardTsup width="100%" height="250px">
+                <div className="p-6 h-full flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="text-3xl">🛍️</div>
+                      <div>
+                        <h4 className="text-white font-bold text-lg">{item.name}</h4>
+                        <div className="text-2xl font-bold text-green-400">
+                          {item.price} {item.currency}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-300">
+                      <div className="flex justify-between">
+                        <span>Продаж:</span>
+                        <span className="text-white">{item.sales}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Категория:</span>
+                        <span className="text-white capitalize">{item.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 space-y-3">
+                    <div className={`px-3 py-1 rounded text-xs text-center ${
+                      item.status === 'active' ? 'bg-green-500/30 text-green-300' : 'bg-gray-500/30 text-gray-400'
+                    }`}>
+                      {item.status === 'active' ? 'АКТИВЕН' : 'НЕАКТИВЕН'}
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex-1 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
+                      >
+                        Редактировать
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex-1 px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
+                      >
+                        Статистика
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className={`px-3 py-1 rounded text-xs ${
-                  item.status === 'active' ? 'bg-green-500/30 text-green-300' : 'bg-gray-500/30 text-gray-400'
-                }`}>
-                  {item.status === 'active' ? 'АКТИВЕН' : 'НЕАКТИВЕН'}
-                </div>
-                <div className="flex space-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm hover:bg-white/20 transition-all duration-300"
-                  >
-                    Редактировать
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-3 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-sm hover:bg-blue-500/30 transition-all duration-300"
-                  >
-                    Статистика
-                  </motion.button>
-                </div>
-              </div>
+              </CardTsup>
             </motion.div>
           ))}
         </div>
@@ -311,7 +345,7 @@ const AdminScreen: React.FC = () => {
         className="flex space-x-4 mb-8"
       >
         {tabs.map((tab) => (
-          <motion.button
+          <MainButton
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-6 py-3 rounded-xl border transition-all duration-300 ${
@@ -319,8 +353,6 @@ const AdminScreen: React.FC = () => {
                 ? 'border-gray-400 bg-gray-400/10 shadow-lg shadow-gray-400/20'
                 : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
             }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             <div className="flex items-center space-x-2">
               <span className="text-xl">{tab.icon}</span>
@@ -330,7 +362,7 @@ const AdminScreen: React.FC = () => {
                 {tab.name}
               </span>
             </div>
-          </motion.button>
+          </MainButton>
         ))}
       </motion.div>
 
