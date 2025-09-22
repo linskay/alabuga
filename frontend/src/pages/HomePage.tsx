@@ -356,7 +356,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
+    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'none' }}>
       {/* Loader */}
       <AnimatePresence>
         {showLoader && (

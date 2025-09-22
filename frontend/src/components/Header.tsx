@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginForm from './LoginForm';
 import BackButton from './BackButton';
@@ -20,6 +20,50 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, onBack, showLoginButton = true, onLoginClick, showExitButton = false, onExitClick, show404Button = false, on404Click }) => {
   const [showLogin, setShowLogin] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const lastYRef = useRef(0);
+  const tickingRef = useRef(false);
+  const lastByTargetRef = useRef(new WeakMap<EventTarget, number>());
+
+  useEffect(() => {
+    const getScrollTop = (target?: EventTarget | null) => {
+      const t = target as any;
+      if (t && typeof t.scrollTop === 'number') return t.scrollTop as number;
+      return (document.scrollingElement?.scrollTop ?? window.scrollY ?? 0) as number;
+    };
+    lastYRef.current = getScrollTop();
+    const handleScroll = (ev: Event) => {
+      if (tickingRef.current) return;
+      tickingRef.current = true;
+      window.requestAnimationFrame(() => {
+        const target = ev.target as EventTarget | null;
+        const prev = lastByTargetRef.current.get(target || document) ?? lastYRef.current;
+        const currentY = getScrollTop(target);
+        const delta = currentY - prev;
+        // Порог в 8px, чтобы не дёргалось
+        if (Math.abs(delta) > 8) {
+          if (delta > 0 && currentY > 40) {
+            setIsHidden(true); // скролл вниз — прячем
+          } else {
+            setIsHidden(false); // скролл вверх — показываем
+          }
+          lastYRef.current = currentY;
+          lastByTargetRef.current.set(target || document, currentY);
+        }
+        if (currentY < 10) {
+          setIsHidden(false);
+        }
+        tickingRef.current = false;
+      });
+    };
+    window.addEventListener('scroll', handleScroll as any, { passive: true });
+    // capture = true, чтобы ловить scroll на вложенных контейнерах с overflow
+    document.addEventListener('scroll', handleScroll as any, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll as any);
+      document.removeEventListener('scroll', handleScroll as any, { capture: true } as any);
+    };
+  }, []);
 
   const handleMouseEnter = () => {
     setShowLogin(true);
@@ -32,8 +76,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      animate={{ y: isHidden ? -100 : 0, opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 h-16 sm:h-20 backdrop-blur-xl border-b border-white/20 flex items-center justify-between px-4 sm:px-8 z-50"
       style={{
         background: 'rgba(36, 43, 140, 0.1)',
@@ -41,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
         WebkitBackdropFilter: 'blur(20px)'
       }}
     >
-      {/* Логотип с анимированной надписью слева */}
+      {/* Логотип с анимированной надписью */}
       <motion.div
         className="flex items-center space-x-3"
         whileHover={{ scale: 1.05 }}

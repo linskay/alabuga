@@ -125,6 +125,7 @@ const StyledWrapper = styled.div`
     align-items: center;
     font-family: "Arial", sans-serif;
     overflow: visible;
+    padding-top: 1.5rem; /* even closer to header */
   }
 
   .stones-container {
@@ -292,6 +293,11 @@ const StyledWrapper = styled.div`
       font-size: 10px;
       bottom: -25px;
     }
+  }
+
+  /* >=640px (sm) — header height h-20 ≈ 5rem */
+  @media (min-width: 640px) {
+    .card { padding-top: 2.5rem; }
   }
 
   /* Small tablets */

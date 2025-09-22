@@ -57,7 +57,7 @@ const ScrollPage: React.FC<ScrollPageProps> = ({ onBack, onEnterDashboard, onPri
       className="relative w-screen h-screen overflow-hidden"
       style={{
         background: 'linear-gradient(to bottom, #148cdc 0%, #148cdc 20%, white 40%, white 60%, #148cdc 80%, #148cdc 100%)',
-        cursor: 'default'
+        cursor: 'none'
       }}
     >
       {/* Loader */}

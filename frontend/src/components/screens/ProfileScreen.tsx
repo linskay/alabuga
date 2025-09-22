@@ -10,6 +10,10 @@ import FrequencySpectrum from '../FrequencySpectrum';
 import CosmicTooltip from '../CosmicTooltip';
 import CosmicProgressBar from '../CosmicProgressBar';
 import { useNotifications } from '../../hooks/useNotifications';
+import { NeonGradientCard } from '../NeonGradientCard';
+import ShinyText from '../ShinyText';
+import ActivityCard from '../ActivityCard';
+import Energon from '../Energon';
 
 const AstronautCard = () => {
   return (
@@ -110,6 +114,28 @@ const ProfileScreen: React.FC = () => {
               Алга.Алабуга
             </CosmicButton>
           </motion.div>
+
+          {/* User Activity Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="w-full max-w-md"
+          >
+            <ActivityCard
+              title="АКТИВНОСТЬ ПОЛЬЗОВАТЕЛЯ"
+              totalValue="18 ч"
+              data={[
+                { day: 'ПН', value: 2 },
+                { day: 'ВТ', value: 3 },
+                { day: 'СР', value: 4 },
+                { day: 'ЧТ', value: 2 },
+                { day: 'ПТ', value: 5 },
+                { day: 'СБ', value: 1 },
+                { day: 'ВС', value: 1 },
+              ]}
+            />
+          </motion.div>
         </motion.div>
 
         {/* Stats and Skills */}
@@ -120,62 +146,63 @@ const ProfileScreen: React.FC = () => {
           className="lg:col-span-2 space-y-6"
         >
           {/* Stats */}
-          <div className="relative bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border-2 border-cyan-400/30 rounded-3xl p-8 shadow-2xl shadow-cyan-500/10">
-            <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <NeonGradientCard className="p-8">
+            <div className="mb-6 flex items-center">
               <span className="mr-3 text-3xl">📊</span>
-              СТАТИСТИКА ПИЛОТА
-            </h4>
+              <ShinyText text="СТАТИСТИКА ПИЛОТА" className="text-2xl font-bold" />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
-                  <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">⚡</span>
-                    Энергоны
+              <NeonGradientCard>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300 flex items-center gap-2">
+                    <Energon size={18} />
+                    Энергон
                   </span>
                   <span className="text-cyan-400 font-bold">15,420 / 20,000</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+              </NeonGradientCard>
+              <NeonGradientCard>
+                <div className="flex justify-between items-center">
                   <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🎯</span>
-                    Миссии
+                    <span className="mr-2">🎯</span>Миссии
                   </span>
                   <span className="text-cyan-400 font-bold text-xl">127</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+              </NeonGradientCard>
+              <NeonGradientCard>
+                <div className="flex justify-between items-center">
                   <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🏆</span>
-                    Рейтинг
+                    <span className="mr-2">🏆</span>Рейтинг
                   </span>
                   <span className="text-cyan-400 font-bold">#1,247</span>
                 </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+              </NeonGradientCard>
+              <NeonGradientCard>
+                <div className="flex justify-between items-center">
                   <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🚀</span>
-                    Скорость
+                    <span className="mr-2">🚀</span>Скорость
                   </span>
                   <span className="text-cyan-400 font-bold">850 км/ч</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+              </NeonGradientCard>
+              <NeonGradientCard>
+                <div className="flex justify-between items-center">
                   <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🛡️</span>
-                    Броня
+                    <span className="mr-2">🛡️</span>Броня
                   </span>
                   <span className="text-blue-400 font-bold">95%</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+              </NeonGradientCard>
+              <NeonGradientCard>
+                <div className="flex justify-between items-center">
                   <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">⚔️</span>
-                    Оружие
+                    <span className="mr-2">⚔️</span>Оружие
                   </span>
                   <span className="text-red-400 font-bold">Максимум</span>
                 </div>
-              </div>
+              </NeonGradientCard>
             </div>
 
-            {/* Progress Bar */}
             <div className="mt-8">
               <div className="flex justify-between text-sm text-gray-300 mb-3">
                 <span className="flex items-center">
@@ -188,14 +215,14 @@ const ProfileScreen: React.FC = () => {
                 <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 h-3 rounded-full shadow-lg shadow-cyan-500/30" style={{ width: '77%' }}></div>
               </div>
             </div>
-          </div>
+          </NeonGradientCard>
 
           {/* Skills */}
-          <div className="relative bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border-2 border-purple-400/30 rounded-3xl p-8 shadow-2xl shadow-purple-500/10">
-            <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <NeonGradientCard className="p-8">
+            <div className="mb-6 flex items-center">
               <span className="mr-3 text-3xl">⚡</span>
-              НАВЫКИ И КОМПЕТЕНЦИИ
-            </h4>
+              <ShinyText text="НАВЫКИ И КОМПЕТЕНЦИИ" className="text-2xl font-bold" />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
               {[
                 { name: 'Сила Миссии', description: 'Вера в дело', level: 350, maxLevel: 500 },
@@ -231,14 +258,16 @@ const ProfileScreen: React.FC = () => {
                 </motion.div>
               ))}
             </div>
-          </div>
+          </NeonGradientCard>
+
+          
 
           {/* Recent Achievements */}
-          <div className="relative bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 backdrop-blur-xl border-2 border-yellow-400/30 rounded-3xl p-8 shadow-2xl shadow-yellow-500/10">
-            <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <NeonGradientCard className="p-8">
+            <div className="mb-6 flex items-center">
               <span className="mr-3 text-3xl">🏆</span>
-              ПОСЛЕДНИЕ ДОСТИЖЕНИЯ
-            </h4>
+              <ShinyText text="ПОСЛЕДНИЕ ДОСТИЖЕНИЯ" className="text-2xl font-bold" />
+            </div>
             <div className="space-y-3">
               {[
                 { title: 'Первый полет', description: 'Успешно завершил первую космическую миссию', icon: '🚀', date: '2 дня назад' },
@@ -262,7 +291,7 @@ const ProfileScreen: React.FC = () => {
                 </motion.div>
               ))}
             </div>
-          </div>
+          </NeonGradientCard>
         </motion.div>
       </div>
 
