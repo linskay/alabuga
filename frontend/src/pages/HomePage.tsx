@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // import ParallaxBackground from '../components/ParallaxBackground';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import Loader from '../components/ui/Loader';
+import Loader from '../components/Loader';
 import AnimatedStars from '../components/AnimatedStars';
 import AnimatedText from '../components/AnimatedText';
 import ScrollHint from '../components/ScrollHint';
@@ -11,6 +11,7 @@ import styled from 'styled-components';
 
 interface HomePageProps {
   onEnter: () => void;
+  onScroll?: () => void;
   onPrivacyClick?: () => void;
   onCookiesClick?: () => void;
 }
@@ -266,7 +267,8 @@ const StyledButton = styled.div`
   }
 `;
 
-const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesClick }) => {
+
+const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, onCookiesClick }) => {
   const [showLoader, setShowLoader] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -293,7 +295,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
         
         setTimeout(() => {
           setShowButton(true);
-        }, 20000);
+        }, 3000);
       }
     };
 
@@ -313,7 +315,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
       
       setTimeout(() => {
         setShowButton(true);
-      }, 20000);
+      }, 3000);
     } else {
       // Слушаем событие загрузки
       window.addEventListener('load', checkLoaded);
@@ -335,18 +337,18 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      // Если пользователь скроллит вниз, переходим на лендинговую страницу
+      // Если пользователь скроллит вниз, переходим на ScrollPage
       if (e.deltaY > 0) {
-        onEnter();
+        onScroll?.();
       }
     };
 
     window.addEventListener('wheel', handleWheel);
     return () => window.removeEventListener('wheel', handleWheel);
-  }, [onEnter]);
+  }, [onScroll]);
 
   const handleLearnMore = () => {
-    onEnter(); // Переходим на страницу с горизонтальной прокруткой
+    onEnter(); // Переходим сразу на Dashboard
   };
 
   const toggleMenu = () => {
@@ -354,7 +356,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
+    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'none' }}>
       {/* Loader */}
       <AnimatePresence>
         {showLoader && (
@@ -399,7 +401,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ duration: 0.5 }}
-          className="relative z-10 w-full flex-1 flex items-end justify-center pb-20"
+          className="relative z-10 w-full flex-1 flex items-center justify-center"
         >
           {/* Видео с эффектом размытия */}
           <AnimatePresence>
@@ -441,7 +443,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
             {showText && <AnimatedText />}
           </AnimatePresence>
 
-          {/* Кнопка Войти */}
+          {/* Кнопка Войти и Scroll Hint - внизу экрана */}
           <AnimatePresence>
             {showButton && (
               <motion.div
@@ -449,7 +451,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-30"
+                className="absolute bottom-8 left-2/5 transform -translate-x-1/2 z-30"
               >
                 <StyledButton>
                   <div className="flex justify-center items-center">
@@ -469,7 +471,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onPrivacyClick, onCookiesC
                 
                 {/* Scroll Hint */}
                 <motion.div
-                  className="mt-12"
+                  className="mt-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 1 }}
