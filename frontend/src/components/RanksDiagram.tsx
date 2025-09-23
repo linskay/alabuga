@@ -1,19 +1,93 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useAnimation, useMotionTemplate, useMotionValue, animate } from 'framer-motion';
-import { Canvas } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
-const Satellite = (p: any) => <span {...p}>🛰️</span>;
-const Radar = (p: any) => <span {...p}>📡</span>;
-const Building = (p: any) => <span {...p}>🏗️</span>;
-const BookOpen = (p: any) => <span {...p}>📖</span>;
-const Users = (p: any) => <span {...p}>👥</span>;
-const GraduationCap = (p: any) => <span {...p}>🎓</span>;
-const Radio = (p: any) => <span {...p}>📻</span>;
-const Navigation = (p: any) => <span {...p}>🧭</span>;
-const Shield = (p: any) => <span {...p}>🛡️</span>;
-const Crown = (p: any) => <span {...p}>👑</span>;
-const ChevronRight = (p: any) => <span {...p}>›</span>;
-const Zap = (p: any) => <span {...p}>⚡</span>;
+// Simple white outline SVG icons
+const IconWrap = ({ children }: { children: React.ReactNode }) => (
+  <span style={{ color: '#ffffff' }}>{children}</span>
+);
+const Satellite = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M13 7l-1 1 3 3 1-1z"/><path d="M8 12l4 4"/><path d="M2 22l6-6"/><rect x="14" y="2" width="8" height="6" rx="1"/><path d="M12 16l6-6"/>
+    </svg>
+  </IconWrap>
+);
+const Radar = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <circle cx="12" cy="12" r="10"/><path d="M12 12l6-6"/><path d="M12 2a10 10 0 0 1 10 10"/>
+    </svg>
+  </IconWrap>
+);
+const Building = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+    </svg>
+  </IconWrap>
+);
+const BookOpen = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M2 4h8a4 4 0 0 1 4 4v12H6a4 4 0 0 1-4-4z"/><path d="M22 4h-8a4 4 0 0 0-4 4v12h8a4 4 0 0 0 4-4z"/>
+    </svg>
+  </IconWrap>
+);
+const Users = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  </IconWrap>
+);
+const GraduationCap = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M22 10L12 2 2 10l10 6 10-6z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    </svg>
+  </IconWrap>
+);
+const Radio = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="2" y="8" width="20" height="14" rx="2"/><path d="M6 12h12"/><path d="M10 16h8"/><path d="M2 8l20-6"/>
+    </svg>
+  </IconWrap>
+);
+const Navigation = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+    </svg>
+  </IconWrap>
+);
+const Shield = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  </IconWrap>
+);
+const Crown = (p: any) => (
+  <IconWrap>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M2 18l4-12 6 6 6-6 4 12z"/><path d="M2 18h20"/>
+    </svg>
+  </IconWrap>
+);
+const ChevronRight = (p: any) => (
+  <IconWrap>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </IconWrap>
+);
+const Zap = (p: any) => (
+  <IconWrap>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  </IconWrap>
+);
 
 interface RankData {
   id: string;
@@ -51,13 +125,16 @@ const RankCard: React.FC<{ rank: RankData; isSelected: boolean; onClick: () => v
       initial={{ opacity: 0, y: 50, scale: 0.8 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: delay * 0.1, duration: 0.6, ease: [0.2, 0.65, 0.3, 0.9] }}
-      className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${isSelected ? 'border-cyan-400 bg-cyan-400/10 shadow-2xl' : 'border-gray-700 bg-gray-900/50 hover:border-gray-600'} ${isHovered ? 'scale-105' : ''}`}
-      style={{ boxShadow: isSelected || isHovered ? `0 0 30px ${rank.glowColor}40, 0 0 60px ${rank.glowColor}20` : undefined }}
+      className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${isSelected ? 'border-cyan-400 bg-gray-900/50' : 'border-gray-700 bg-gray-900/50 hover:border-gray-600'} ${isHovered ? 'scale-105' : ''}`}
+      style={{}}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="absolute inset-0 rounded-xl opacity-20 blur-xl" style={{ background: `radial-gradient(circle at center, ${rank.color}40, transparent 70%)` }} />
+      {/* card inner gradient background */}
+      <div className="absolute inset-0 rounded-xl opacity-20 blur-xl"
+        style={{ background: `radial-gradient(circle at 30% 20%, ${rank.color}33, transparent 60%), radial-gradient(circle at 70% 80%, ${rank.color}26, transparent 65%)` }}
+      />
       <div className="relative z-10 flex items-center gap-4 mb-4">
         <div className="p-3 rounded-full border-2" style={{ borderColor: rank.color, backgroundColor: `${rank.color}20` }}>
           <Icon className="w-8 h-8" style={{ color: rank.color }} />
@@ -119,26 +196,8 @@ const RanksDiagram: React.FC = () => {
   ];
 
   return (
-    <motion.section style={{ backgroundImage }} className="relative min-h-screen overflow-hidden bg-gray-950 px-4 py-24 text-gray-200">
-      <div className="absolute inset-0 z-0">
-        <Canvas>
-          <Stars radius={50} count={2500} factor={4} fade speed={2} />
-        </Canvas>
-        </div>
+    <motion.section className="relative min-h-screen overflow-hidden px-4 py-12 text-gray-200 bg-transparent">
       <div className="relative z-10 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 50 }} animate={textControls} className="text-center mb-16">
-          <motion.span className="inline-block rounded-full bg-gray-600/50 px-4 py-2 text-sm mb-6" whileHover={{ scale: 1.05 }}>
-            🚀 Космическая Система Рангов
-          </motion.span>
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent mb-6">
-            Система Рангов
-            <br />
-            <span className="text-cyan-400">Алабуга.TECH</span>
-          </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Нелинейная система развития с тремя специализированными ветками и финальным объединяющим рангом
-          </p>
-        </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-wrap justify-center gap-4 mb-12">
           {branchFilters.map((filter) => {
@@ -152,14 +211,14 @@ const RanksDiagram: React.FC = () => {
           })}
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 bg-transparent">
           {filteredRanks.map((rank, index) => (
             <RankCard key={rank.id} rank={rank} isSelected={selectedRank === rank.id} onClick={() => setSelectedRank(rank.id)} delay={index} />
           ))}
         </div>
 
         {selectedRankData && (
-          <motion.div key={selectedRank} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-gray-900/70 backdrop-blur-sm rounded-xl border border-gray-700 p-8">
+          <motion.div key={selectedRank} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="rounded-xl border border-gray-700 p-8">
             <div className="flex items-center gap-6 mb-6">
               <div className="p-4 rounded-full border-2" style={{ borderColor: selectedRankData.color, backgroundColor: `${selectedRankData.color}20` }}>
                 <selectedRankData.icon className="w-12 h-12" style={{ color: selectedRankData.color }} />
@@ -202,14 +261,9 @@ const RanksDiagram: React.FC = () => {
           </motion.div>
         )}
 
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="text-center mt-16">
-          <motion.button className="group relative flex w-fit items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 px-8 py-4 text-white font-semibold transition-all duration-300 mx-auto" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            Начать Космическое Путешествие
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </motion.button>
-        </motion.div>
+        {/* CTA removed per request */}
       </div>
-      <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/60 via-transparent to-black/40 pointer-events-none" />
+      {/* Overlay removed per request */}
     </motion.section>
   );
 };
