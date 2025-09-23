@@ -107,7 +107,7 @@ const HorizontalImageScroll: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full h-screen relative overflow-hidden">
+    <div className="w-full h-screen relative overflow-hidden" style={{ cursor: 'none' }}>
       {/* Progress Bar - 150px from bottom */}
       <div className="fixed left-1/2 z-50" style={{ 
         width: 'min(400px, 80vw)',
@@ -408,7 +408,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               <img
                 src="/images/1.png"
-                alt="Space Image 1"
+                alt="Space 1"
                 className="w-[800px] h-[800px] object-contain drop-shadow-2xl"
               />
             </motion.div>
@@ -547,7 +547,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               <img
                 src="/images/2.png"
-                alt="Space Image 2"
+                alt="Space 2"
                 className="w-[800px] h-[800px] object-contain drop-shadow-2xl"
               />
             </motion.div>
@@ -556,7 +556,7 @@ const HorizontalImageScroll: React.FC = () => {
             {/* Section 3 - Image 3 */}
             <div className="h-full flex items-end justify-center relative" style={{ width: '100vw' }}>
             <motion.div
-              className="relative z-20"
+              className="relative z-20 mt-8 sm:mt-12 md:mt-16 lg:mt-20"
               initial={{ opacity: 0, x: 0, filter: "blur(20px)" }}
               animate={{ 
                 opacity: scrollProgress > 0.6 ? 1 : 0,
@@ -678,7 +678,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               {/* Облако с надписью */}
               <motion.div
-                className="absolute top-4 left-1/2 transform -translate-x-1/2"
+                className="absolute top-20 sm:top-24 md:top-28 lg:top-32 left-1/2 transform -translate-x-1/2"
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ 
                   opacity: scrollProgress > 0.6 ? 0.85 : 0,
@@ -714,9 +714,10 @@ const HorizontalImageScroll: React.FC = () => {
 
               <img
                 src="/images/3.png"
-                alt="Space Image 3"
-                className="w-[1020px] h-[1020px] object-contain drop-shadow-2xl"
+                alt="Space 3"
+                className="h-[907px] w-auto object-contain drop-shadow-2xl"
               />
+
             </motion.div>
           </div>
         </div>
