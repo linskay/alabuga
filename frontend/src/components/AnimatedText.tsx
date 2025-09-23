@@ -33,7 +33,7 @@ const AnimatedText: React.FC = () => {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="absolute top-[68%] sm:top-[66%] md:top-[64%] lg:top-[62%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 w-full max-w-4xl px-8 pointer-events-none"
+          className="absolute top-[48%] sm:top-[44%] md:top-[42%] lg:top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 w-full max-w-4xl px-8 pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

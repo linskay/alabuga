@@ -107,6 +107,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   // Экспортируем функцию для использования в других компонентах
   (window as any).show404 = show404;
 
+  // Управляем флагом для отключения ClickSpark на home/scroll
+  useEffect(() => {
+    const isLanding = currentPage === 'home' || currentPage === 'scroll';
+    if (isLanding) {
+      document.body.setAttribute('data-clickspark', 'off');
+    } else {
+      document.body.removeAttribute('data-clickspark');
+    }
+    return () => {
+      // не трогаем здесь, управление выше по эффекту
+    };
+  }, [currentPage]);
+
   return (
     <AnimatePresence mode="wait">
       {currentPage === 'home' ? (

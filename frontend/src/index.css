@@ -24,13 +24,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
-  cursor: none;
+  overflow: auto;
+  cursor: auto;
 }
 
 html, body, #root {
   height: 100%;
   width: 100%;
+  overflow-x: hidden; /* prevent horizontal scroll */
 }
 
 .App {
