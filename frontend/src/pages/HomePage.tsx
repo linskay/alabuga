@@ -278,51 +278,17 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    // Проверяем, загружена ли страница
-    const checkLoaded = () => {
-      if (document.readyState === 'complete') {
-        setShowLoader(false);
-        setIsLoaded(true);
-        
-        // Последовательность анимаций
-        setTimeout(() => {
-          setShowVideo(true);
-        }, 500);
-        
-        setTimeout(() => {
-          setShowText(true);
-        }, 2000);
-        
-        setTimeout(() => {
-          setShowButton(true);
-        }, 3000);
-      }
-    };
+    // В дев-режиме инициируем сразу, без ожидания события load
+    setShowLoader(false);
+    setIsLoaded(true);
 
-    // Если страница уже загружена
-    if (document.readyState === 'complete') {
-      setShowLoader(false);
-      setIsLoaded(true);
-      
-      // Последовательность анимаций
-      setTimeout(() => {
-        setShowVideo(true);
-      }, 500);
-      
-      setTimeout(() => {
-        setShowText(true);
-      }, 2000);
-      
-      setTimeout(() => {
-        setShowButton(true);
-      }, 3000);
-    } else {
-      // Слушаем событие загрузки
-      window.addEventListener('load', checkLoaded);
-    }
-
+    const t1 = setTimeout(() => setShowVideo(true), 500);
+    const t2 = setTimeout(() => setShowText(true), 2000);
+    const t3 = setTimeout(() => setShowButton(true), 3000);
     return () => {
-      window.removeEventListener('load', checkLoaded);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
 

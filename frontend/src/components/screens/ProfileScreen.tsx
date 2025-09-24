@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import AnimatedServer from '../AnimatedServer';
@@ -14,16 +14,17 @@ import { NeonGradientCard } from '../NeonGradientCard';
 import ShinyText from '../ShinyText';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
+import { backend, UserDTO } from '../../api';
 
-const AstronautCard = () => {
+const AstronautCard = ({ login, rank, experience }: { login: string; rank: number; experience: number }) => {
   return (
     <StyledWrapper>
       <div className="card">
         <img src="https://uiverse.io/astronaut.png" alt="Astronaut" className="image" />
-        <div className="heading">КОМАНДИР НЕКСУС</div>
+        <div className="heading">{login}</div>
         <div className="rank-info">
-          <div className="rank-badge">КАПИТАН</div>
-          <div className="level-info">Уровень 42</div>
+          <div className="rank-badge">Ранг {rank}</div>
+          <div className="level-info">Опыт {experience}</div>
         </div>
       </div>
     </StyledWrapper>
@@ -40,6 +41,25 @@ const ProfileScreen: React.FC = () => {
     togglePanel,
     closePanel
   } = useNotifications();
+
+  const [user, setUser] = useState<UserDTO | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        // Временный способ получить текущий логин: берём из localStorage или fallback
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const u = await backend.users.byLogin(login);
+        if (!mounted) return;
+        setUser(u);
+      } catch (e: any) {
+        setError(e?.message || 'Не удалось загрузить профиль');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="relative pb-8 pt-2 px-8 h-screen overflow-y-auto sm:pt-4 md:pt-6 lg:pt-8">
@@ -85,7 +105,14 @@ const ProfileScreen: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="lg:col-span-1 flex flex-col items-center space-y-6 mt-2 sm:mt-4"
         >
-          <AstronautCard />
+          {error && (
+            <div className="text-red-300 text-sm">{error}</div>
+          )}
+          <AstronautCard 
+            login={user?.login || 'КОМАНДИР НЕКСУС'} 
+            rank={user?.rank ?? 42} 
+            experience={user?.experience ?? 15420} 
+          />
           
           {/* Frequency Spectrum */}
           <motion.div

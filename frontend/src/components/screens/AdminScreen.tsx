@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import PyramidLoader from '../PyramidLoader';
 import MainButton from '../MainButton';
 import CardTsup from '../CardTsup';
+import { backend } from '../../api';
 
 const AdminScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop'>('crew');
@@ -14,18 +15,18 @@ const AdminScreen: React.FC = () => {
     { id: 'shop' as const, name: 'МАГАЗИН', icon: '🛒', color: 'from-green-400 to-emerald-500' }
   ];
 
-  const users = [
+  const [users, setUsers] = useState([
     { id: 1, name: 'Алексей Петров', email: 'alexey@company.com', role: 'Admin', status: 'active', lastLogin: '2 часа назад', level: 45 },
     { id: 2, name: 'Мария Сидорова', email: 'maria@company.com', role: 'User', status: 'active', lastLogin: '1 час назад', level: 38 },
     { id: 3, name: 'Дмитрий Козлов', email: 'dmitry@company.com', role: 'User', status: 'inactive', lastLogin: '3 дня назад', level: 42 },
     { id: 4, name: 'Анна Волкова', email: 'anna@company.com', role: 'Moderator', status: 'active', lastLogin: '30 минут назад', level: 35 }
-  ];
+  ]);
 
-  const missions = [
+  const [missions, setMissions] = useState([
     { id: 1, title: 'Основы React', description: 'Изучение базовых концепций React', difficulty: 'Начинающий', status: 'active', participants: 45, completion: 78 },
     { id: 2, title: 'TypeScript для разработчиков', description: 'Продвинутое использование TypeScript', difficulty: 'Средний', status: 'draft', participants: 0, completion: 0 },
     { id: 3, title: 'Архитектура приложений', description: 'Паттерны и принципы проектирования', difficulty: 'Продвинутый', status: 'active', participants: 23, completion: 45 }
-  ];
+  ]);
 
   const analytics = [
     { title: 'Активные пользователи', value: '1,247', change: '+12%', color: 'from-green-400 to-emerald-500' },
@@ -34,11 +35,77 @@ const AdminScreen: React.FC = () => {
     { title: 'Время в системе', value: '2.4ч', change: '+15%', color: 'from-orange-400 to-red-500' }
   ];
 
-  const shopItems = [
+  const [shopItems, setShopItems] = useState([
     { id: 1, name: 'Премиум подписка', price: 1000, currency: '⚡', category: 'subscription', status: 'active', sales: 45 },
     { id: 2, name: 'Ускоритель опыта', price: 50, currency: '⚡', category: 'boost', status: 'active', sales: 127 },
     { id: 3, name: 'Космический костюм', price: 500, currency: '⚡', category: 'cosmetic', status: 'inactive', sales: 23 }
-  ];
+  ]);
+
+  const handleAddUser = async () => {
+    const login = window.prompt('Логин нового пользователя:');
+    if (!login) return;
+    const email = window.prompt('Email нового пользователя:') || `${login}@example.com`;
+    const password = window.prompt('Пароль нового пользователя:') || 'password123';
+    try {
+      const body = {
+        login,
+        email,
+        password,
+        firstName: login,
+        lastName: 'User',
+        role: 'USER',
+        experience: 0,
+        energy: 100,
+        rank: 0,
+      };
+      const created = await backend.users.create(body);
+      setUsers(prev => [{ id: created.id || Math.max(0, ...prev.map(u => u.id)) + 1, name: created.firstName || login, email: created.email || email, role: created.role || 'User', status: 'active', lastLogin: 'только что', level: created.rank ?? 0 }, ...prev]);
+      alert('Пользователь создан');
+    } catch (e: any) {
+      alert(`Ошибка создания пользователя: ${e?.message || e}`);
+    }
+  };
+
+  const handleCreateMission = async () => {
+    const name = window.prompt('Название миссии:');
+    if (!name) return;
+    const description = window.prompt('Описание миссии:') || '';
+    try {
+      const body = {
+        name,
+        description,
+        branchId: 1,
+        type: 'QUEST',
+        difficulty: 'EASY',
+        experienceReward: 100,
+        energyReward: 50,
+        requiredCompetencies: '',
+        isActive: true,
+        requiresModeration: false,
+      };
+      const created = await backend.missions.create(body);
+      setMissions(prev => [{ id: created.id || Math.max(0, ...prev.map(m => m.id)) + 1, title: created.name || name, description: created.description || description, difficulty: 'Лёгкая', status: 'active', participants: 0, completion: 0 }, ...prev]);
+      alert('Миссия создана');
+    } catch (e: any) {
+      alert(`Ошибка создания миссии: ${e?.message || e}`);
+    }
+  };
+
+  const handleEditShopItem = async (id: number) => {
+    const item = shopItems.find(s => s.id === id);
+    if (!item) return;
+    const newPriceStr = window.prompt(`Новая цена для «${item.name}»:`, String(item.price));
+    if (!newPriceStr) return;
+    const newPrice = Number(newPriceStr);
+    if (Number.isNaN(newPrice)) return alert('Некорректная цена');
+    try {
+      const updated = await backend.shop.update(id, { price: newPrice });
+      setShopItems(prev => prev.map(s => s.id === id ? { ...s, price: updated.price ?? newPrice } : s));
+      alert('Товар обновлён');
+    } catch (e: any) {
+      alert(`Ошибка обновления товара: ${e?.message || e}`);
+    }
+  };
 
   const renderCrewTab = () => (
     <div className="space-y-6">
@@ -51,6 +118,7 @@ const AdminScreen: React.FC = () => {
           </h3>
           <MainButton
             className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300"
+            onClick={handleAddUser}
           >
             Добавить пользователя
           </MainButton>
@@ -122,6 +190,7 @@ const AdminScreen: React.FC = () => {
           </h3>
           <MainButton
             className="px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
+            onClick={handleCreateMission}
           >
             Создать миссию
           </MainButton>
@@ -313,6 +382,7 @@ const AdminScreen: React.FC = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex-1 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
+                        onClick={() => handleEditShopItem(item.id)}
                       >
                         Редактировать
                       </motion.button>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import MainButton from '../MainButton';
 import styled, { keyframes } from 'styled-components';
 import CircularLoader from '../CircularLoader';
+import { backend, ShopItemDTO } from '../../api';
 
 // Фоновое размещение нашей сферической анимации (CircularLoader)
 const LoaderBg = styled.div`
@@ -34,7 +35,7 @@ const TerminalScreen: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const pageSize = 6; // 3x2 на странице
 
-  const items = [
+  const [items, setItems] = useState<{ title: string; desc: string }[]>([
     { title: 'Квантовый модуль', desc: 'Ускоряет навигацию по гиперпространству' },
     { title: 'Ядро сингулярности', desc: 'Стабилизирует энергосети корабля' },
     { title: 'Двигатель «Гидра»', desc: 'Повышает маневренность на орбите' },
@@ -44,7 +45,23 @@ const TerminalScreen: React.FC = () => {
     { title: 'Маяк «Гелиос»', desc: 'Передаёт сигналы через ионосферу' },
     { title: 'Контур «Персей»', desc: 'Снижает турбулентность в штормах' },
     { title: 'Иниціатор «Орфей»', desc: 'Запускает автономные протоколы' },
-  ];
+  ]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await backend.shop.available();
+        if (!mounted) return;
+        const mapped = data.map((d: ShopItemDTO) => ({ title: d.name, desc: d.description || '' }));
+        if (mapped.length) setItems(mapped);
+      } catch (e: any) {
+        setError(e?.message || 'Не удалось загрузить товары');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -68,6 +85,9 @@ const TerminalScreen: React.FC = () => {
 
       {tab === 'nexus' && (
         <div className="px-4">
+          {error && (
+            <div className="mb-4 text-sm text-red-300">{error} — показаны демонстрационные данные</div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
             {pageItems.map((it, i) => (
               <div key={i} className="group cursor-pointer transform transition-all duration-500 hover:scale-105 hover:-rotate-1 w-full max-w-[340px]">
@@ -93,8 +113,8 @@ const TerminalScreen: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+          ))}
+        </div>
           <div className="mt-8 flex items-center justify-center gap-4">
             <MainButton disabled={currentPage === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
               Назад
@@ -103,8 +123,8 @@ const TerminalScreen: React.FC = () => {
             <MainButton disabled={currentPage === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
               Вперёд
             </MainButton>
-          </div>
-        </div>
+      </div>
+    </div>
       )}
 
       {tab === 'history' && (
@@ -129,7 +149,7 @@ const TerminalScreen: React.FC = () => {
               ))}
             </div>
             <div className="h-1 animate-pulse" style={{ background: 'linear-gradient(90deg, transparent, rgba(0,174,239,0.45), transparent)' }} />
-          </div>
+              </div>
         </div>
       )}
     </div>

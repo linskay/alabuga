@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { backend, RankDTO } from '../api';
 import { motion, useAnimation, useMotionTemplate, useMotionValue, animate } from 'framer-motion';
 // Simple white outline SVG icons
 const IconWrap = ({ children }: { children: React.ReactNode }) => (
@@ -103,7 +104,7 @@ interface RankData {
 
 const COLORS_TOP = ['#00FFFF', '#FF00FF', '#FFFF00', '#00FF00'];
 
-const rankSystem: RankData[] = [
+const STATIC_RANKS: RankData[] = [
   { id: 'cadet', name: 'Космо-Кадет', description: 'Общий старт для всех космических специалистов', icon: Zap, branch: 'tech', level: 0, color: '#64748b', glowColor: '#64748b', requirements: ['Базовые знания космических технологий'] },
   { id: 'navigator', name: 'Навигатор Траекторий', description: 'Специалист по расчету космических траекторий', icon: Satellite, branch: 'tech', level: 1, color: '#0ea5e9', glowColor: '#0ea5e9', requirements: ['Математический анализ', 'Орбитальная механика'] },
   { id: 'analyst', name: 'Аналитик Орбит', description: 'Эксперт по анализу орбитальных систем', icon: Radar, branch: 'tech', level: 2, color: '#3b82f6', glowColor: '#3b82f6', requirements: ['Продвинутая аналитика', 'Системное мышление'] },
@@ -175,6 +176,8 @@ const RankCard: React.FC<{ rank: RankData; isSelected: boolean; onClick: () => v
 const RanksDiagram: React.FC = () => {
   const [selectedRank, setSelectedRank] = useState<string>('cadet');
   const [currentBranch, setCurrentBranch] = useState<'all' | 'tech' | 'research' | 'leadership' | 'final'>('all');
+  const [ranks, setRanks] = useState<RankData[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const color = useMotionValue(COLORS_TOP[0]);
   const textControls = useAnimation();
 
@@ -184,8 +187,32 @@ const RanksDiagram: React.FC = () => {
   }, [color, textControls]);
 
   const backgroundImage = useMotionTemplate`radial-gradient(125% 125% at 50% 0%, #020617 50%, ${color})`;
-  const filteredRanks = currentBranch === 'all' ? rankSystem : rankSystem.filter(r => r.branch === currentBranch);
-  const selectedRankData = rankSystem.find(r => r.id === selectedRank);
+  const filteredRanks = (ranks ?? STATIC_RANKS).filter(r => currentBranch === 'all' ? true : r.branch === currentBranch);
+  const selectedRankData = (ranks ?? STATIC_RANKS).find(r => r.id === selectedRank);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await backend.ranks.list();
+        if (!mounted) return;
+        const mapped: RankData[] = data.map((d: RankDTO) => ({
+          id: String(d.id),
+          name: d.name,
+          description: d.description || '',
+          icon: Zap,
+          branch: (d.branch as any) || 'tech',
+          level: d.level ?? 0,
+          color: '#0ea5e9',
+          glowColor: '#0ea5e9',
+        }));
+        setRanks(mapped);
+      } catch (e: any) {
+        setError(e?.message || 'Не удалось загрузить ранги');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const branchFilters = [
     { id: 'all', name: 'Все ранги', icon: Zap },
@@ -211,18 +238,21 @@ const RanksDiagram: React.FC = () => {
           })}
         </motion.div>
 
+        {error && (
+          <div className="mb-4 text-sm text-red-300">{error} — показаны демонстрационные данные</div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 bg-transparent">
           {filteredRanks.map((rank, index) => (
             <RankCard key={rank.id} rank={rank} isSelected={selectedRank === rank.id} onClick={() => setSelectedRank(rank.id)} delay={index} />
           ))}
         </div>
-
+              
         {selectedRankData && (
           <motion.div key={selectedRank} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="rounded-xl border border-gray-700 p-8">
             <div className="flex items-center gap-6 mb-6">
               <div className="p-4 rounded-full border-2" style={{ borderColor: selectedRankData.color, backgroundColor: `${selectedRankData.color}20` }}>
                 <selectedRankData.icon className="w-12 h-12" style={{ color: selectedRankData.color }} />
-              </div>
+            </div>
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2">{selectedRankData.name}</h2>
                 <p className="text-gray-300 text-lg">{selectedRankData.description}</p>
