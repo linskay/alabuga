@@ -96,6 +96,41 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="011-create-competencies-table" author="developer">
+        <createTable tableName="competencies">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="short_description" type="VARCHAR(200)"/>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="012-create-artifacts-table" author="developer">
+        <createTable tableName="artifacts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="short_description" type="VARCHAR(200)"/>
+            <column name="image_url" type="VARCHAR(500)"/>
+            <column name="rarity" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
     <changeSet id="010-fk-user-missions" author="developer">
         <addForeignKeyConstraint baseTableName="user_missions" baseColumnNames="user_id"
                                  constraintName="fk_user_missions_user"
@@ -202,6 +237,21 @@
         </createIndex>
         <createIndex tableName="notifications" indexName="idx_notifications_type">
             <column name="notification_type"/>
+        </createIndex>
+        <createIndex tableName="competencies" indexName="idx_competencies_name">
+            <column name="name"/>
+        </createIndex>
+        <createIndex tableName="competencies" indexName="idx_competencies_is_active">
+            <column name="is_active"/>
+        </createIndex>
+        <createIndex tableName="artifacts" indexName="idx_artifacts_name">
+            <column name="name"/>
+        </createIndex>
+        <createIndex tableName="artifacts" indexName="idx_artifacts_rarity">
+            <column name="rarity"/>
+        </createIndex>
+        <createIndex tableName="artifacts" indexName="idx_artifacts_is_active">
+            <column name="is_active"/>
         </createIndex>
     </changeSet>
 

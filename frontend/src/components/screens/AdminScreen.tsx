@@ -177,9 +177,17 @@ const AdminScreen: React.FC = () => {
         const list = await backend.missions.list();
         setMissions(list);
         const [comps, arts] = await Promise.all([
-          backend.competencies.list().catch(() => []),
-          backend.artifacts.list().catch(() => [])
+          backend.competencies.list().catch((e) => {
+            console.error('Ошибка загрузки компетенций:', e);
+            return [];
+          }),
+          backend.artifacts.list().catch((e) => {
+            console.error('Ошибка загрузки артефактов:', e);
+            return [];
+          })
         ]);
+        console.log('Загружены компетенции:', comps);
+        console.log('Загружены артефакты:', arts);
         setAllCompetencies(comps || []);
         setArtifactList(arts || []);
       } catch (e) {
@@ -679,7 +687,7 @@ const AdminScreen: React.FC = () => {
       {confirmDelete.open && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDelete({ open: false }) as any} />
-          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(239,68,68,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
             <h3 className="text-xl font-bold text-red-300 mb-2">Удалить пользователя?</h3>
             <p className="text-gray-300">Вы действительно хотите удалить {confirmDelete.name || 'пользователя'}? Это действие необратимо.</p>
@@ -695,7 +703,7 @@ const AdminScreen: React.FC = () => {
       {createMissionOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setCreateMissionOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Создать миссию</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -706,19 +714,19 @@ const AdminScreen: React.FC = () => {
                 <textarea className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" rows={3} value={createMission.description} onChange={e => setCreateMission((v: any) => ({ ...v, description: e.target.value }))} />
               </label>
               <label className="text-sm text-white/80">Тип
-                <select className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.type || 'QUEST'} onChange={e => setCreateMission((v: any) => ({ ...v, type: e.target.value }))}>
-                  <option value="QUEST">Квесты</option>
-                  <option value="CHALLENGE">Рекрутинг</option>
-                  <option value="TEST">Лекторий</option>
-                  <option value="SIMULATION">Симулятор</option>
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={createMission.type || 'QUEST'} onChange={e => setCreateMission((v: any) => ({ ...v, type: e.target.value }))}>
+                  <option value="QUEST" className="bg-slate-800 text-white">Квесты</option>
+                  <option value="CHALLENGE" className="bg-slate-800 text-white">Рекрутинг</option>
+                  <option value="TEST" className="bg-slate-800 text-white">Лекторий</option>
+                  <option value="SIMULATION" className="bg-slate-800 text-white">Симулятор</option>
                 </select>
               </label>
               <label className="text-sm text-white/80">Сложность
-                <select className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.difficulty} onChange={e => setCreateMission((v: any) => ({ ...v, difficulty: e.target.value }))}>
-                  <option value="EASY">EASY</option>
-                  <option value="MEDIUM">MEDIUM</option>
-                  <option value="HARD">HARD</option>
-                  <option value="EXTREME">EXTREME</option>
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={createMission.difficulty} onChange={e => setCreateMission((v: any) => ({ ...v, difficulty: e.target.value }))}>
+                  <option value="EASY" className="bg-slate-800 text-white">EASY</option>
+                  <option value="MEDIUM" className="bg-slate-800 text-white">MEDIUM</option>
+                  <option value="HARD" className="bg-slate-800 text-white">HARD</option>
+                  <option value="EXTREME" className="bg-slate-800 text-white">EXTREME</option>
                 </select>
               </label>
               <label className="text-sm text-white/80">Награда (XP, очки ранга)
@@ -857,7 +865,7 @@ const AdminScreen: React.FC = () => {
       {assignOpen.open && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAssignOpen({ open: false })} />
-          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-blue-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(59,130,246,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-blue-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(59,130,246,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(59,130,246,0.25), inset 0 0 30px rgba(59,130,246,0.15)' }} />
             <h3 className="text-xl font-bold text-blue-300 mb-4">Назначить миссию</h3>
             <label className="text-sm text-white/80 w-full">Email пользователя
@@ -874,7 +882,7 @@ const AdminScreen: React.FC = () => {
       {addUserOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddUserOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
             <h3 className="text-xl font-bold text-cyan-300 mb-4">Добавить пользователя</h3>
             <div className="grid grid-cols-1 gap-3">
@@ -893,9 +901,9 @@ const AdminScreen: React.FC = () => {
                 </label>
               </div>
               <label className="text-sm text-white/80">Роль
-                <select className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={newUser.role} onChange={e => setNewUser(v => ({ ...v, role: e.target.value }))}>
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={newUser.role} onChange={e => setNewUser(v => ({ ...v, role: e.target.value }))}>
                   {(roles || []).map(r => (
-                    <option key={r.value} value={r.value}>{r.displayName}</option>
+                    <option key={r.value} value={r.value} className="bg-slate-800 text-white">{r.displayName}</option>
                   ))}
                 </select>
               </label>
@@ -911,7 +919,7 @@ const AdminScreen: React.FC = () => {
       {editUserOpen && editUser && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEditUserOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
             <h3 className="text-xl font-bold text-cyan-300 mb-4">Редактировать пользователя</h3>
             <div className="grid grid-cols-1 gap-3">
@@ -930,9 +938,9 @@ const AdminScreen: React.FC = () => {
                 </label>
               </div>
               <label className="text-sm text-white/80">Роль
-                <select className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={editUser.role} onChange={e => setEditUser((v: any) => ({ ...v, role: e.target.value }))}>
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={editUser.role} onChange={e => setEditUser((v: any) => ({ ...v, role: e.target.value }))}>
                   {(roles || []).map(r => (
-                    <option key={r.value} value={r.value}>{r.displayName}</option>
+                    <option key={r.value} value={r.value} className="bg-slate-800 text-white">{r.displayName}</option>
                   ))}
                 </select>
               </label>
@@ -948,7 +956,7 @@ const AdminScreen: React.FC = () => {
       {addProductOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddProductOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(16,185,129,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(16,185,129,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(16,185,129,0.25), inset 0 0 30px rgba(16,185,129,0.15)' }} />
             <h3 className="text-xl font-bold text-emerald-300 mb-4">Добавить товар</h3>
             <div className="grid grid-cols-1 gap-3">
@@ -961,10 +969,10 @@ const AdminScreen: React.FC = () => {
               <label className="text-sm text-white/80">Описание
                 <textarea className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Описание" value={newProduct.description || ''} onChange={e => setNewProduct(v => ({ ...v, description: e.target.value }))} />
               </label>
-              <label className="flex items-center gap-2 text-white/80 text-sm">
-                <input type="checkbox" checked={newProduct.available} onChange={e => setNewProduct(v => ({ ...v, available: e.target.checked }))} />
-                Доступен
-              </label>
+              <div className="flex items-center gap-3 text-white/80 text-sm">
+                <span>Доступен</span>
+                <CosmicSwitch checked={!!newProduct.available} onChange={(v: boolean) => setNewProduct((s: any) => ({ ...s, available: v }))} />
+              </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setAddProductOpen(false)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
@@ -977,7 +985,7 @@ const AdminScreen: React.FC = () => {
       {editMissionOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditMissionOpen(null); setEditMissionData(null); }} />
-          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Редактировать миссию</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
