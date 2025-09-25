@@ -6,6 +6,6 @@ import tapgame.entity.GooseGameProfile;
 @Service
 public class TapService {
     public void tap(GooseGameProfile profile) {
-        profile.setTaps(profile.getTaps() + 1);
+      //  profile.setTaps(profile.getTaps() + 1);
     }
 }
