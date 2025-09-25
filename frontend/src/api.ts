@@ -32,11 +32,15 @@ export type RankDTO = { id: number; name: string; level: number; branch: string;
 export type ShopItemDTO = { id: number; name: string; price: number; available: boolean; description?: string };
 export type ArtifactDTO = { id: number; name: string; rarity?: string; active?: boolean; description?: string };
 export type UserDTO = { id: number; login: string; email: string; role: string; experience: number; energy: number; rank: number; firstName?: string; lastName?: string };
+export type UserCompetency = { id: number; name: string; points?: number; level?: number; maxPoints?: number };
+export type UserMission = { id: number; missionId?: number; missionName?: string; status?: string; progress?: number };
+export type MissionDTO = { id: number; name: string; description?: string; difficulty?: string; experienceReward?: number; isActive?: boolean; requiredExperience?: number; requiredRank?: number; type?: string };
 
 export const backend = {
   ranks: {
     list: () => api.get<RankDTO[]>('/api/ranks'),
     requirements: () => api.get<any[]>('/api/ranks/requirements'),
+    requirementByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
   },
   shop: {
     available: () => api.get<ShopItemDTO[]>('/api/shop/available'),
@@ -50,9 +54,14 @@ export const backend = {
     create: (body: any) => api.post<any>('/api/users', body),
     byId: (id: number) => api.get<UserDTO>(`/api/users/${id}`),
     byLogin: (login: string) => api.get<UserDTO>(`/api/users/login/${encodeURIComponent(login)}`),
+    competencies: (userId: number) => api.get<UserCompetency[]>(`/api/users/${userId}/competencies`),
+    missions: (userId: number) => api.get<UserMission[]>(`/api/users/${userId}/missions`),
+    takeMission: (userId: number, missionId: number) => api.post(`/api/users/${userId}/missions/${missionId}/take`),
   },
   missions: {
     create: (body: any) => api.post<any>('/api/missions', body),
+    byUser: (userId: number) => api.get<UserMission[]>(`/api/users/${userId}/missions`),
+    list: () => api.get<MissionDTO[]>('/api/missions'),
   },
 };
 

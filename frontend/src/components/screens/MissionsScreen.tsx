@@ -1,17 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import styled, { keyframes } from 'styled-components';
 import MainButton from '../MainButton';
+import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
 
 type StatusId = 'active' | 'available' | 'soon';
 
-interface MissionItem {
-  title: string;
-  description: string;
-  difficulty: string;
-  reward: string;
-  status: StatusId;
-}
+interface MissionItem { id?: number; title: string; description: string; difficulty: string; reward: string; status: StatusId; requiredExperience?: number; requiredRank?: number; type?: string }
 
 const StyledCardGrid = styled.div`
   display: grid;
@@ -109,6 +104,20 @@ const StyledCard = styled.div`
     width: 50%; height: 100%;
     background-color: rgba(255,255,255,0.08);
   }
+  .badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 15;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px);
+  }
   .card .content {
     position: relative;
     padding: 10px;
@@ -130,45 +139,116 @@ const MissionsScreen: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const pageSize = 6; // 3x2 на десктопе
 
-  // Космические миссии (заглушки)
-  const missions: MissionItem[] = useMemo(() => ([
-    { title: 'Орбитальный манёвр', description: 'Синхронизируй орбиту с луной Титана', difficulty: 'Средний', reward: '700 XP', status: 'active' },
-    { title: 'Экспедиция на Европу', description: 'Пробурить лёд и собрать пробы океана', difficulty: 'Продвинутый', reward: '1200 XP', status: 'available' },
-    { title: 'Колония на Церере', description: 'Построить модуль связи для колонии', difficulty: 'Средний', reward: '850 XP', status: 'soon' },
-    { title: 'Пояс астероидов', description: 'Добыть редкоземельные элементы', difficulty: 'Продвинутый', reward: '1000 XP', status: 'active' },
-    { title: 'Станция Лагранжа', description: 'Стабилизировать энергокольцо станции', difficulty: 'Средний', reward: '750 XP', status: 'available' },
-    { title: 'Спасательная операция', description: 'Эвакуация экипажа с дрейфующей капсулы', difficulty: 'Эксперт', reward: '1500 XP', status: 'soon' },
-    { title: 'Марсианская буря', description: 'Закрепить солнечные панели базы', difficulty: 'Средний', reward: '650 XP', status: 'active' },
-    { title: 'Туманность Ориона', description: 'Картографирование газовых облаков', difficulty: 'Начинающий', reward: '500 XP', status: 'available' },
-    { title: 'Аномалия у Плутона', description: 'Исследовать гравитационные всплески', difficulty: 'Продвинутый', reward: '1100 XP', status: 'soon' },
-  ]), []);
+  const [missions, setMissions] = useState<MissionItem[]>([]);
+  const [user, setUser] = useState<UserDTO | null>(null);
+  const [userMissions, setUserMissions] = useState<UserMission[]>([]);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingMission, setPendingMission] = useState<MissionItem | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const u = await backend.users.byLogin(login);
+        if (!mounted) return;
+        setUser(u);
+        const [data, myMissions] = await Promise.all([
+          backend.missions.list(),
+          backend.users.missions(u.id)
+        ]);
+        if (!mounted) return;
+        const mapped: MissionItem[] = data.map((m: MissionDTO) => ({
+          id: m.id,
+          title: m.name,
+          description: m.description || '',
+          difficulty: m.difficulty || '—',
+          reward: `${m.experienceReward ?? 0} XP`,
+          status: (m.isActive ? 'available' : 'soon') as StatusId,
+          requiredExperience: m.requiredExperience,
+          requiredRank: m.requiredRank,
+          type: m.type,
+        }));
+        setMissions(mapped);
+        setUserMissions(myMissions || []);
+      } catch (e) {
+        setMissions([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const filtered = useMemo(() => {
+    const userRank = user?.rank ?? 0;
+    const userXP = user?.experience ?? 0;
+    const canAccess = (m: MissionItem) => {
+      const rankOk = m.requiredRank == null || userRank >= m.requiredRank;
+      const xpOk = m.requiredExperience == null || userXP >= m.requiredExperience;
+      return rankOk && xpOk;
+    };
+    const isActiveForUser = (m: MissionItem) => userMissions.some(um => (um.missionId === m.id) && (um.status || '').toUpperCase() !== 'COMPLETED');
+
     return missions.filter(m =>
-      status === 'active' ? m.status === 'active' :
-      status === 'available' ? m.status === 'available' :
-      m.status === 'soon'
+      status === 'active' ? isActiveForUser(m) :
+      status === 'available' ? (canAccess(m) && !isActiveForUser(m)) :
+      !canAccess(m)
     );
-  }, [missions, status]);
+  }, [missions, status, user, userMissions]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pageItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Добиваем до 6 карточек на страницу заглушками, если не хватает
-  const placeholders: MissionItem[] = [
-    { title: 'Сектор Андромеды', description: 'Скоро новая миссия', difficulty: '—', reward: '—', status: 'soon' },
-    { title: 'Станция «Гелиос»', description: 'Готовится операция', difficulty: '—', reward: '—', status: 'soon' },
-    { title: 'Туманность Вуали', description: 'Миссия в разработке', difficulty: '—', reward: '—', status: 'soon' },
-    { title: 'Море Спокойствия', description: 'Подготовка к высадке', difficulty: '—', reward: '—', status: 'soon' },
-    { title: 'Пояс Койпера', description: 'Скоро исследование', difficulty: '—', reward: '—', status: 'soon' },
-    { title: 'Кольца Сатурна', description: 'Ожидается задание', difficulty: '—', reward: '—', status: 'soon' },
-  ];
-  const itemsToRender = pageItems.length >= pageSize
-    ? pageItems
-    : [...pageItems, ...placeholders.slice(0, pageSize - pageItems.length)];
+  const itemsToRender = pageItems;
 
   const changeStatus = (id: StatusId) => { setStatus(id); setPage(1); };
+
+  const handleTakeMission = async (mission: MissionItem) => {
+    if (!mission.id || !user) return;
+    try {
+      await backend.users.takeMission(user.id, mission.id);
+      setToastOpen(true);
+      setTimeout(() => setToastOpen(false), 1800);
+      // Обновляем список миссий и активные пользователя
+      const [data, myMissions] = await Promise.all([
+        backend.missions.list(),
+        backend.users.missions(user.id),
+      ]);
+      const mapped: MissionItem[] = data.map((m: MissionDTO) => ({
+        id: m.id,
+        title: m.name,
+        description: m.description || '',
+        difficulty: m.difficulty || '—',
+        reward: `${m.experienceReward ?? 0} XP`,
+        status: (m.isActive ? 'available' : 'soon') as StatusId,
+        requiredExperience: m.requiredExperience,
+        requiredRank: m.requiredRank,
+        type: m.type,
+      }));
+      setMissions(mapped);
+      setUserMissions(myMissions || []);
+    } catch (e: any) {
+      alert(`Ошибка: ${e?.message || 'Не удалось взять миссию'}`);
+    }
+  };
+
+  const askConfirm = (mission: MissionItem) => {
+    setPendingMission(mission);
+    setConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setPendingMission(null);
+  };
+
+  const confirmTake = async () => {
+    if (pendingMission) {
+      await handleTakeMission(pendingMission);
+    }
+    closeConfirm();
+  };
 
   return (
     <div className="h-full pb-8 overflow-y-auto max-h-screen relative">
@@ -208,12 +288,29 @@ const MissionsScreen: React.FC = () => {
                 <div className="card" style={{ width: 180 }}>
                   <span />
                   <div className="content">
+                    {m.type && (
+                      <div className="badge" style={{
+                        background: m.type === 'QUEST' ? 'rgba(16,185,129,0.2)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.2)' : m.type === 'TEST' ? 'rgba(245,158,11,0.2)' : 'rgba(168,85,247,0.2)',
+                        borderColor: m.type === 'QUEST' ? 'rgba(16,185,129,0.35)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.35)' : m.type === 'TEST' ? 'rgba(245,158,11,0.35)' : 'rgba(168,85,247,0.35)',
+                        color: m.type === 'QUEST' ? '#34d399' : m.type === 'CHALLENGE' ? '#60a5fa' : m.type === 'TEST' ? '#fbbf24' : '#c084fc'
+                      }}>
+                        {m.type === 'QUEST' ? 'Квесты' : m.type === 'CHALLENGE' ? 'Рекрутинг' : m.type === 'TEST' ? 'Лекторий' : 'Симулятор'}
+                      </div>
+                    )}
                     <div className="title">{m.title}</div>
                     <div className="desc">{m.description}</div>
                     <div className="meta">
                       <div>Сложн.: {m.difficulty}</div>
                       <div>Награда: {m.reward}</div>
                     </div>
+                    {status === 'available' && (
+                      <button
+                        onClick={() => askConfirm(m)}
+                        className="mt-2 px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded text-cyan-300 text-xs hover:bg-cyan-500/30 transition-all duration-300"
+                      >
+                        Взять миссию
+                      </button>
+                    )}
                   </div>
                 </div>
               </StyledCard>
@@ -232,6 +329,31 @@ const MissionsScreen: React.FC = () => {
           Вперёд
         </MainButton>
       </div>
+
+      {/* Neon Confirm Modal */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeConfirm} />
+          <div className="relative z-[110] w-[90%] max-w-md rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
+            <h3 className="text-xl font-bold text-cyan-300 mb-2">Подтверждение</h3>
+            <p className="text-gray-300 text-sm mb-6">
+              Ты действительно хочешь пройти эту миссию{pendingMission?.title ? `: "${pendingMission.title}"` : ''}?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={closeConfirm} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
+              <button onClick={confirmTake} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30 transition">Да!</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {toastOpen && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[120]">
+          <div className="rounded-xl px-5 py-3 border border-cyan-400/40 bg-slate-900/85 text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,0.35)]" style={{ boxShadow: '0 0 40px rgba(34,211,238,0.25), inset 0 0 20px rgba(34,211,238,0.15)'}}>
+            Готово — миссия взята
+          </div>
+        </div>
+      )}
     </div>
   );
 };

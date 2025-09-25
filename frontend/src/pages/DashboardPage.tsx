@@ -18,7 +18,7 @@ interface DashboardPageProps {
 const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage, onExit }) => {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('profile');
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // No cursor-following effects; background stars animate independently
   const { show404 } = use404();
 
   useEffect(() => {
@@ -30,14 +30,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  // Removed mousemove listener (no mouse-tied background)
 
   const handleScreenChange = (screen: ScreenType) => {
     if (screen === 'profile') {
@@ -54,22 +47,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
+      <div className="relative w-full min-h-screen overflow-x-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
       {/* Animated Cosmic Background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <AnimatedStars />
         <div className="cosmic-orb cosmic-orb-1"></div>
         <div className="cosmic-orb cosmic-orb-2"></div>
         <div className="cosmic-orb cosmic-orb-3"></div>
-        
-        {/* Mouse-following gradient */}
-        <div 
-          className="mouse-gradient"
-          style={{
-            left: mousePosition.x - 200,
-            top: mousePosition.y - 200,
-          }}
-        ></div>
       </div>
 
       {/* Header */}
@@ -99,7 +83,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full h-full flex flex-col"
+        className="relative z-10 w-full flex flex-col"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -108,9 +92,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="flex-1 flex justify-center overflow-hidden"
+            className="flex justify-center"
           >
-            <div className="w-full max-w-7xl mx-auto h-full">
+            <div className="w-full max-w-7xl mx-auto">
               {renderCurrentScreen()}
             </div>
           </motion.div>
@@ -121,7 +105,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
       <Footer onPrivacyClick={() => {}} onCookiesClick={() => {}} />
 
       {/* Floating UI Elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none z-0">
         {/* Left side floating elements */}
         <motion.div
           className="absolute top-20 left-10 w-16 h-16 border-2 border-cyan-400/20 rounded-full"
