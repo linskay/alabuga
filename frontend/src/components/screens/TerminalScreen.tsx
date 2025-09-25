@@ -3,6 +3,7 @@ import MainButton from '../MainButton';
 import styled, { keyframes } from 'styled-components';
 import CircularLoader from '../CircularLoader';
 import { backend, ShopItemDTO } from '../../api';
+import SystemNotification from '../SystemNotification';
 
 // Фоновое размещение нашей сферической анимации (CircularLoader)
 const LoaderBg = styled.div`
@@ -47,6 +48,7 @@ const TerminalScreen: React.FC = () => {
     { title: 'Иниціатор «Орфей»', desc: 'Запускает автономные протоколы' },
   ]);
   const [error, setError] = useState<string | null>(null);
+  const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
   useEffect(() => {
     let mounted = true;
@@ -110,6 +112,20 @@ const TerminalScreen: React.FC = () => {
                     </h3>
                     <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,240,255,0.85)' }}>{it.desc}</p>
                     <div className="mt-6 w-1/3 h-0.5 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, transparent, rgba(0,174,239,0.8), transparent)' }}></div>
+                    <div className="mt-6 flex justify-center">
+                      <MainButton
+                        onClick={async () => {
+                          try {
+                            setNotif({ open: true, title: 'Покупка оформлена', message: `Товар «${it.title}» добавлен`, variant: 'success' });
+                          } catch (e: any) {
+                            setNotif({ open: true, title: 'Ошибка покупки', message: e?.message || 'Не удалось оформить покупку', variant: 'error' });
+                          }
+                        }}
+                        className="px-5 py-2"
+                      >
+                        Купить
+                      </MainButton>
+                    </div>
                   </div>
                 </div>
               </div>
