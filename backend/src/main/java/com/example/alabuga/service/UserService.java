@@ -13,13 +13,16 @@ import com.example.alabuga.dto.UserArtifactDTO;
 import com.example.alabuga.dto.UserCompetencyDTO;
 import com.example.alabuga.dto.UserCreateDTO;
 import com.example.alabuga.dto.UserDTO;
+import com.example.alabuga.dto.UserMissionDTO;
 import com.example.alabuga.dto.UserUpdateDTO;
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
+import com.example.alabuga.entity.Mission;
 import com.example.alabuga.entity.Rank;
 import com.example.alabuga.entity.User;
 import com.example.alabuga.entity.UserArtifact;
 import com.example.alabuga.entity.UserCompetency;
+import com.example.alabuga.entity.UserMission;
 import com.example.alabuga.entity.UserRole;
 import com.example.alabuga.exception.BusinessLogicException;
 import com.example.alabuga.exception.DuplicateResourceException;
@@ -29,8 +32,10 @@ import com.example.alabuga.mapper.CompetencyMapper;
 import com.example.alabuga.mapper.UserMapper;
 import com.example.alabuga.repository.ArtifactRepository;
 import com.example.alabuga.repository.CompetencyRepository;
+import com.example.alabuga.repository.MissionRepository;
 import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserCompetencyRepository;
+import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -45,6 +50,8 @@ public class UserService {
     private final ArtifactRepository artifactRepository;
     private final UserCompetencyRepository userCompetencyRepository;
     private final UserArtifactRepository userArtifactRepository;
+    private final UserMissionRepository userMissionRepository;
+    private final MissionRepository missionRepository;
     private final UserMapper userMapper;
     private final CompetencyMapper competencyMapper;
     private final ArtifactMapper artifactMapper;
@@ -342,6 +349,59 @@ public class UserService {
         
         UserCompetency savedUserCompetency = userCompetencyRepository.save(userCompetency);
         return competencyMapper.toDTO(savedUserCompetency);
+    }
+    
+    // ========== MISSION OPERATIONS ==========
+    
+    public List<UserMissionDTO> getUserMissions(Long userId) {
+        List<UserMission> userMissions = userMissionRepository.findByUserId(userId);
+        return userMissions.stream()
+                .map(this::mapToUserMissionDTO)
+                .toList();
+    }
+    
+    @Transactional
+    public UserMissionDTO takeMission(Long userId, Long missionId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
+        
+        Mission mission = missionRepository.findById(missionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Миссия", missionId));
+        
+        // Проверяем, не взял ли уже пользователь эту миссию
+        Optional<UserMission> existingMission = userMissionRepository.findByUserIdAndMissionId(userId, missionId);
+        if (existingMission.isPresent()) {
+            throw new BusinessLogicException("Пользователь уже взял эту миссию");
+        }
+        
+        // Проверки доступности по рангу/опыту опущены, т.к. у сущности Mission нет таких полей.
+        // При необходимости можно добавить бизнес-логику проверки компетенций через requiredCompetencies.
+        
+        // Создаем UserMission
+        UserMission userMission = UserMission.builder()
+                .user(user)
+                .mission(mission)
+                .status(com.example.alabuga.entity.MissionStatus.IN_PROGRESS)
+                .progress(0)
+                .startedAt(LocalDateTime.now())
+                .build();
+        
+        UserMission savedUserMission = userMissionRepository.save(userMission);
+        return mapToUserMissionDTO(savedUserMission);
+    }
+    
+    private UserMissionDTO mapToUserMissionDTO(UserMission userMission) {
+        return UserMissionDTO.builder()
+                .id(userMission.getId())
+                .userId(userMission.getUser().getId())
+                .missionId(userMission.getMission().getId())
+                .missionName(userMission.getMission().getName())
+                .status(userMission.getStatus().name())
+                .progress(userMission.getProgress())
+                .startedAt(userMission.getStartedAt())
+                .completedAt(userMission.getCompletedAt())
+                .notes(userMission.getNotes())
+                .build();
     }
     
 }

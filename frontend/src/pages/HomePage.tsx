@@ -272,68 +272,27 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
   const [showLoader, setShowLoader] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // Removed mouse-following glow globally
   const [showVideo, setShowVideo] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    // Проверяем, загружена ли страница
-    const checkLoaded = () => {
-      if (document.readyState === 'complete') {
-        setShowLoader(false);
-        setIsLoaded(true);
-        
-        // Последовательность анимаций
-        setTimeout(() => {
-          setShowVideo(true);
-        }, 500);
-        
-        setTimeout(() => {
-          setShowText(true);
-        }, 2000);
-        
-        setTimeout(() => {
-          setShowButton(true);
-        }, 3000);
-      }
-    };
+    // В дев-режиме инициируем сразу, без ожидания события load
+    setShowLoader(false);
+    setIsLoaded(true);
 
-    // Если страница уже загружена
-    if (document.readyState === 'complete') {
-      setShowLoader(false);
-      setIsLoaded(true);
-      
-      // Последовательность анимаций
-      setTimeout(() => {
-        setShowVideo(true);
-      }, 500);
-      
-      setTimeout(() => {
-        setShowText(true);
-      }, 2000);
-      
-      setTimeout(() => {
-        setShowButton(true);
-      }, 3000);
-    } else {
-      // Слушаем событие загрузки
-      window.addEventListener('load', checkLoaded);
-    }
-
+    const t1 = setTimeout(() => setShowVideo(true), 500);
+    const t2 = setTimeout(() => setShowText(true), 2000);
+    const t3 = setTimeout(() => setShowButton(true), 3000);
     return () => {
-      window.removeEventListener('load', checkLoaded);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  // Removed mousemove listener (no cursor-bound visuals)
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -356,7 +315,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'none' }}>
+    <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic">
       {/* Loader */}
       <AnimatePresence>
         {showLoader && (
@@ -378,21 +337,12 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
       {/* Header */}
       <Header onMenuToggle={toggleMenu} showLoginButton={false} />
 
-      {/* Animated Cosmic Background */}
+      {/* Animated Cosmic Background (no cursor glow) */}
       <div className="absolute inset-0">
         <AnimatedStars />
         <div className="cosmic-orb cosmic-orb-1"></div>
         <div className="cosmic-orb cosmic-orb-2"></div>
         <div className="cosmic-orb cosmic-orb-3"></div>
-        
-        {/* Mouse-following gradient */}
-        <div 
-          className="mouse-gradient"
-          style={{
-            left: mousePosition.x - 200,
-            top: mousePosition.y - 200,
-          }}
-        ></div>
       </div>
 
       {/* Main Content */}

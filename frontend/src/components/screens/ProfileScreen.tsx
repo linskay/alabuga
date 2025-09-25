@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import AnimatedServer from '../AnimatedServer';
@@ -6,6 +6,7 @@ import PyramidLoader2 from '../PyramidLoader2';
 import CosmicButton from '../CosmicButton';
 import HoloNotificationButton from '../HoloNotificationButton';
 import NotificationPanel from '../NotificationPanel';
+import Footer from '../Footer';
 import FrequencySpectrum from '../FrequencySpectrum';
 import CosmicTooltip from '../CosmicTooltip';
 import CosmicProgressBar from '../CosmicProgressBar';
@@ -14,16 +15,29 @@ import { NeonGradientCard } from '../NeonGradientCard';
 import ShinyText from '../ShinyText';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
+import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
 
-const AstronautCard = () => {
+const DEFAULT_COMPETENCIES: { name: string; max: number }[] = [
+  { name: 'Сила Миссии', max: 500 },
+  { name: 'Импульс Прорыва', max: 500 },
+  { name: 'Канал Связи', max: 500 },
+  { name: 'Модуль Аналитики', max: 500 },
+  { name: 'Пульт Командования', max: 500 },
+  { name: 'Кодекс Звёздного Права', max: 500 },
+  { name: 'Голограммное Мышление', max: 500 },
+  { name: 'Кредитный Поток', max: 500 },
+  { name: 'Курс Аэронавигации', max: 500 },
+];
+
+const AstronautCard = ({ login, rank, experience }: { login: string; rank: number; experience: number }) => {
   return (
     <StyledWrapper>
       <div className="card">
         <img src="https://uiverse.io/astronaut.png" alt="Astronaut" className="image" />
-        <div className="heading">КОМАНДИР НЕКСУС</div>
+        <div className="heading">{login}</div>
         <div className="rank-info">
-          <div className="rank-badge">КАПИТАН</div>
-          <div className="level-info">Уровень 42</div>
+          <div className="rank-badge">Ранг {rank}</div>
+          <div className="level-info">Опыт {experience}</div>
         </div>
       </div>
     </StyledWrapper>
@@ -41,14 +55,50 @@ const ProfileScreen: React.FC = () => {
     closePanel
   } = useNotifications();
 
+  const [user, setUser] = useState<UserDTO | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [competencies, setCompetencies] = useState<UserCompetency[]>([]);
+  const [userMissions, setUserMissions] = useState<UserMission[]>([]);
+  const [nextRankReq, setNextRankReq] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        // Временный способ получить текущий логин: берём из localStorage или fallback
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const u = await backend.users.byLogin(login);
+        if (!mounted) return;
+        setUser(u);
+        try {
+          const [comp, missions] = await Promise.all([
+            backend.users.competencies(u.id),
+            backend.users.missions(u.id),
+          ]);
+          if (!mounted) return;
+          setCompetencies(comp || []);
+          setUserMissions(missions || []);
+        } catch {}
+        try {
+          const req = await backend.ranks.requirementByLevel((u.rank ?? 0) + 1);
+          if (!mounted) return;
+          setNextRankReq(req || null);
+        } catch {}
+      } catch (e: any) {
+        setError(e?.message || 'Не удалось загрузить профиль');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   return (
-    <div className="relative pb-8 pt-2 px-8 h-screen overflow-y-auto sm:pt-4 md:pt-6 lg:pt-8">
+    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden z-10">
       {/* PyramidLoader2 Component - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.3, scale: 1 }}
         transition={{ duration: 0.8, delay: 0.3 }}
-        className="fixed top-4 right-16 z-0"
+        className="fixed top-4 right-16 z-[1]"
       >
         <PyramidLoader2 />
       </motion.div>
@@ -58,7 +108,7 @@ const ProfileScreen: React.FC = () => {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.4, scale: 1 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="fixed bottom-8 left-8 z-0"
+        className="fixed bottom-8 left-8 z-[1]"
       >
         <AnimatedServer />
       </motion.div>
@@ -85,7 +135,14 @@ const ProfileScreen: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="lg:col-span-1 flex flex-col items-center space-y-6 mt-2 sm:mt-4"
         >
-          <AstronautCard />
+          {error && (
+            <div className="text-red-300 text-sm">{error}</div>
+          )}
+          <AstronautCard 
+            login={user?.login || 'КОМАНДИР НЕКСУС'} 
+            rank={user?.rank ?? 42} 
+            experience={user?.experience ?? 15420} 
+          />
           
           {/* Frequency Spectrum */}
           <motion.div
@@ -148,7 +205,6 @@ const ProfileScreen: React.FC = () => {
           {/* Stats */}
           <NeonGradientCard className="p-8">
             <div className="mb-6 flex items-center">
-              <span className="mr-3 text-3xl">📊</span>
               <ShinyText text="СТАТИСТИКА ПИЛОТА" className="text-2xl font-bold" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -158,61 +214,51 @@ const ProfileScreen: React.FC = () => {
                     <Energon size={18} />
                     Энергон
                   </span>
-                  <span className="text-cyan-400 font-bold">15,420 / 20,000</span>
+                  <span className="text-cyan-400 font-bold">{user?.energy ?? 0}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🎯</span>Миссии
-                  </span>
-                  <span className="text-cyan-400 font-bold text-xl">127</span>
+                  <span className="text-gray-300">Миссии (выполнено)</span>
+                  <span className="text-cyan-400 font-bold text-xl">{userMissions.filter(m => (m.status || '').toLowerCase() === 'completed').length}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🏆</span>Рейтинг
-                  </span>
-                  <span className="text-cyan-400 font-bold">#1,247</span>
+                  <span className="text-gray-300">Текущий ранг</span>
+                  <span className="text-cyan-400 font-bold">{user?.rank ?? 0}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🚀</span>Скорость
-                  </span>
-                  <span className="text-cyan-400 font-bold">850 км/ч</span>
-                </div>
-              </NeonGradientCard>
-              <NeonGradientCard>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">🛡️</span>Броня
-                  </span>
-                  <span className="text-blue-400 font-bold">95%</span>
-                </div>
-              </NeonGradientCard>
-              <NeonGradientCard>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 flex items-center">
-                    <span className="mr-2">⚔️</span>Оружие
-                  </span>
-                  <span className="text-red-400 font-bold">Максимум</span>
+                  <span className="text-gray-300">Опыт</span>
+                  <span className="text-cyan-400 font-bold">{user?.experience ?? 0}</span>
                 </div>
               </NeonGradientCard>
             </div>
 
             <div className="mt-8">
               <div className="flex justify-between text-sm text-gray-300 mb-3">
-                <span className="flex items-center">
-                  <span className="mr-2">🚀</span>
-                  Прогресс до следующего уровня
+                <span>Прогресс до следующего ранга</span>
+                <span className="text-cyan-400 font-bold">
+                  {(() => {
+                    const need = nextRankReq?.requiredExperience ?? null;
+                    if (!need || !user) return '—';
+                    const have = user.experience ?? 0;
+                    const remain = Math.max(0, need - have);
+                    const pct = Math.min(100, Math.max(0, Math.round((have / need) * 100)));
+                    return `${pct}% (осталось ${remain})`;
+                  })()}
                 </span>
-                <span className="text-cyan-400 font-bold">77%</span>
               </div>
               <div className="w-full bg-gray-800/50 rounded-full h-3 border border-gray-600/30">
-                <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 h-3 rounded-full shadow-lg shadow-cyan-500/30" style={{ width: '77%' }}></div>
+                <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 h-3 rounded-full shadow-lg shadow-cyan-500/30" style={{ width: (() => {
+                  const need = nextRankReq?.requiredExperience ?? null;
+                  if (!need || !user) return '0%';
+                  const have = user.experience ?? 0;
+                  const pct = Math.min(100, Math.max(0, Math.round((have / need) * 100)));
+                  return `${pct}%`;
+                })() }}></div>
               </div>
             </div>
           </NeonGradientCard>
@@ -220,35 +266,28 @@ const ProfileScreen: React.FC = () => {
           {/* Skills */}
           <NeonGradientCard className="p-8">
             <div className="mb-6 flex items-center">
-              <span className="mr-3 text-3xl">⚡</span>
               <ShinyText text="НАВЫКИ И КОМПЕТЕНЦИИ" className="text-2xl font-bold" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-              {[
-                { name: 'Сила Миссии', description: 'Вера в дело', level: 350, maxLevel: 500 },
-                { name: 'Импульс Прорыва', description: 'Стремление к большему', level: 420, maxLevel: 500 },
-                { name: 'Канал Связи', description: 'Общение', level: 280, maxLevel: 500 },
-                { name: 'Модуль Аналитики', description: 'Аналитика', level: 450, maxLevel: 500 },
-                { name: 'Пульт Командования', description: 'Командование', level: 380, maxLevel: 500 },
-                { name: 'Кодекс Звёздного Права', description: 'Юриспруденция', level: 320, maxLevel: 500 },
-                { name: 'Голограммное Мышление', description: 'Трёхмерное мышление', level: 410, maxLevel: 500 },
-                { name: 'Кредитный Поток', description: 'Базовая экономика', level: 290, maxLevel: 500 },
-                { name: 'Курс Аэронавигации', description: 'Основы аэронавигации', level: 360, maxLevel: 500 }
-              ].map((skill, index) => (
+              {DEFAULT_COMPETENCIES.map((base, index) => {
+                const found = competencies.find(c => (c.name || '').toLowerCase() === base.name.toLowerCase());
+                const value = (found?.points ?? found?.level ?? 0) as number;
+                const maxValue = (found?.maxPoints ?? base.max) as number;
+                return (
                 <motion.div
-                  key={index}
+                  key={base.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
                   className="w-full"
                   style={{ minWidth: '200px' }}
                 >
-                  <CosmicTooltip tooltip={skill.description}>
+                  <CosmicTooltip tooltip={base.name}>
                     <CosmicProgressBar
-                      value={skill.level}
-                      maxValue={skill.maxLevel}
+                      value={value}
+                      maxValue={maxValue}
                       size="md"
-                      label={skill.name}
+                      label={base.name}
                       color="from-cyan-400 to-purple-500"
                       animated={true}
                       showValue={true}
@@ -256,53 +295,17 @@ const ProfileScreen: React.FC = () => {
                     />
                   </CosmicTooltip>
                 </motion.div>
-              ))}
+              );})}
             </div>
           </NeonGradientCard>
 
           
 
-          {/* Recent Achievements */}
-          <NeonGradientCard className="p-8">
-            <div className="mb-6 flex items-center">
-              <span className="mr-3 text-3xl">🏆</span>
-              <ShinyText text="ПОСЛЕДНИЕ ДОСТИЖЕНИЯ" className="text-2xl font-bold" />
-            </div>
-            <div className="space-y-3">
-              {[
-                { title: 'Первый полет', description: 'Успешно завершил первую космическую миссию', icon: '🚀', date: '2 дня назад' },
-                { title: 'Исследователь', description: 'Открыл 5 новых планетарных систем', icon: '🔬', date: '1 неделя назад' },
-                { title: 'Защитник', description: 'Отразил атаку космических пиратов', icon: '🛡️', date: '2 недели назад' },
-                { title: 'Мастер навигации', description: 'Прошел через астероидное поле без повреждений', icon: '🧭', date: '3 недели назад' }
-              ].map((achievement, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
-                  className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:border-yellow-400/30 hover:bg-yellow-500/5 transition-all duration-300"
-                >
-                  <div className="text-3xl p-2 bg-yellow-500/10 rounded-full">{achievement.icon}</div>
-                  <div className="flex-1">
-                    <h5 className="text-white font-bold text-lg">{achievement.title}</h5>
-                    <p className="text-gray-300 text-sm">{achievement.description}</p>
-                  </div>
-                  <span className="text-yellow-400 text-xs font-mono bg-yellow-500/10 px-2 py-1 rounded-full">{achievement.date}</span>
-                </motion.div>
-              ))}
-            </div>
-          </NeonGradientCard>
+          
         </motion.div>
       </div>
 
       {/* Animated Server Component */}
-
-      {/* Additional content to ensure scrolling works */}
-      <div className="mt-8 mb-8">
-        <div className="h-32 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-20 rounded-lg flex items-center justify-center">
-          <p className="text-white text-lg">Scroll down to see the animated server above</p>
-        </div>
-      </div>
 
       {/* Notification Panel */}
       <NotificationPanel

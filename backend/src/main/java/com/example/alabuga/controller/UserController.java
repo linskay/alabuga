@@ -270,4 +270,23 @@ public class UserController {
         UserCompetencyDTO userCompetency = userService.addExperienceToCompetency(id, competencyId, experiencePoints);
         return ResponseEntity.ok(userCompetency);
     }
+    
+    // ========== MISSION ENDPOINTS ==========
+    
+    @GetMapping("/{id}/missions")
+    @Operation(summary = "Получить миссии пользователя")
+    public ResponseEntity<List<com.example.alabuga.dto.UserMissionDTO>> getUserMissions(
+            @Parameter(description = "ID пользователя") @PathVariable Long id) {
+        List<com.example.alabuga.dto.UserMissionDTO> missions = userService.getUserMissions(id);
+        return ResponseEntity.ok(missions);
+    }
+    
+    @PostMapping("/{id}/missions/{missionId}/take")
+    @Operation(summary = "Взять миссию")
+    public ResponseEntity<com.example.alabuga.dto.UserMissionDTO> takeMission(
+            @Parameter(description = "ID пользователя") @PathVariable Long id,
+            @Parameter(description = "ID миссии") @PathVariable Long missionId) {
+        com.example.alabuga.dto.UserMissionDTO userMission = userService.takeMission(id, missionId);
+        return ResponseEntity.ok(userMission);
+    }
 }

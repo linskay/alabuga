@@ -40,6 +40,12 @@ public class MissionUpdateDTO {
     @Schema(description = "Награда Энергонов", example = "25")
     private Integer energyReward;
 
+    @Schema(description = "Минимальный ранг для доступа", example = "2")
+    private Integer requiredRank;
+
+    @Schema(description = "Минимальный опыт для доступа", example = "500")
+    private Integer requiredExperience;
+
     @Size(max = 500, message = "Требуемые компетенции не могут превышать 500 символов")
     @Schema(description = "Требуемые компетенции (JSON)", example = "[\"navigation\", \"engineering\"]")
     private String requiredCompetencies;
