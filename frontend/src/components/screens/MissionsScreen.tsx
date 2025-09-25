@@ -3,6 +3,7 @@ import { motion, Variants } from 'framer-motion';
 import styled, { keyframes } from 'styled-components';
 import MainButton from '../MainButton';
 import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
+import SystemNotification from '../SystemNotification';
 
 type StatusId = 'active' | 'available' | 'soon';
 
@@ -143,6 +144,7 @@ const MissionsScreen: React.FC = () => {
   const [user, setUser] = useState<UserDTO | null>(null);
   const [userMissions, setUserMissions] = useState<UserMission[]>([]);
   const [toastOpen, setToastOpen] = useState(false);
+  const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingMission, setPendingMission] = useState<MissionItem | null>(null);
 
@@ -208,8 +210,7 @@ const MissionsScreen: React.FC = () => {
     if (!mission.id || !user) return;
     try {
       await backend.users.takeMission(user.id, mission.id);
-      setToastOpen(true);
-      setTimeout(() => setToastOpen(false), 1800);
+      setNotif({ open: true, title: 'Готово — миссия назначена', message: 'Миссия добавлена в раздел Активные', variant: 'success' });
       // Обновляем список миссий и активные пользователя
       const [data, myMissions] = await Promise.all([
         backend.missions.list(),
@@ -229,7 +230,7 @@ const MissionsScreen: React.FC = () => {
       setMissions(mapped);
       setUserMissions(myMissions || []);
     } catch (e: any) {
-      alert(`Ошибка: ${e?.message || 'Не удалось взять миссию'}`);
+      setNotif({ open: true, title: 'Ошибка', message: e?.message || 'Не удалось взять миссию', variant: 'error' });
     }
   };
 
@@ -347,13 +348,16 @@ const MissionsScreen: React.FC = () => {
           </div>
         </div>
       )}
-      {toastOpen && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[120]">
-          <div className="rounded-xl px-5 py-3 border border-cyan-400/40 bg-slate-900/85 text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,0.35)]" style={{ boxShadow: '0 0 40px rgba(34,211,238,0.25), inset 0 0 20px rgba(34,211,238,0.15)'}}>
-            Готово — миссия взята
-          </div>
-        </div>
-      )}
+      <SystemNotification
+        open={notif.open}
+        title={notif.title}
+        message={notif.message}
+        variant={notif.variant}
+        onClose={() => setNotif(prev => ({ ...prev, open: false }))}
+        autoCloseMs={2500}
+        actionLabel={status !== 'active' ? 'Открыть Активные' : undefined}
+        onAction={status !== 'active' ? () => setStatus('active') : undefined}
+      />
     </div>
   );
 };
