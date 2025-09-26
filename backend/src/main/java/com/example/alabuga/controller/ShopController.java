@@ -22,6 +22,7 @@ import com.example.alabuga.service.ShopService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -64,7 +65,7 @@ public class ShopController {
 
     @PostMapping
     @Operation(summary = "Создать товар (только для админов)")
-    public ResponseEntity<ShopItemDTO> createShopItem(@RequestBody ShopItemCreateDTO shopItemCreateDTO) {
+    public ResponseEntity<ShopItemDTO> createShopItem(@Valid @RequestBody ShopItemCreateDTO shopItemCreateDTO) {
         ShopItemDTO shopItem = shopService.createShopItem(shopItemCreateDTO);
         return ResponseEntity.ok(shopItem);
     }
@@ -73,7 +74,7 @@ public class ShopController {
     @Operation(summary = "Обновить товар (только для админов)")
     public ResponseEntity<ShopItemDTO> updateShopItem(
             @Parameter(description = "ID товара") @PathVariable Long id,
-            @RequestBody ShopItemUpdateDTO shopItemUpdateDTO) {
+            @Valid @RequestBody ShopItemUpdateDTO shopItemUpdateDTO) {
         ShopItemDTO shopItem = shopService.updateShopItem(id, shopItemUpdateDTO);
         return ResponseEntity.ok(shopItem);
     }
