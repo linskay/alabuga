@@ -52,6 +52,10 @@ public class ShopService {
     
     @Transactional
     public ShopItemDTO createShopItem(ShopItemCreateDTO shopItemCreateDTO) {
+        if (shopItemRepository.existsByNameIgnoreCase(shopItemCreateDTO.getName())) {
+            throw new BusinessLogicException("Товар с названием '" + shopItemCreateDTO.getName() + "' уже существует");
+        }
+        
         ShopItem shopItem = shopItemMapper.toEntity(shopItemCreateDTO);
         ShopItem savedShopItem = shopItemRepository.save(shopItem);
         return shopItemMapper.toDTO(savedShopItem);
@@ -61,6 +65,11 @@ public class ShopService {
     public ShopItemDTO updateShopItem(Long id, ShopItemUpdateDTO shopItemUpdateDTO) {
         ShopItem shopItem = shopItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Товар", id));
+        if (shopItemUpdateDTO.getName() != null && !shopItemUpdateDTO.getName().equals(shopItem.getName())) {
+            if (shopItemRepository.existsByNameIgnoreCase(shopItemUpdateDTO.getName())) {
+                throw new BusinessLogicException("Товар с названием '" + shopItemUpdateDTO.getName() + "' уже существует");
+            }
+        }
         
         shopItemMapper.updateEntity(shopItem, shopItemUpdateDTO);
         ShopItem savedShopItem = shopItemRepository.save(shopItem);
