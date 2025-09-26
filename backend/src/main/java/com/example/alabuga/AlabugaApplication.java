@@ -12,13 +12,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = "com.example.alabuga.repository") // Явно указываем пакет для репозиториев
-@EntityScan(basePackages = "com.example.alabuga.entity") // Явно указываем пакет для сущностей
 public class AlabugaApplication {
     public static void main(String[] args) {
         SpringApplication.run(AlabugaApplication.class, args);
     }
-
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
