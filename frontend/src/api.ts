@@ -30,7 +30,7 @@ export const api = {
 // Domain helpers
 export type RankDTO = { id: number; name: string; level: number; branch: string; description?: string };
 export type ShopItemDTO = { id: number; name: string; price: number; available: boolean; description?: string };
-export type ArtifactDTO = { id: number; name: string; rarity?: string; active?: boolean; description?: string };
+export type ArtifactDTO = { id: number; name: string; rarity?: string; isActive?: boolean; description?: string };
 export type UserRoleDTO = { value: string; displayName: string };
 export type UserDTO = { id: number; login: string; email: string; role: string; experience: number; energy: number; rank: number; firstName?: string; lastName?: string; createdAt?: string; isActive?: boolean; };
 export type UserCompetency = { id: number; name: string; points?: number; level?: number; maxPoints?: number };

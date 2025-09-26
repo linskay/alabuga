@@ -56,6 +56,7 @@ const AdminScreen: React.FC = () => {
   const [editMissionOpen, setEditMissionOpen] = useState<any | null>(null);
   const [editMissionData, setEditMissionData] = useState<any | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
+  const [confirmDeleteArtifact, setConfirmDeleteArtifact] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
   const [assignOpen, setAssignOpen] = useState<{ open: boolean; missionId?: number }>({ open: false });
   const [assignEmail, setAssignEmail] = useState<string>('');
   const [assignUserSearch, setAssignUserSearch] = useState<string>('');
@@ -221,11 +222,11 @@ const AdminScreen: React.FC = () => {
   };
 
   const handleDeleteArtifact = async (id: number) => {
-    if (!window.confirm('Удалить артефакт?')) return;
     try {
       await backend.artifacts.delete(id);
       setArtifactList(prev => prev.filter(a => a.id !== id));
       setNotif({ open: true, title: 'Артефакт удалён', variant: 'success' });
+      setConfirmDeleteArtifact({ open: false });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка удаления артефакта', message: e?.message || String(e), variant: 'error' });
     }
@@ -779,8 +780,8 @@ const AdminScreen: React.FC = () => {
                         <span>Активен:</span>
                         <NeonSwitch checked={!!item.isActive} onChange={async (v: boolean) => {
                           try {
-                            const updated = await backend.artifacts.update(item.id, { active: v });
-                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.active } : a));
+                            const updated = await backend.artifacts.update(item.id, { isActive: v });
+                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.isActive } : a));
                           } catch (e: any) {
                             setNotif({ open: true, title: 'Ошибка статуса артефакта', message: e?.message || String(e), variant: 'error' });
                           }
@@ -790,14 +791,14 @@ const AdminScreen: React.FC = () => {
                   </div>
                   
                   <div className="mt-4 space-y-3">
-                    <div className="flex space-x-2">
+                    <div className="grid grid-cols-2 gap-1">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
+                        className="px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
                         onClick={() => {
                           setEditArtifactOpen(item);
-                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.active });
+                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.isActive });
                         }}
                       >
                         Редактировать
@@ -805,7 +806,7 @@ const AdminScreen: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
+                        className="px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
                         onClick={() => setAssignArtifactOpen(item)}
                       >
                         Назначить
@@ -813,10 +814,10 @@ const AdminScreen: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-xs hover:bg-red-500/30 transition-all duration-300"
-                        onClick={() => handleDeleteArtifact(item.id)}
+                        className="col-span-2 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded text-red-200 text-xs hover:bg-red-500/40 transition-all duration-300 font-medium"
+                        onClick={() => setConfirmDeleteArtifact({ open: true, id: item.id, name: item.name })}
                       >
-                        Удалить
+                        Удалить артефакт
                       </motion.button>
                     </div>
                   </div>
@@ -853,14 +854,14 @@ const AdminScreen: React.FC = () => {
   );
 
   return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen">
+    <div className="h-full pb-8">
 
       {/* Tabs */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="flex space-x-4 mb-8"
+        className="flex justify-center space-x-4 mb-8"
       >
         {tabs.map((tab) => (
           <MainButton
@@ -889,6 +890,7 @@ const AdminScreen: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="max-w-5xl mx-auto"
       >
         {activeTab === 'crew' && renderCrewTab()}
         {activeTab === 'missions' && renderMissionsTab()}
@@ -936,7 +938,7 @@ const AdminScreen: React.FC = () => {
       {createMissionOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setCreateMissionOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Создать миссию</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-x-hidden hide-scrollbar">
@@ -1094,7 +1096,7 @@ const AdminScreen: React.FC = () => {
               </label>
               
               {assignUserResults.length > 0 && (
-                <div className="max-h-40 overflow-y-auto hide-scrollbar">
+                <div className="max-h-40 hide-scrollbar">
                   {assignUserResults.map(user => (
                     <div 
                       key={user.id}
@@ -1126,7 +1128,7 @@ const AdminScreen: React.FC = () => {
       {addUserOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddUserOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
             <h3 className="text-xl font-bold text-cyan-300 mb-4">Добавить пользователя</h3>
             <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
@@ -1163,7 +1165,7 @@ const AdminScreen: React.FC = () => {
       {editUserOpen && editUser && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEditUserOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
             <h3 className="text-xl font-bold text-cyan-300 mb-4">Редактировать пользователя</h3>
             <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
@@ -1200,7 +1202,7 @@ const AdminScreen: React.FC = () => {
       {addProductOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddProductOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(16,185,129,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(16,185,129,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(16,185,129,0.25), inset 0 0 30px rgba(16,185,129,0.15)' }} />
             <h3 className="text-xl font-bold text-emerald-300 mb-4">Добавить товар</h3>
             <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
@@ -1229,7 +1231,7 @@ const AdminScreen: React.FC = () => {
       {editMissionOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditMissionOpen(null); setEditMissionData(null); }} />
-          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Редактировать миссию</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-x-hidden hide-scrollbar">
@@ -1285,7 +1287,7 @@ const AdminScreen: React.FC = () => {
       {addArtifactOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddArtifactOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(168,85,247,0.15)' }} />
             <h3 className="text-xl font-bold text-purple-300 mb-4">Добавить артефакт</h3>
             <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
@@ -1323,7 +1325,7 @@ const AdminScreen: React.FC = () => {
       {editArtifactOpen && editArtifact && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditArtifactOpen(null); setEditArtifact(null); }} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(168,85,247,0.15)' }} />
             <h3 className="text-xl font-bold text-purple-300 mb-4">Редактировать артефакт</h3>
             <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
@@ -1361,7 +1363,7 @@ const AdminScreen: React.FC = () => {
       {editProductOpen && editProduct && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditProductOpen(null); setEditProduct(null); }} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(16,185,129,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(16,185,129,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(16,185,129,0.25), inset 0 0 30px rgba(16,185,129,0.15)' }} />
             <h3 className="text-xl font-bold text-emerald-300 mb-4">Редактировать товар</h3>
             <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
@@ -1415,7 +1417,7 @@ const AdminScreen: React.FC = () => {
               </label>
               
               {assignArtifactUserResults.length > 0 && (
-                <div className="max-h-40 overflow-y-auto hide-scrollbar">
+                <div className="max-h-40 hide-scrollbar">
                   {assignArtifactUserResults.map(user => (
                     <div 
                       key={user.id}
@@ -1439,6 +1441,40 @@ const AdminScreen: React.FC = () => {
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setAssignArtifactOpen(null); setAssignArtifactUserSearch(''); setAssignArtifactUserResults([]); setAssignArtifactUserSelected(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={handleAssignArtifact} className="px-4 py-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-200 hover:bg-green-500/30 transition">Назначить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Artifact Modal */}
+      {confirmDeleteArtifact.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDeleteArtifact({ open: false })} />
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
+            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white/80 mb-2">Вы уверены, что хотите удалить артефакт:</p>
+                <p className="text-red-300 font-semibold text-lg">{confirmDeleteArtifact.name}</p>
+              </div>
+              <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
+                <p className="text-red-200 text-sm">⚠️ Это действие нельзя отменить. Артефакт будет удален навсегда.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button 
+                onClick={() => setConfirmDeleteArtifact({ open: false })} 
+                className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={() => confirmDeleteArtifact.id && handleDeleteArtifact(confirmDeleteArtifact.id)} 
+                className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition"
+              >
+                Удалить
+              </button>
             </div>
           </div>
         </div>
