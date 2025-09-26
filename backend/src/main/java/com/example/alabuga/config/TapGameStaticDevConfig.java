@@ -13,14 +13,20 @@ import java.nio.file.Paths;
 public class TapGameStaticDevConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Resolve path to tapgame/src directory from backend module
-        Path backendPath = Paths.get("").toAbsolutePath();
-        // backendPath -> .../alabuga/backend
-        Path tapgameSrc = backendPath.getParent().resolve("tapgame").resolve("src");
-        String location = tapgameSrc.toUri().toString();
+        // Register multiple candidate locations to be robust against different working directories
+        // Case 1: launched from backend module directory: ../tapgame/src
+        Path candidate1 = Paths.get("..", "tapgame", "src").normalize().toAbsolutePath();
+        // Case 2: launched from project root directory: ./tapgame/src
+        Path candidate2 = Paths.get("tapgame", "src").normalize().toAbsolutePath();
+        // Case 3: launched from backend/.. somewhere else: ../../tapgame/src
+        Path candidate3 = Paths.get("..", "..", "tapgame", "src").normalize().toAbsolutePath();
+
+        String loc1 = candidate1.toUri().toString();
+        String loc2 = candidate2.toUri().toString();
+        String loc3 = candidate3.toUri().toString();
 
         registry.addResourceHandler("/tapgame/**")
-                .addResourceLocations(location)
+                .addResourceLocations(loc1, loc2, loc3)
                 .setCachePeriod(0);
     }
 }

@@ -186,7 +186,6 @@ function checkAchievements() {
     }
 }
 
-{{ ... }}
 function addAchievement(achievementId) {
     if (hasAchievement(achievementId)) return;
     
@@ -234,7 +233,7 @@ function render() {
     }
 }
 
-// Handle click on goose
+// Handle click/tap on goose
 function handleClick(event) {
     // Play click sound
     if (clickSound) {
@@ -244,8 +243,20 @@ function handleClick(event) {
     
     // Add tilt animation
     const rect = $circle.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left - rect.width / 2;
-    const offsetY = event.clientY - rect.top - rect.height / 2;
+    let clientX = event.clientX;
+    let clientY = event.clientY;
+    // Touch support
+    if (clientX == null || clientY == null) {
+        if (event.touches && event.touches[0]) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        } else if (event.changedTouches && event.changedTouches[0]) {
+            clientX = event.changedTouches[0].clientX;
+            clientY = event.changedTouches[0].clientY;
+        }
+    }
+    const offsetX = clientX - rect.left - rect.width / 2;
+    const offsetY = clientY - rect.top - rect.height / 2;
     const DEG = 20;
     
     $circle.style.setProperty('--tiltX', `${(offsetY / rect.height) * DEG}deg`);
@@ -260,8 +271,8 @@ function handleClick(event) {
     const plusOne = document.createElement('div');
     plusOne.classList.add('plus-one');
     plusOne.textContent = '+1';
-    plusOne.style.left = `${event.clientX - rect.left}px`;
-    plusOne.style.top = `${event.clientY - rect.top}px`;
+    plusOne.style.left = `${(clientX ?? rect.left + rect.width/2) - rect.left}px`;
+    plusOne.style.top = `${(clientY ?? rect.top + rect.height/2) - rect.top}px`;
     
     $circle.parentNode.appendChild(plusOne);
     
