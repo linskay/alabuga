@@ -111,6 +111,12 @@ const AdminScreen: React.FC = () => {
   const [artifactToggle, setArtifactToggle] = useState<boolean>(false);
   const [artifactList, setArtifactList] = useState<any[]>([]);
   const [selectedArtifactId, setSelectedArtifactId] = useState<number | null>(null);
+  
+  // Artifact modals
+  const [addArtifactOpen, setAddArtifactOpen] = useState<boolean>(false);
+  const [editArtifactOpen, setEditArtifactOpen] = useState<any>(null);
+  const [newArtifact, setNewArtifact] = useState<any>({ name: '', shortDescription: '', imageUrl: '', rarity: 'COMMON', isActive: true });
+  const [editArtifact, setEditArtifact] = useState<any>(null);
 
   const analytics = [
     { title: 'Активные пользователи', value: '1,247', change: '+12%', color: 'from-green-400 to-emerald-500' },
@@ -136,6 +142,42 @@ const AdminScreen: React.FC = () => {
       setNewProduct({ name: '', price: 0, available: true });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка добавления товара', message: e?.message || 'Не удалось добавить товар', variant: 'error' });
+    }
+  };
+
+  const handleAddArtifact = async () => {
+    if (!newArtifact.name) return setNotif({ open: true, title: 'Введите название артефакта', variant: 'warning' });
+    try {
+      const created = await backend.artifacts.create(newArtifact);
+      setArtifactList(prev => [created, ...prev]);
+      setNotif({ open: true, title: 'Артефакт создан', variant: 'success' });
+      setAddArtifactOpen(false);
+      setNewArtifact({ name: '', shortDescription: '', imageUrl: '', rarity: 'COMMON', isActive: true });
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка создания артефакта', message: e?.message || String(e), variant: 'error' });
+    }
+  };
+
+  const handleEditArtifact = async () => {
+    if (!editArtifact || !editArtifactOpen) return;
+    try {
+      const updated = await backend.artifacts.update(editArtifactOpen.id, editArtifact);
+      setArtifactList(prev => prev.map(a => a.id === editArtifactOpen.id ? updated : a));
+      setNotif({ open: true, title: 'Артефакт обновлён', variant: 'success' });
+      setEditArtifactOpen(null);
+      setEditArtifact(null);
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка обновления артефакта', message: e?.message || String(e), variant: 'error' });
+    }
+  };
+
+  const handleDeleteArtifact = async (id: number) => {
+    try {
+      await backend.artifacts.delete(id);
+      setArtifactList(prev => prev.filter(a => a.id !== id));
+      setNotif({ open: true, title: 'Артефакт удалён', variant: 'success' });
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка удаления артефакта', message: e?.message || String(e), variant: 'error' });
     }
   };
 
@@ -526,17 +568,7 @@ const AdminScreen: React.FC = () => {
       <div className="bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="text-white"><ShinyText text="АРТЕФАКТЫ" className="text-2xl font-bold" /></div>
-          <MainButton className="px-4 py-2" onClick={async () => {
-            const name = window.prompt('Название артефакта:');
-            if (!name) return;
-            try {
-              const created = await backend.artifacts.create({ name });
-              setArtifactList(prev => [{ id: created.id, name: created.name, active: created.active }, ...prev]);
-              setNotif({ open: true, title: 'Артефакт создан', variant: 'success' });
-            } catch (e: any) {
-              setNotif({ open: true, title: 'Ошибка создания артефакта', message: e?.message || String(e), variant: 'error' });
-            }
-          }}>Добавить</MainButton>
+          <MainButton className="px-4 py-2" onClick={() => setAddArtifactOpen(true)}>Добавить</MainButton>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {artifactList.map((item: any, index: number) => (
@@ -577,16 +609,9 @@ const AdminScreen: React.FC = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex-1 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
-                        onClick={async () => {
-                          const name = window.prompt('Новое название артефакта:', item.name);
-                          if (!name) return;
-                          try {
-                            const updated = await backend.artifacts.update(item.id, { name });
-                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, name: updated.name } : a));
-                            setNotif({ open: true, title: 'Артефакт обновлён', variant: 'success' });
-                          } catch (e: any) {
-                            setNotif({ open: true, title: 'Ошибка обновления артефакта', message: e?.message || String(e), variant: 'error' });
-                          }
+                        onClick={() => {
+                          setEditArtifactOpen(item);
+                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.active });
                         }}
                       >
                         Редактировать
@@ -595,16 +620,7 @@ const AdminScreen: React.FC = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex-1 px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
-                        onClick={async () => {
-                          if (!window.confirm('Удалить артефакт?')) return;
-                          try {
-                            await backend.artifacts.delete(item.id);
-                            setArtifactList(prev => prev.filter((a: any) => a.id !== item.id));
-                            setNotif({ open: true, title: 'Артефакт удалён', variant: 'success' });
-                          } catch (e: any) {
-                            setNotif({ open: true, title: 'Ошибка удаления артефакта', message: e?.message || String(e), variant: 'error' });
-                          }
-                        }}
+                        onClick={() => handleDeleteArtifact(item.id)}
                       >
                         Удалить
                       </motion.button>
@@ -706,7 +722,7 @@ const AdminScreen: React.FC = () => {
           <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Создать миссию</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-x-hidden">
               <label className="text-sm text-white/80 md:col-span-2">Название
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.name} onChange={e => setCreateMission((v: any) => ({ ...v, name: e.target.value }))} />
               </label>
@@ -1015,6 +1031,82 @@ const AdminScreen: React.FC = () => {
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setEditMissionOpen(null); setEditMissionData(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={saveEditMission} className="px-4 py-2 rounded-md bg-orange-500/20 border border-orange-400/40 text-orange-200 hover:bg-orange-500/30 transition">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Artifact Modal */}
+      {addArtifactOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddArtifactOpen(false)} />
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(168,85,247,0.15)' }} />
+            <h3 className="text-xl font-bold text-purple-300 mb-4">Добавить артефакт</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <label className="text-sm text-white/80">Название
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название артефакта" value={newArtifact.name} onChange={e => setNewArtifact(v => ({ ...v, name: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Краткое описание
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Краткое описание" value={newArtifact.shortDescription} onChange={e => setNewArtifact(v => ({ ...v, shortDescription: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">URL изображения
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="https://example.com/image.jpg" value={newArtifact.imageUrl} onChange={e => setNewArtifact(v => ({ ...v, imageUrl: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Редкость
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={newArtifact.rarity} onChange={e => setNewArtifact(v => ({ ...v, rarity: e.target.value }))}>
+                  <option value="COMMON" className="bg-slate-800 text-white">Обычный</option>
+                  <option value="RARE" className="bg-slate-800 text-white">Редкий</option>
+                  <option value="EPIC" className="bg-slate-800 text-white">Эпический</option>
+                  <option value="LEGENDARY" className="bg-slate-800 text-white">Легендарный</option>
+                </select>
+              </label>
+              <div className="flex items-center gap-3 text-white/80 text-sm">
+                <span>Активен</span>
+                <CosmicSwitch checked={!!newArtifact.isActive} onChange={(v: boolean) => setNewArtifact((s: any) => ({ ...s, isActive: v }))} />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => setAddArtifactOpen(false)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
+              <button onClick={handleAddArtifact} className="px-4 py-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-200 hover:bg-purple-500/30 transition">Создать</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Artifact Modal */}
+      {editArtifactOpen && editArtifact && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditArtifactOpen(null); setEditArtifact(null); }} />
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(168,85,247,0.15)' }} />
+            <h3 className="text-xl font-bold text-purple-300 mb-4">Редактировать артефакт</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <label className="text-sm text-white/80">Название
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название артефакта" value={editArtifact.name} onChange={e => setEditArtifact((v: any) => ({ ...v, name: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Краткое описание
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Краткое описание" value={editArtifact.shortDescription} onChange={e => setEditArtifact((v: any) => ({ ...v, shortDescription: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">URL изображения
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="https://example.com/image.jpg" value={editArtifact.imageUrl} onChange={e => setEditArtifact((v: any) => ({ ...v, imageUrl: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Редкость
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={editArtifact.rarity} onChange={e => setEditArtifact((v: any) => ({ ...v, rarity: e.target.value }))}>
+                  <option value="COMMON" className="bg-slate-800 text-white">Обычный</option>
+                  <option value="RARE" className="bg-slate-800 text-white">Редкий</option>
+                  <option value="EPIC" className="bg-slate-800 text-white">Эпический</option>
+                  <option value="LEGENDARY" className="bg-slate-800 text-white">Легендарный</option>
+                </select>
+              </label>
+              <div className="flex items-center gap-3 text-white/80 text-sm">
+                <span>Активен</span>
+                <CosmicSwitch checked={!!editArtifact.isActive} onChange={(v: boolean) => setEditArtifact((s: any) => ({ ...s, isActive: v }))} />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => { setEditArtifactOpen(null); setEditArtifact(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
+              <button onClick={handleEditArtifact} className="px-4 py-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-200 hover:bg-purple-500/30 transition">Сохранить</button>
             </div>
           </div>
         </div>
