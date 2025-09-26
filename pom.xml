@@ -141,7 +141,7 @@
                         </goals>
                         <configuration>
                             <classifier>tapgame</classifier>
-                            <mainClass>com.example.tapgame.TapgameApplication</mainClass>
+                            <mainClass>com.example.tapgame.TapGameApplication</mainClass>
                         </configuration>
                     </execution>
                 </executions>
