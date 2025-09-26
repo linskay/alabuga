@@ -22,7 +22,8 @@ let gameState = {
     level: 0,
     achievements: [],
     totalClicks: 0,
-    firstClick: false
+    firstClick: false,
+    backendRegistered: false
 };
 
 // DOM elements
@@ -30,7 +31,7 @@ const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 const $level = document.querySelector('#level');
 const $achievementToast = document.querySelector('#achievement-toast');
-const $achievementText = $achievementToast.querySelector('.achievement-text');
+const $achievementText = $achievementToast ? $achievementToast.querySelector('.achievement-text') : null;
 
 // Audio elements
 const clickSound = document.getElementById('clickSound');
@@ -64,10 +65,51 @@ function saveGame() {
             level: gameState.level,
             achievements: gameState.achievements,
             totalClicks: gameState.totalClicks,
-            firstClick: gameState.firstClick
+            firstClick: gameState.firstClick,
+            backendRegistered: gameState.backendRegistered
         }));
     } catch (e) {
         console.error('Failed to save game state', e);
+    }
+}
+
+// Try to get user context from Telegram WebApp or URL params
+function getUserContext() {
+    try {
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            return { userId: user.id, username: user.username || (user.first_name + '_' + (user.last_name || '')) };
+        }
+    } catch (e) {
+        console.warn('Telegram WebApp context not available', e);
+    }
+    // Fallback to query params: ?userId=..&username=..
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userId');
+    const username = params.get('username');
+    if (userId) {
+        return { userId: Number(userId), username: username || 'guest' };
+    }
+    return null;
+}
+
+// Register first tap on backend if possible (idempotent on client-side)
+async function registerFirstTapIfNeeded() {
+    if (gameState.backendRegistered) return;
+    const ctx = getUserContext();
+    if (!ctx || !ctx.userId) return;
+    try {
+        const url = `/game/tap/${encodeURIComponent(ctx.userId)}?username=${encodeURIComponent(ctx.username || 'guest')}`;
+        const res = await fetch(url, { method: 'POST' });
+        if (res.ok) {
+            gameState.backendRegistered = true;
+            saveGame();
+        } else {
+            console.warn('Backend tap registration failed', res.status);
+        }
+    } catch (e) {
+        console.warn('Backend tap registration error', e);
     }
 }
 
@@ -132,6 +174,8 @@ function checkAchievements() {
     if (!gameState.firstClick) {
         gameState.firstClick = true;
         addAchievement('first_click');
+        // fire-and-forget backend registration
+        registerFirstTapIfNeeded();
     }
     
     // Click count achievements
@@ -142,7 +186,7 @@ function checkAchievements() {
     }
 }
 
-// Add achievement if not already earned
+{{ ... }}
 function addAchievement(achievementId) {
     if (hasAchievement(achievementId)) return;
     

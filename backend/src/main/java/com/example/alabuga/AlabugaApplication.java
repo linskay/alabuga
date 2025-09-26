@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan; // Импорт EntityScan
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.cors.CorsConfiguration;
@@ -11,7 +12,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @SpringBootApplication
-@EnableJpaRepositories
+@EnableJpaRepositories(basePackages = "com.example.alabuga.repository") // Явно указываем пакет для репозиториев
+@EntityScan(basePackages = "com.example.alabuga.entity") // Явно указываем пакет для сущностей
 public class AlabugaApplication {
     public static void main(String[] args) {
         SpringApplication.run(AlabugaApplication.class, args);
