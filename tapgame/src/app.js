@@ -6,6 +6,14 @@ const LEVELS = [
     { score: 5000, title: 'Галактический Командор', image: 'assets/Goose4.png' },
 ];
 
+// Goose images for visual change every 30 points
+const GOOSE_IMAGES = [
+    'assets/Goose.png',
+    'assets/Goose2.png',
+    'assets/Goose3.png',
+    'assets/Goose4.png',
+];
+
 const ACHIEVEMENTS = [
     { id: 'first_click', title: 'Первый шаг!', description: 'Сделайте первое нажатие' },
     { id: 'level_1', title: 'Новичок', description: 'Достигните 1 уровня' },
@@ -228,8 +236,9 @@ function render() {
     
     // Update goose image based on level
     if ($circle) {
-        const currentLevel = LEVELS[Math.min(gameState.level, LEVELS.length - 1)];
-        $circle.setAttribute('src', currentLevel.image);
+        // Change image every 30 points, capped by available images
+        const idx = Math.min(Math.floor(gameState.score / 30), GOOSE_IMAGES.length - 1);
+        $circle.setAttribute('src', GOOSE_IMAGES[idx]);
     }
 }
 
