@@ -36,6 +36,8 @@ public class GameController {
         return profile;
     }
 
+
+
     @GetMapping("/profile/{userId}")
     public GooseGameProfile getProfile(@PathVariable Long userId) {
         return profileRepository.findById(userId).orElse(null);
