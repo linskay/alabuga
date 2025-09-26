@@ -31,14 +31,14 @@ public class CompetencyController {
 
     private final CompetencyRepository competencyRepository;
     
-    @GetMapping("/competencies")
+    @GetMapping
     @Operation(summary = "Получить все компетенции")
     public ResponseEntity<List<Competency>> getAllCompetencies() {
         List<Competency> competencies = competencyRepository.findByIsActive(true);
         return ResponseEntity.ok(competencies);
     }
     
-    @GetMapping("/competencies/{id}")
+    @GetMapping("/{id}")
     @Operation(summary = "Получить компетенцию по ID")
     public ResponseEntity<Competency> getCompetencyById(
             @Parameter(description = "ID компетенции") @PathVariable Long id) {
@@ -47,14 +47,14 @@ public class CompetencyController {
         return ResponseEntity.ok(competency);
     }
     
-    @PostMapping("/competencies")
+    @PostMapping
     @Operation(summary = "Создать новую компетенцию")
     public ResponseEntity<Competency> createCompetency(@RequestBody Competency competency) {
         Competency savedCompetency = competencyRepository.save(competency);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCompetency);
     }
     
-    @PutMapping("/competencies/{id}")
+    @PutMapping("/{id}")
     @Operation(summary = "Обновить компетенцию")
     public ResponseEntity<Competency> updateCompetency(
             @Parameter(description = "ID компетенции") @PathVariable Long id,
@@ -71,7 +71,7 @@ public class CompetencyController {
         return ResponseEntity.ok(updatedCompetency);
     }
     
-    @DeleteMapping("/competencies/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Удалить компетенцию")
     public ResponseEntity<Void> deleteCompetency(
             @Parameter(description = "ID компетенции") @PathVariable Long id) {
@@ -82,7 +82,7 @@ public class CompetencyController {
         return ResponseEntity.noContent().build();
     }
     
-    @GetMapping("/competencies/search")
+    @GetMapping("/search")
     @Operation(summary = "Поиск компетенций по названию")
     public ResponseEntity<List<Competency>> searchCompetencies(
             @Parameter(description = "Название для поиска") @RequestParam String name) {
