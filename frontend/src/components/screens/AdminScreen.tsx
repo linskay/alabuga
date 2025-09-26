@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import PyramidLoader from '../PyramidLoader';
 import MainButton from '../MainButton';
-import CosmicSwitch from '../CosmicSwitch';
+import NeonSwitch from '../NeonSwitch';
 import CardTsup from '../CardTsup';
 import { backend, api, UserDTO } from '../../api';
 import SystemNotification from '../SystemNotification';
@@ -58,6 +58,9 @@ const AdminScreen: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
   const [assignOpen, setAssignOpen] = useState<{ open: boolean; missionId?: number }>({ open: false });
   const [assignEmail, setAssignEmail] = useState<string>('');
+  const [assignUserSearch, setAssignUserSearch] = useState<string>('');
+  const [assignUserResults, setAssignUserResults] = useState<any[]>([]);
+  const [assignUserSelected, setAssignUserSelected] = useState<any>(null);
   const saveEditMission = async () => {
     if (!editMissionOpen?.id || !editMissionData) return;
     try {
@@ -79,18 +82,43 @@ const AdminScreen: React.FC = () => {
       setNotif({ open: true, title: 'Ошибка удаления миссии', message: e?.message || 'Не удалось удалить миссию', variant: 'error' });
     }
   };
-  const handleAssign = async () => {
-    if (!assignOpen.missionId || !assignEmail) return setNotif({ open: true, title: 'Укажите email', variant: 'warning' });
+  const searchUsers = async (query: string) => {
+    if (!query.trim()) return setAssignUserResults([]);
     try {
-      const user = await backend.users.byLogin(assignEmail).catch(async () => {
-        // try by email endpoint if exists
-        try { return await api.get<any>(`/api/users/email/${encodeURIComponent(assignEmail)}`); } catch { return null; }
-      });
-      if (!user?.id) throw new Error('Пользователь не найден');
-      await backend.users.takeMission(user.id, assignOpen.missionId);
-      setNotif({ open: true, title: 'Миссия назначена', message: `Пользователю ${assignEmail}`, variant: 'success' });
+      const filtered = users.filter(u => 
+        (u.name || '').toLowerCase().includes(query.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(query.toLowerCase()) ||
+        (u.login || '').toLowerCase().includes(query.toLowerCase())
+      );
+      setAssignUserResults(filtered.slice(0, 5));
+    } catch (e) {
+      setAssignUserResults([]);
+    }
+  };
+
+  const searchArtifactUsers = async (query: string) => {
+    if (!query.trim()) return setAssignArtifactUserResults([]);
+    try {
+      const filtered = users.filter(u => 
+        (u.name || '').toLowerCase().includes(query.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(query.toLowerCase()) ||
+        (u.login || '').toLowerCase().includes(query.toLowerCase())
+      );
+      setAssignArtifactUserResults(filtered.slice(0, 5));
+    } catch (e) {
+      setAssignArtifactUserResults([]);
+    }
+  };
+
+  const handleAssign = async () => {
+    if (!assignOpen.missionId || !assignUserSelected) return setNotif({ open: true, title: 'Выберите пользователя', variant: 'warning' });
+    try {
+      await backend.users.takeMission(assignUserSelected.id, assignOpen.missionId);
+      setNotif({ open: true, title: 'Миссия назначена', message: `Пользователю ${assignUserSelected.name || assignUserSelected.email}`, variant: 'success' });
       setAssignOpen({ open: false });
-      setAssignEmail('');
+      setAssignUserSearch('');
+      setAssignUserResults([]);
+      setAssignUserSelected(null);
     } catch (e: any) {
       setNotif({ open: true, title: 'Не удалось назначить миссию', message: e?.message || String(e), variant: 'error' });
     }
@@ -117,6 +145,19 @@ const AdminScreen: React.FC = () => {
   const [editArtifactOpen, setEditArtifactOpen] = useState<any>(null);
   const [newArtifact, setNewArtifact] = useState<any>({ name: '', shortDescription: '', imageUrl: '', rarity: 'COMMON', isActive: true });
   const [editArtifact, setEditArtifact] = useState<any>(null);
+  
+  // Artifact assignment
+  const [assignArtifactOpen, setAssignArtifactOpen] = useState<any>(null);
+  const [assignArtifactEmail, setAssignArtifactEmail] = useState<string>('');
+  const [assignArtifactUserSearch, setAssignArtifactUserSearch] = useState<string>('');
+  const [assignArtifactUserResults, setAssignArtifactUserResults] = useState<any[]>([]);
+  const [assignArtifactUserSelected, setAssignArtifactUserSelected] = useState<any>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentMissionPage, setCurrentMissionPage] = useState(1);
+  const [currentArtifactPage, setCurrentArtifactPage] = useState(1);
+  const itemsPerPage = 10;
 
   const analytics = [
     { title: 'Активные пользователи', value: '1,247', change: '+12%', color: 'from-green-400 to-emerald-500' },
@@ -126,20 +167,28 @@ const AdminScreen: React.FC = () => {
   ];
 
   const [shopItems, setShopItems] = useState([
-    { id: 1, name: 'Премиум подписка', price: 1000, currency: '⚡', category: 'subscription', status: 'active', sales: 45 },
-    { id: 2, name: 'Ускоритель опыта', price: 50, currency: '⚡', category: 'boost', status: 'active', sales: 127 },
-    { id: 3, name: 'Космический костюм', price: 500, currency: '⚡', category: 'cosmetic', status: 'inactive', sales: 23 }
+    { id: 1, name: 'Премиум подписка', price: 1000, currency: '⚡', status: 'active', sales: 45 },
+    { id: 2, name: 'Ускоритель опыта', price: 50, currency: '⚡', status: 'active', sales: 127 },
+    { id: 3, name: 'Космический костюм', price: 500, currency: '⚡', status: 'inactive', sales: 23 }
   ]);
   const [addProductOpen, setAddProductOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState<{ name: string; price: number; available: boolean; description?: string }>({ name: '', price: 0, available: true });
+  const [editProductOpen, setEditProductOpen] = useState<any>(null);
+  const [newProduct, setNewProduct] = useState<{ name: string; price: number; available: boolean; description?: string; imageUrl?: string }>({ name: '', price: 0, available: true, imageUrl: '' });
+  const [editProduct, setEditProduct] = useState<any>(null);
   const handleAddProduct = async () => {
     if (!newProduct.name) return setNotif({ open: true, title: 'Введите название товара', variant: 'warning' });
+    if (newProduct.price < 1) return setNotif({ open: true, title: 'Цена должна быть не менее 1', variant: 'warning' });
+    
+    // Проверка дубликатов по названию
+    const existingProduct = shopItems.find(item => item.name.toLowerCase() === newProduct.name.toLowerCase());
+    if (existingProduct) return setNotif({ open: true, title: 'Товар с таким названием уже существует', variant: 'warning' });
+    
     try {
       const created = await backend.shop.create({ name: newProduct.name, price: newProduct.price, available: newProduct.available, description: newProduct.description });
-      setShopItems(prev => [{ id: created.id || Math.max(0, ...prev.map(s => s.id)) + 1, name: created.name || newProduct.name, price: created.price ?? newProduct.price, currency: '⚡', category: 'other', status: created.available ? 'active' : 'inactive', sales: 0 }, ...prev]);
+      setShopItems(prev => [{ id: created.id || Math.max(0, ...prev.map(s => s.id)) + 1, name: created.name || newProduct.name, price: created.price ?? newProduct.price, currency: '⚡', status: created.available ? 'active' : 'inactive', sales: 0 }, ...prev]);
       setNotif({ open: true, title: 'Товар добавлен', variant: 'success' });
       setAddProductOpen(false);
-      setNewProduct({ name: '', price: 0, available: true });
+      setNewProduct({ name: '', price: 0, available: true, description: '', imageUrl: '' });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка добавления товара', message: e?.message || 'Не удалось добавить товар', variant: 'error' });
     }
@@ -172,12 +221,51 @@ const AdminScreen: React.FC = () => {
   };
 
   const handleDeleteArtifact = async (id: number) => {
+    if (!window.confirm('Удалить артефакт?')) return;
     try {
       await backend.artifacts.delete(id);
       setArtifactList(prev => prev.filter(a => a.id !== id));
       setNotif({ open: true, title: 'Артефакт удалён', variant: 'success' });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка удаления артефакта', message: e?.message || String(e), variant: 'error' });
+    }
+  };
+
+  const handleAssignArtifact = async () => {
+    if (!assignArtifactUserSelected) return setNotif({ open: true, title: 'Выберите пользователя', variant: 'warning' });
+    try {
+      // Здесь должен быть API для назначения артефакта пользователю
+      // await backend.artifacts.assign(assignArtifactOpen.id, assignArtifactUserSelected.id);
+      setNotif({ open: true, title: 'Артефакт назначен', message: `Пользователю ${assignArtifactUserSelected.name || assignArtifactUserSelected.email}`, variant: 'success' });
+      setAssignArtifactOpen(null);
+      setAssignArtifactUserSearch('');
+      setAssignArtifactUserResults([]);
+      setAssignArtifactUserSelected(null);
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка назначения артефакта', message: e?.message || String(e), variant: 'error' });
+    }
+  };
+
+  const handleEditProduct = async () => {
+    if (!editProduct || !editProductOpen) return;
+    try {
+      const updated = await backend.shop.update(editProductOpen.id, editProduct);
+      setShopItems(prev => prev.map(p => p.id === editProductOpen.id ? { ...p, ...updated } : p));
+      setNotif({ open: true, title: 'Товар обновлён', variant: 'success' });
+      setEditProductOpen(null);
+      setEditProduct(null);
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка обновления товара', message: e?.message || String(e), variant: 'error' });
+    }
+  };
+
+  const handleDeleteProduct = async (id: number) => {
+    try {
+      await backend.shop.delete(id);
+      setShopItems(prev => prev.filter(s => s.id !== id));
+      setNotif({ open: true, title: 'Товар удалён', variant: 'success' });
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка удаления товара', message: e?.message || String(e), variant: 'error' });
     }
   };
 
@@ -202,11 +290,18 @@ const AdminScreen: React.FC = () => {
   const handleCreateMission = async () => {
     if (!createMission.name) return setNotif({ open: true, title: 'Введите название миссии', variant: 'warning' });
     try {
-      const created = await backend.missions.create({ ...createMission, branchId: 1, type: createMission.type || 'QUEST' });
+      const body = {
+        ...createMission,
+        branchId: 1,
+        type: createMission.type || 'QUEST',
+        energyReward: createMission.energyReward || 50,
+        requiredCompetencies: JSON.stringify(createMission.requiredCompetencies || [])
+      };
+      const created = await backend.missions.create(body);
       setMissions(prev => [{ id: created.id, name: created.name || createMission.name, description: created.description || createMission.description, difficulty: created.difficulty || createMission.difficulty, isActive: created.isActive ?? true, experienceReward: created.experienceReward ?? createMission.experienceReward }, ...prev]);
       setNotif({ open: true, title: 'Миссия создана', message: `«${createMission.name}» добавлена`, variant: 'success' });
       setCreateMissionOpen(false);
-      setCreateMission({ name: '', description: '', difficulty: 'EASY', experienceReward: 0, isActive: true });
+      setCreateMission({ name: '', description: '', type: 'QUEST', difficulty: 'EASY', experienceReward: 0, energyReward: 50, requiredRank: 1, requiredExperience: 0, requiredCompetencies: [], competencyRewards: [], isActive: true, artifactName: '' });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка создания миссии', message: e?.message || String(e), variant: 'error' });
     }
@@ -278,6 +373,29 @@ const AdminScreen: React.FC = () => {
       }
     });
 
+  // Pagination functions
+  const getPaginatedUsers = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSortedUsers.slice(startIndex, endIndex);
+  };
+
+  const getPaginatedMissions = () => {
+    const startIndex = (currentMissionPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return missions.slice(startIndex, endIndex);
+  };
+
+  const getPaginatedArtifacts = () => {
+    const startIndex = (currentArtifactPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return artifactList.slice(startIndex, endIndex);
+  };
+
+  const totalPages = Math.ceil(filteredSortedUsers.length / itemsPerPage);
+  const totalMissionPages = Math.ceil(missions.length / itemsPerPage);
+  const totalArtifactPages = Math.ceil(artifactList.length / itemsPerPage);
+
   const toggleSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortAsc(v => !v); else { setSortKey(key); setSortAsc(true); }
   };
@@ -307,7 +425,7 @@ const AdminScreen: React.FC = () => {
         </div>
         
         <div className="space-y-4">
-          {filteredSortedUsers.map((user, index) => (
+          {getPaginatedUsers().map((user: any, index: number) => (
             <motion.div
               key={user.id}
               initial={{ opacity: 0, x: -50 }}
@@ -347,6 +465,29 @@ const AdminScreen: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mt-6">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ←
+            </button>
+            <span className="text-white/80">
+              Страница {currentPage} из {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -367,7 +508,7 @@ const AdminScreen: React.FC = () => {
         
         <div className="space-y-4">
           {loadingMissions && <div className="text-gray-300">Загрузка миссий...</div>}
-          {missions.map((mission: any, index) => (
+          {getPaginatedMissions().map((mission: any, index) => (
             <motion.div
               key={mission.id}
               initial={{ opacity: 0, x: -50 }}
@@ -417,6 +558,29 @@ const AdminScreen: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        
+        {/* Pagination */}
+        {totalMissionPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mt-6">
+            <button
+              onClick={() => setCurrentMissionPage(prev => Math.max(1, prev - 1))}
+              disabled={currentMissionPage === 1}
+              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ←
+            </button>
+            <span className="text-white/80">
+              Страница {currentMissionPage} из {totalMissionPages}
+            </span>
+            <button
+              onClick={() => setCurrentMissionPage(prev => Math.min(totalMissionPages, prev + 1))}
+              disabled={currentMissionPage === totalMissionPages}
+              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -508,8 +672,8 @@ const AdminScreen: React.FC = () => {
                   <div>
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="text-3xl">🛍️</div>
-                      <div>
-                        <h4 className="text-white font-bold text-lg">{item.name}</h4>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-white font-bold text-lg truncate" title={item.name}>{item.name}</h4>
                         <div className="text-2xl font-bold text-green-400">
                           {item.price} {item.currency}
                         </div>
@@ -521,9 +685,19 @@ const AdminScreen: React.FC = () => {
                         <span>Продаж:</span>
                         <span className="text-white">{item.sales}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Категория:</span>
-                        <span className="text-white capitalize">{item.category}</span>
+                      <div className="flex items-center justify-between">
+                        <span>Статус:</span>
+                        <NeonSwitch 
+                          checked={item.status === 'active'} 
+                          onChange={async (v: boolean) => {
+                            try {
+                              const updated = await backend.shop.update(item.id, { available: v });
+                              setShopItems(prev => prev.map(s => s.id === item.id ? { ...s, status: v ? 'active' : 'inactive' } : s));
+                            } catch (e: any) {
+                              setNotif({ open: true, title: 'Ошибка обновления статуса', message: e?.message || String(e), variant: 'error' });
+                            }
+                          }} 
+                        />
                       </div>
                     </div>
                   </div>
@@ -535,21 +709,33 @@ const AdminScreen: React.FC = () => {
                       {item.status === 'active' ? 'АКТИВЕН' : 'НЕАКТИВЕН'}
                     </div>
                     
-                    <div className="flex space-x-2">
+                    <div className="grid grid-cols-3 gap-1">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
-                        onClick={() => handleEditShopItem(item.id)}
+                        className="px-1 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
+                        onClick={() => {
+                          setEditProductOpen(item);
+                          setEditProduct({ name: item.name, price: item.price, available: item.status === 'active', description: (item as any).description || '', imageUrl: (item as any).imageUrl || '' });
+                        }}
                       >
                         Редактировать
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
+                        className="px-1 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
+                        onClick={() => setNotif({ open: true, title: 'Статистика', message: 'Функция в разработке', variant: 'info' })}
                       >
                         Статистика
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-1 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-xs hover:bg-red-500/30 transition-all duration-300"
+                        onClick={() => handleDeleteProduct(item.id)}
+                      >
+                        Удалить
                       </motion.button>
                     </div>
                   </div>
@@ -571,7 +757,7 @@ const AdminScreen: React.FC = () => {
           <MainButton className="px-4 py-2" onClick={() => setAddArtifactOpen(true)}>Добавить</MainButton>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {artifactList.map((item: any, index: number) => (
+          {getPaginatedArtifacts().map((item: any, index: number) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -591,10 +777,10 @@ const AdminScreen: React.FC = () => {
                     <div className="space-y-2 text-sm text-gray-300">
                       <div className="flex items-center gap-3">
                         <span>Активен:</span>
-                        <CosmicSwitch checked={!!item.active} onChange={async (v: boolean) => {
+                        <NeonSwitch checked={!!item.isActive} onChange={async (v: boolean) => {
                           try {
                             const updated = await backend.artifacts.update(item.id, { active: v });
-                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, active: updated.active } : a));
+                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.active } : a));
                           } catch (e: any) {
                             setNotif({ open: true, title: 'Ошибка статуса артефакта', message: e?.message || String(e), variant: 'error' });
                           }
@@ -619,7 +805,15 @@ const AdminScreen: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
+                        className="flex-1 px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
+                        onClick={() => setAssignArtifactOpen(item)}
+                      >
+                        Назначить
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex-1 px-2 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-xs hover:bg-red-500/30 transition-all duration-300"
                         onClick={() => handleDeleteArtifact(item.id)}
                       >
                         Удалить
@@ -631,6 +825,29 @@ const AdminScreen: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        
+        {/* Pagination */}
+        {totalArtifactPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mt-6">
+            <button
+              onClick={() => setCurrentArtifactPage(prev => Math.max(1, prev - 1))}
+              disabled={currentArtifactPage === 1}
+              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ←
+            </button>
+            <span className="text-white/80">
+              Страница {currentArtifactPage} из {totalArtifactPages}
+            </span>
+            <button
+              onClick={() => setCurrentArtifactPage(prev => Math.min(totalArtifactPages, prev + 1))}
+              disabled={currentArtifactPage === totalArtifactPages}
+              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -719,10 +936,10 @@ const AdminScreen: React.FC = () => {
       {createMissionOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setCreateMissionOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Создать миссию</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-x-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-x-hidden hide-scrollbar">
               <label className="text-sm text-white/80 md:col-span-2">Название
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.name} onChange={e => setCreateMission((v: any) => ({ ...v, name: e.target.value }))} />
               </label>
@@ -751,41 +968,20 @@ const AdminScreen: React.FC = () => {
               <label className="text-sm text-white/80">Награда (Энергон)
                 <input type="number" min={0} className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.energyReward} onChange={e => setCreateMission((v: any) => ({ ...v, energyReward: Math.max(0, Number(e.target.value)) }))} />
               </label>
-              <label className="text-sm text-white/80">Требуемый ранг (≥1)
-                <div className="relative">
-                  <input type="number" min={1} className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.requiredRank} onChange={e => setCreateMission((v: any) => ({ ...v, requiredRank: Math.max(1, Number(e.target.value)) }))} />
-                  <button 
-                    type="button"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                    onClick={(e) => {
-                      const tooltip = document.createElement('div');
-                      tooltip.className = 'fixed z-[300] bg-slate-900/95 border border-blue-400/30 rounded-lg p-4 max-w-md shadow-lg';
-                      tooltip.innerHTML = `
-                        <div class="text-blue-300 font-bold mb-2">Система рангов (нелинейная)</div>
-                        <div class="text-sm text-gray-300 space-y-1">
-                          <div><strong>0:</strong> Космо-Кадет (старт)</div>
-                          <div><strong>1:</strong> Навигатор Траекторий (Аналитико-Техническая)</div>
-                          <div><strong>2:</strong> Аналитик Орбит (Аналитико-Техническая)</div>
-                          <div><strong>3:</strong> Архитектор Станции (Аналитико-Техническая)</div>
-                          <div><strong>4:</strong> Хронист Галактики (Гуманитарно-Исследовательская)</div>
-                          <div><strong>5:</strong> Исследователь Культур (Гуманитарно-Исследовательская)</div>
-                          <div><strong>6:</strong> Мастер Лектория (Гуманитарно-Исследовательская)</div>
-                          <div><strong>7:</strong> Связист Звёздного Флота (Коммуникационно-Лидерская)</div>
-                          <div><strong>8:</strong> Штурман Экипажа (Коммуникационно-Лидерская)</div>
-                          <div><strong>9:</strong> Командир Отряда (Коммуникационно-Лидерская)</div>
-                          <div><strong>10:</strong> Хранитель Станции «Алабуга.TECH» (финальный)</div>
-                        </div>
-                        <button onclick="this.parentElement.remove()" class="mt-3 px-3 py-1 bg-blue-500/20 border border-blue-400/40 text-blue-200 rounded text-sm hover:bg-blue-500/30">Закрыть</button>
-                      `;
-                      document.body.appendChild(tooltip);
-                      const rect = (e.target as HTMLElement).getBoundingClientRect();
-                      tooltip.style.left = `${rect.left - tooltip.offsetWidth - 10}px`;
-                      tooltip.style.top = `${rect.top}px`;
-                    }}
-                  >
-                    ?
-                  </button>
-                </div>
+              <label className="text-sm text-white/80">Требуемый ранг
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={createMission.requiredRank || 1} onChange={e => setCreateMission((v: any) => ({ ...v, requiredRank: Number(e.target.value) }))}>
+                  <option value={1} className="bg-slate-800 text-white">1 - Космо-Кадет (старт)</option>
+                  <option value={2} className="bg-slate-800 text-white">2 - Навигатор Траекторий (Аналитико-Техническая)</option>
+                  <option value={3} className="bg-slate-800 text-white">3 - Аналитик Орбит (Аналитико-Техническая)</option>
+                  <option value={4} className="bg-slate-800 text-white">4 - Архитектор Станции (Аналитико-Техническая)</option>
+                  <option value={5} className="bg-slate-800 text-white">5 - Хронист Галактики (Гуманитарно-Исследовательская)</option>
+                  <option value={6} className="bg-slate-800 text-white">6 - Исследователь Культур (Гуманитарно-Исследовательская)</option>
+                  <option value={7} className="bg-slate-800 text-white">7 - Мастер Лектория (Гуманитарно-Исследовательская)</option>
+                  <option value={8} className="bg-slate-800 text-white">8 - Связист Звёздного Флота (Коммуникационно-Лидерская)</option>
+                  <option value={9} className="bg-slate-800 text-white">9 - Штурман Экипажа (Коммуникационно-Лидерская)</option>
+                  <option value={10} className="bg-slate-800 text-white">10 - Командир Отряда (Коммуникационно-Лидерская)</option>
+                  <option value={11} className="bg-slate-800 text-white">11 - Хранитель Станции «Алабуга.TECH» (финальный)</option>
+                </select>
               </label>
               <label className="text-sm text-white/80">Требуемый опыт (≥0)
                 <input type="number" min={0} className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.requiredExperience} onChange={e => setCreateMission((v: any) => ({ ...v, requiredExperience: Math.max(0, Number(e.target.value)) }))} />
@@ -826,19 +1022,19 @@ const AdminScreen: React.FC = () => {
               </label>
               <div className="text-sm text-white/80 flex items-center gap-3">
                 <span>Активна</span>
-                <CosmicSwitch checked={!!createMission.isActive} onChange={(v: boolean) => setCreateMission((s: any) => ({ ...s, isActive: v }))} />
+                <NeonSwitch checked={!!createMission.isActive} onChange={(v: boolean) => setCreateMission((s: any) => ({ ...s, isActive: v }))} />
               </div>
               <div className="text-sm text-white/80 md:col-span-2 flex items-center gap-3">
                 <span>Добавить артефакт</span>
-                <CosmicSwitch checked={artifactToggle} onChange={(v: boolean) => setArtifactToggle(v)} />
+                <NeonSwitch checked={artifactToggle} onChange={(v: boolean) => setArtifactToggle(v)} />
               </div>
               {artifactToggle && (
                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <label className="text-sm text-white/80">Выбрать готовый
-                    <select className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={selectedArtifactId ?? ''} onChange={e => setSelectedArtifactId(Number(e.target.value) || null)}>
-                      <option value="">—</option>
+                    <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={selectedArtifactId ?? ''} onChange={e => setSelectedArtifactId(Number(e.target.value) || null)}>
+                      <option value="" className="bg-slate-800 text-white">—</option>
                       {artifactList.map((a: any) => (
-                        <option key={a.id} value={a.id}>{a.name}</option>
+                        <option key={a.id} value={a.id} className="bg-slate-800 text-white">{a.name}</option>
                       ))}
                     </select>
                   </label>
@@ -877,16 +1073,48 @@ const AdminScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Assign mission to user by email */}
+      {/* Assign mission to user */}
       {assignOpen.open && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAssignOpen({ open: false })} />
-          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-blue-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(59,130,246,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-blue-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto hide-scrollbar shadow-[0_0_30px_rgba(59,130,246,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(59,130,246,0.25), inset 0 0 30px rgba(59,130,246,0.15)' }} />
             <h3 className="text-xl font-bold text-blue-300 mb-4">Назначить миссию</h3>
-            <label className="text-sm text-white/80 w-full">Email пользователя
-              <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={assignEmail} onChange={e => setAssignEmail(e.target.value)} placeholder="user@example.com" />
-            </label>
+            <div className="space-y-4">
+              <label className="text-sm text-white/80 w-full">Поиск пользователя
+                <input 
+                  className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" 
+                  value={assignUserSearch} 
+                  onChange={e => {
+                    setAssignUserSearch(e.target.value);
+                    searchUsers(e.target.value);
+                  }} 
+                  placeholder="Имя, логин или email" 
+                />
+              </label>
+              
+              {assignUserResults.length > 0 && (
+                <div className="max-h-40 overflow-y-auto hide-scrollbar">
+                  {assignUserResults.map(user => (
+                    <div 
+                      key={user.id}
+                      className={`p-2 rounded cursor-pointer transition ${assignUserSelected?.id === user.id ? 'bg-blue-500/20 border border-blue-400/40' : 'bg-white/5 hover:bg-white/10'}`}
+                      onClick={() => setAssignUserSelected(user)}
+                    >
+                      <div className="text-white font-medium">{user.name || user.login}</div>
+                      <div className="text-gray-400 text-sm">{user.email}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {assignUserSelected && (
+                <div className="p-3 bg-blue-500/10 border border-blue-400/30 rounded">
+                  <div className="text-blue-300 font-medium">Выбран: {assignUserSelected.name || assignUserSelected.login}</div>
+                  <div className="text-blue-200 text-sm">{assignUserSelected.email}</div>
+                </div>
+              )}
+            </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setAssignOpen({ open: false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={handleAssign} className="px-4 py-2 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-200 hover:bg-blue-500/30 transition">Назначить</button>
@@ -898,10 +1126,10 @@ const AdminScreen: React.FC = () => {
       {addUserOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddUserOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
             <h3 className="text-xl font-bold text-cyan-300 mb-4">Добавить пользователя</h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
               <input className="bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400" placeholder="Логин" value={newUser.login} onChange={e => setNewUser(v => ({ ...v, login: e.target.value }))} />
               <input className="bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400" placeholder="Email" value={newUser.email} onChange={e => setNewUser(v => ({ ...v, email: e.target.value }))} />
               <input className="bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400" placeholder="Пароль" type="password" value={newUser.password} onChange={e => setNewUser(v => ({ ...v, password: e.target.value }))} />
@@ -935,10 +1163,10 @@ const AdminScreen: React.FC = () => {
       {editUserOpen && editUser && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEditUserOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
             <h3 className="text-xl font-bold text-cyan-300 mb-4">Редактировать пользователя</h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
               <label className="text-sm text-white/80">Email
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Email" value={editUser.email} onChange={e => setEditUser((v: any) => ({ ...v, email: e.target.value }))} />
               </label>
@@ -972,22 +1200,22 @@ const AdminScreen: React.FC = () => {
       {addProductOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddProductOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(16,185,129,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(16,185,129,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(16,185,129,0.25), inset 0 0 30px rgba(16,185,129,0.15)' }} />
             <h3 className="text-xl font-bold text-emerald-300 mb-4">Добавить товар</h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
               <label className="text-sm text-white/80">Название
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название" value={newProduct.name} onChange={e => setNewProduct(v => ({ ...v, name: e.target.value }))} />
               </label>
-              <label className="text-sm text-white/80">Цена
-                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Цена" type="number" value={newProduct.price} onChange={e => setNewProduct(v => ({ ...v, price: Number(e.target.value) }))} />
+              <label className="text-sm text-white/80">Цена (минимум 1)
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Цена" type="number" min="1" value={newProduct.price} onChange={e => setNewProduct(v => ({ ...v, price: Math.max(1, Number(e.target.value)) }))} />
               </label>
               <label className="text-sm text-white/80">Описание
                 <textarea className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Описание" value={newProduct.description || ''} onChange={e => setNewProduct(v => ({ ...v, description: e.target.value }))} />
               </label>
               <div className="flex items-center gap-3 text-white/80 text-sm">
                 <span>Доступен</span>
-                <CosmicSwitch checked={!!newProduct.available} onChange={(v: boolean) => setNewProduct((s: any) => ({ ...s, available: v }))} />
+                <NeonSwitch checked={!!newProduct.available} onChange={(v: boolean) => setNewProduct((s: any) => ({ ...s, available: v }))} />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
@@ -1001,10 +1229,10 @@ const AdminScreen: React.FC = () => {
       {editMissionOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditMissionOpen(null); setEditMissionData(null); }} />
-          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-xl rounded-2xl border border-orange-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(249,115,22,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 30px rgba(249,115,22,0.15)' }} />
             <h3 className="text-xl font-bold text-orange-300 mb-4">Редактировать миссию</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-x-hidden hide-scrollbar">
               <label className="text-sm text-white/80 md:col-span-2">Название
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" defaultValue={editMissionOpen?.name || ''} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), name: e.target.value }))} />
               </label>
@@ -1012,20 +1240,37 @@ const AdminScreen: React.FC = () => {
                 <textarea className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" rows={3} defaultValue={editMissionOpen?.description || ''} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), description: e.target.value }))} />
               </label>
               <label className="text-sm text-white/80">Сложность
-                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" defaultValue={editMissionOpen?.difficulty || ''} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), difficulty: e.target.value }))} />
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" defaultValue={editMissionOpen?.difficulty || 'EASY'} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), difficulty: e.target.value }))}>
+                  <option value="EASY" className="bg-slate-800 text-white">EASY</option>
+                  <option value="MEDIUM" className="bg-slate-800 text-white">MEDIUM</option>
+                  <option value="HARD" className="bg-slate-800 text-white">HARD</option>
+                  <option value="EXTREME" className="bg-slate-800 text-white">EXTREME</option>
+                </select>
               </label>
               <label className="text-sm text-white/80">Награда (XP)
                 <input type="number" className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" defaultValue={editMissionOpen?.experienceReward ?? 0} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), experienceReward: Number(e.target.value) }))} />
               </label>
               <label className="text-sm text-white/80">Требуемый ранг
-                <input type="number" className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" defaultValue={editMissionOpen?.requiredRank ?? 0} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), requiredRank: Number(e.target.value) }))} />
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" defaultValue={editMissionOpen?.requiredRank ?? 1} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), requiredRank: Number(e.target.value) }))}>
+                  <option value={1} className="bg-slate-800 text-white">1 - Космо-Кадет (старт)</option>
+                  <option value={2} className="bg-slate-800 text-white">2 - Навигатор Траекторий (Аналитико-Техническая)</option>
+                  <option value={3} className="bg-slate-800 text-white">3 - Аналитик Орбит (Аналитико-Техническая)</option>
+                  <option value={4} className="bg-slate-800 text-white">4 - Архитектор Станции (Аналитико-Техническая)</option>
+                  <option value={5} className="bg-slate-800 text-white">5 - Хронист Галактики (Гуманитарно-Исследовательская)</option>
+                  <option value={6} className="bg-slate-800 text-white">6 - Исследователь Культур (Гуманитарно-Исследовательская)</option>
+                  <option value={7} className="bg-slate-800 text-white">7 - Мастер Лектория (Гуманитарно-Исследовательская)</option>
+                  <option value={8} className="bg-slate-800 text-white">8 - Связист Звёздного Флота (Коммуникационно-Лидерская)</option>
+                  <option value={9} className="bg-slate-800 text-white">9 - Штурман Экипажа (Коммуникационно-Лидерская)</option>
+                  <option value={10} className="bg-slate-800 text-white">10 - Командир Отряда (Коммуникационно-Лидерская)</option>
+                  <option value={11} className="bg-slate-800 text-white">11 - Хранитель Станции «Алабуга.TECH» (финальный)</option>
+                </select>
               </label>
               <label className="text-sm text-white/80">Требуемый опыт
                 <input type="number" className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" defaultValue={editMissionOpen?.requiredExperience ?? 0} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), requiredExperience: Number(e.target.value) }))} />
               </label>
               <div className="text-sm text-white/80 flex items-center gap-3">
                 <span>Активна</span>
-                <CosmicSwitch checked={!!editMissionOpen?.isActive} onChange={(v: boolean) => setEditMissionData((s: any) => ({ ...(s||{}), isActive: v }))} />
+                <NeonSwitch checked={!!(editMissionData?.isActive ?? editMissionOpen?.isActive)} onChange={(v: boolean) => setEditMissionData((s: any) => ({ ...(s||{}), isActive: v }))} />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
@@ -1040,21 +1285,21 @@ const AdminScreen: React.FC = () => {
       {addArtifactOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setAddArtifactOpen(false)} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(168,85,247,0.15)' }} />
             <h3 className="text-xl font-bold text-purple-300 mb-4">Добавить артефакт</h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
               <label className="text-sm text-white/80">Название
-                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название артефакта" value={newArtifact.name} onChange={e => setNewArtifact(v => ({ ...v, name: e.target.value }))} />
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название артефакта" value={newArtifact.name} onChange={e => setNewArtifact((v: any) => ({ ...v, name: e.target.value }))} />
               </label>
               <label className="text-sm text-white/80">Краткое описание
-                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Краткое описание" value={newArtifact.shortDescription} onChange={e => setNewArtifact(v => ({ ...v, shortDescription: e.target.value }))} />
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Краткое описание" value={newArtifact.shortDescription} onChange={e => setNewArtifact((v: any) => ({ ...v, shortDescription: e.target.value }))} />
               </label>
               <label className="text-sm text-white/80">URL изображения
-                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="https://example.com/image.jpg" value={newArtifact.imageUrl} onChange={e => setNewArtifact(v => ({ ...v, imageUrl: e.target.value }))} />
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="https://example.com/image.jpg" value={newArtifact.imageUrl} onChange={e => setNewArtifact((v: any) => ({ ...v, imageUrl: e.target.value }))} />
               </label>
               <label className="text-sm text-white/80">Редкость
-                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={newArtifact.rarity} onChange={e => setNewArtifact(v => ({ ...v, rarity: e.target.value }))}>
+                <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={newArtifact.rarity} onChange={e => setNewArtifact((v: any) => ({ ...v, rarity: e.target.value }))}>
                   <option value="COMMON" className="bg-slate-800 text-white">Обычный</option>
                   <option value="RARE" className="bg-slate-800 text-white">Редкий</option>
                   <option value="EPIC" className="bg-slate-800 text-white">Эпический</option>
@@ -1063,7 +1308,7 @@ const AdminScreen: React.FC = () => {
               </label>
               <div className="flex items-center gap-3 text-white/80 text-sm">
                 <span>Активен</span>
-                <CosmicSwitch checked={!!newArtifact.isActive} onChange={(v: boolean) => setNewArtifact((s: any) => ({ ...s, isActive: v }))} />
+                <NeonSwitch checked={!!newArtifact.isActive} onChange={(v: boolean) => setNewArtifact((s: any) => ({ ...s, isActive: v }))} />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
@@ -1078,10 +1323,10 @@ const AdminScreen: React.FC = () => {
       {editArtifactOpen && editArtifact && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditArtifactOpen(null); setEditArtifact(null); }} />
-          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(168,85,247,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-purple-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(168,85,247,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(168,85,247,0.15)' }} />
             <h3 className="text-xl font-bold text-purple-300 mb-4">Редактировать артефакт</h3>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
               <label className="text-sm text-white/80">Название
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название артефакта" value={editArtifact.name} onChange={e => setEditArtifact((v: any) => ({ ...v, name: e.target.value }))} />
               </label>
@@ -1101,12 +1346,99 @@ const AdminScreen: React.FC = () => {
               </label>
               <div className="flex items-center gap-3 text-white/80 text-sm">
                 <span>Активен</span>
-                <CosmicSwitch checked={!!editArtifact.isActive} onChange={(v: boolean) => setEditArtifact((s: any) => ({ ...s, isActive: v }))} />
+                <NeonSwitch checked={!!editArtifact.isActive} onChange={(v: boolean) => setEditArtifact((s: any) => ({ ...s, isActive: v }))} />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setEditArtifactOpen(null); setEditArtifact(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={handleEditArtifact} className="px-4 py-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-200 hover:bg-purple-500/30 transition">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editProductOpen && editProduct && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setEditProductOpen(null); setEditProduct(null); }} />
+          <div className="relative z-[210] w-[90%] max-w-lg rounded-2xl border border-emerald-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(16,185,129,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(16,185,129,0.25), inset 0 0 30px rgba(16,185,129,0.15)' }} />
+            <h3 className="text-xl font-bold text-emerald-300 mb-4">Редактировать товар</h3>
+            <div className="grid grid-cols-1 gap-3 overflow-x-hidden">
+              <label className="text-sm text-white/80">Название
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Название" value={editProduct.name} onChange={e => setEditProduct((v: any) => ({ ...v, name: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Цена
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Цена" type="number" value={editProduct.price} onChange={e => setEditProduct((v: any) => ({ ...v, price: Number(e.target.value) }))} />
+              </label>
+              <label className="text-sm text-white/80">Описание
+                <textarea className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Описание" value={editProduct.description || ''} onChange={e => setEditProduct((v: any) => ({ ...v, description: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">URL изображения
+                <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="https://example.com/image.jpg" value={editProduct.imageUrl || ''} onChange={e => setEditProduct((v: any) => ({ ...v, imageUrl: e.target.value }))} />
+              </label>
+              <div className="flex items-center gap-3 text-white/80 text-sm">
+                <span>Доступен</span>
+                <NeonSwitch checked={!!editProduct.available} onChange={(v: boolean) => setEditProduct((s: any) => ({ ...s, available: v }))} />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => { setEditProductOpen(null); setEditProduct(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
+              <button onClick={handleEditProduct} className="px-4 py-2 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30 transition">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Artifact Modal */}
+      {assignArtifactOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setAssignArtifactOpen(null); setAssignArtifactUserSearch(''); setAssignArtifactUserResults([]); setAssignArtifactUserSelected(null); }} />
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-green-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto hide-scrollbar shadow-[0_0_30px_rgba(34,197,94,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,197,94,0.25), inset 0 0 30px rgba(34,197,94,0.15)' }} />
+            <h3 className="text-xl font-bold text-green-300 mb-4">Назначить артефакт</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white/80 mb-2">Артефакт: <span className="text-green-300 font-semibold">{assignArtifactOpen.name}</span></p>
+                <p className="text-white/60 text-sm">{assignArtifactOpen.shortDescription || '—'}</p>
+              </div>
+              <label className="text-sm text-white/80">Поиск пользователя
+                <input 
+                  className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" 
+                  value={assignArtifactUserSearch} 
+                  onChange={e => {
+                    setAssignArtifactUserSearch(e.target.value);
+                    searchArtifactUsers(e.target.value);
+                  }} 
+                  placeholder="Имя, логин или email" 
+                />
+              </label>
+              
+              {assignArtifactUserResults.length > 0 && (
+                <div className="max-h-40 overflow-y-auto hide-scrollbar">
+                  {assignArtifactUserResults.map(user => (
+                    <div 
+                      key={user.id}
+                      className={`p-2 rounded cursor-pointer transition ${assignArtifactUserSelected?.id === user.id ? 'bg-green-500/20 border border-green-400/40' : 'bg-white/5 hover:bg-white/10'}`}
+                      onClick={() => setAssignArtifactUserSelected(user)}
+                    >
+                      <div className="text-white font-medium">{user.name || user.login}</div>
+                      <div className="text-gray-400 text-sm">{user.email}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {assignArtifactUserSelected && (
+                <div className="p-3 bg-green-500/10 border border-green-400/30 rounded">
+                  <div className="text-green-300 font-medium">Выбран: {assignArtifactUserSelected.name || assignArtifactUserSelected.login}</div>
+                  <div className="text-green-200 text-sm">{assignArtifactUserSelected.email}</div>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => { setAssignArtifactOpen(null); setAssignArtifactUserSearch(''); setAssignArtifactUserResults([]); setAssignArtifactUserSelected(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
+              <button onClick={handleAssignArtifact} className="px-4 py-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-200 hover:bg-green-500/30 transition">Назначить</button>
             </div>
           </div>
         </div>

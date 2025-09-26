@@ -47,6 +47,7 @@ export const backend = {
     available: () => api.get<ShopItemDTO[]>('/api/shop/available'),
     update: (id: number, body: Partial<ShopItemDTO>) => api.put<ShopItemDTO>(`/api/shop/${id}`, body),
     create: (body: Partial<ShopItemDTO>) => api.post<ShopItemDTO>('/api/shop', body),
+    delete: (id: number) => api.delete<void>(`/api/shop/${id}`),
   },
   artifacts: {
     list: () => api.get<ArtifactDTO[]>('/api/artifacts'),

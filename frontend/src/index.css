@@ -11,6 +11,16 @@
   perspective: 500px;
 }
 
+/* Hide scrollbar visuals helper */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
 .cosmic-switch-wrapper .toggle {
   opacity: 0;
   width: 0;
