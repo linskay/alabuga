@@ -83,6 +83,10 @@ public class ArtifactService {
         Artifact artifact = artifactRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
         
+        // Сначала удаляем все связи с пользователями
+        userArtifactRepository.deleteByArtifactId(id);
+        
+        // Затем удаляем сам артефакт
         artifactRepository.delete(artifact);
     }
     

@@ -22,4 +22,6 @@ public interface UserArtifactRepository extends JpaRepository<UserArtifact, Long
     
     @Query("SELECT ua FROM UserArtifact ua WHERE ua.user.id = :userId AND ua.artifact.rarity = :rarity")
     List<UserArtifact> findByUserIdAndArtifactRarity(@Param("userId") Long userId, @Param("rarity") String rarity);
+    
+    void deleteByArtifactId(Long artifactId);
 }

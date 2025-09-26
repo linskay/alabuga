@@ -56,6 +56,7 @@ const AdminScreen: React.FC = () => {
   const [editMissionOpen, setEditMissionOpen] = useState<any | null>(null);
   const [editMissionData, setEditMissionData] = useState<any | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
+  const [confirmDeleteArtifact, setConfirmDeleteArtifact] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
   const [assignOpen, setAssignOpen] = useState<{ open: boolean; missionId?: number }>({ open: false });
   const [assignEmail, setAssignEmail] = useState<string>('');
   const [assignUserSearch, setAssignUserSearch] = useState<string>('');
@@ -221,11 +222,11 @@ const AdminScreen: React.FC = () => {
   };
 
   const handleDeleteArtifact = async (id: number) => {
-    if (!window.confirm('Удалить артефакт?')) return;
     try {
       await backend.artifacts.delete(id);
       setArtifactList(prev => prev.filter(a => a.id !== id));
       setNotif({ open: true, title: 'Артефакт удалён', variant: 'success' });
+      setConfirmDeleteArtifact({ open: false });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка удаления артефакта', message: e?.message || String(e), variant: 'error' });
     }
@@ -790,14 +791,14 @@ const AdminScreen: React.FC = () => {
                   </div>
                   
                   <div className="mt-4 space-y-3">
-                    <div className="flex space-x-2">
+                    <div className="grid grid-cols-2 gap-1">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
+                        className="px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
                         onClick={() => {
                           setEditArtifactOpen(item);
-                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.active });
+                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.isActive });
                         }}
                       >
                         Редактировать
@@ -805,7 +806,7 @@ const AdminScreen: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
+                        className="px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
                         onClick={() => setAssignArtifactOpen(item)}
                       >
                         Назначить
@@ -813,10 +814,10 @@ const AdminScreen: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 px-2 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-xs hover:bg-red-500/30 transition-all duration-300"
-                        onClick={() => handleDeleteArtifact(item.id)}
+                        className="col-span-2 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded text-red-200 text-xs hover:bg-red-500/40 transition-all duration-300 font-medium"
+                        onClick={() => setConfirmDeleteArtifact({ open: true, id: item.id, name: item.name })}
                       >
-                        Удалить
+                        Удалить артефакт
                       </motion.button>
                     </div>
                   </div>
@@ -1440,6 +1441,40 @@ const AdminScreen: React.FC = () => {
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setAssignArtifactOpen(null); setAssignArtifactUserSearch(''); setAssignArtifactUserResults([]); setAssignArtifactUserSelected(null); }} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={handleAssignArtifact} className="px-4 py-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-200 hover:bg-green-500/30 transition">Назначить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Artifact Modal */}
+      {confirmDeleteArtifact.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDeleteArtifact({ open: false })} />
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
+            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white/80 mb-2">Вы уверены, что хотите удалить артефакт:</p>
+                <p className="text-red-300 font-semibold text-lg">{confirmDeleteArtifact.name}</p>
+              </div>
+              <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
+                <p className="text-red-200 text-sm">⚠️ Это действие нельзя отменить. Артефакт будет удален навсегда.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button 
+                onClick={() => setConfirmDeleteArtifact({ open: false })} 
+                className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={() => confirmDeleteArtifact.id && handleDeleteArtifact(confirmDeleteArtifact.id)} 
+                className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition"
+              >
+                Удалить
+              </button>
             </div>
           </div>
         </div>
