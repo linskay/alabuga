@@ -4,12 +4,16 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "goose_game_profile")
 public class GooseGameProfile {
     @Id
+    @Column(name = "id_tg", nullable = false)
     private Long userId;
 
+    @Column(name = "username_tg")
     private String username;
 
+    @Column(name = "start")
     private LocalDateTime firstTap;
 
     // Геттеры и сеттеры

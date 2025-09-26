@@ -1,17 +1,17 @@
 // Game constants
 const LEVELS = [
-    { score: 0, title: 'Курсант', image: 'assets/Goose.png' },
-    { score: 100, title: 'Лейтенант Гусь', image: 'assets/Goose2.png' },
-    { score: 1000, title: 'Капитан Пернатый', image: 'assets/Goose3.png' },
-    { score: 5000, title: 'Галактический Командор', image: 'assets/Goose4.png' },
+    { score: 0, title: 'Курсант', image: '../assets/Goose.png' },
+    { score: 100, title: 'Лейтенант Гусь', image: '../assets/Goose2.png' },
+    { score: 1000, title: 'Капитан Пернатый', image: '../assets/Goose3.png' },
+    { score: 5000, title: 'Галактический Командор', image: '../assets/Goose4.png' },
 ];
 
 // Goose images for visual change every 30 points
 const GOOSE_IMAGES = [
-    'assets/Goose.png',
-    'assets/Goose2.png',
-    'assets/Goose3.png',
-    'assets/Goose4.png',
+    '../assets/Goose.png',
+    '../assets/Goose2.png',
+    '../assets/Goose3.png',
+    '../assets/Goose4.png',
 ];
 
 const ACHIEVEMENTS = [
@@ -102,7 +102,7 @@ function getUserContext() {
     return null;
 }
 
-// Register first tap on backend if possible (idempotent on client-side)
+// Register first tap on backend if needed
 async function registerFirstTapIfNeeded() {
     if (gameState.backendRegistered) return;
     const ctx = getUserContext();
@@ -125,22 +125,16 @@ async function registerFirstTapIfNeeded() {
 function addScore(points = 1) {
     gameState.score += points;
     gameState.totalClicks += 1;
-    
-    // Check for level up
     const newLevel = getCurrentLevel();
     if (newLevel > gameState.level) {
         gameState.level = newLevel;
         levelUp();
     }
-    
-    // Check for achievements
     checkAchievements();
-    
     saveGame();
     render();
 }
 
-// Get current level based on score
 function getCurrentLevel() {
     let level = 0;
     for (let i = 0; i < LEVELS.length; i++) {
@@ -153,40 +147,28 @@ function getCurrentLevel() {
     return level;
 }
 
-// Handle level up
 function levelUp() {
     const currentLevel = LEVELS[gameState.level];
     showAchievement(`Уровень ${gameState.level + 1} разблокирован!`, currentLevel.title);
-    
-    // Play level up sound
     if (levelUpSound) {
         levelUpSound.currentTime = 0;
         levelUpSound.play().catch(e => console.log('Audio play failed:', e));
     }
-    
-    // Update goose image
     if ($circle) {
         $circle.setAttribute('src', currentLevel.image);
     }
-    
-    // Add level achievement
     const achievementId = `level_${gameState.level}`;
     if (!hasAchievement(achievementId)) {
         addAchievement(achievementId);
     }
 }
 
-// Check for new achievements
 function checkAchievements() {
-    // First click achievement
     if (!gameState.firstClick) {
         gameState.firstClick = true;
         addAchievement('first_click');
-        // fire-and-forget backend registration
         registerFirstTapIfNeeded();
     }
-    
-    // Click count achievements
     if (gameState.totalClicks === 100 && !hasAchievement('hundred_clicks')) {
         addAchievement('hundred_clicks');
     } else if (gameState.totalClicks === 1000 && !hasAchievement('thousand_clicks')) {
@@ -196,65 +178,47 @@ function checkAchievements() {
 
 function addAchievement(achievementId) {
     if (hasAchievement(achievementId)) return;
-    
     const achievement = ACHIEVEMENTS.find(a => a.id === achievementId);
     if (!achievement) return;
-    
     gameState.achievements.push(achievementId);
     showAchievement('Достижение разблокировано!', achievement.title);
-    
-    // Play achievement sound
     if (achievementSound) {
         achievementSound.currentTime = 0;
         achievementSound.play().catch(e => console.log('Audio play failed:', e));
     }
-    
     saveGame();
 }
 
-// Check if achievement is already earned
 function hasAchievement(achievementId) {
     return gameState.achievements.includes(achievementId);
 }
 
-// Show achievement toast
 function showAchievement(title, description) {
     if (!$achievementToast || !$achievementText) return;
-    
     $achievementText.textContent = `${title} ${description}`;
     $achievementToast.classList.add('show');
-    
     setTimeout(() => {
         $achievementToast.classList.remove('show');
     }, 3000);
 }
 
-// Update UI
 function render() {
     if ($score) $score.textContent = gameState.score;
     if ($level) $level.textContent = gameState.level + 1;
-    
-    // Update goose image based on level
     if ($circle) {
-        // Change image every 30 points, capped by available images
         const idx = Math.min(Math.floor(gameState.score / 30), GOOSE_IMAGES.length - 1);
         $circle.setAttribute('src', GOOSE_IMAGES[idx]);
     }
 }
 
-// Handle click/tap on goose
 function handleClick(event) {
-    // Play click sound
     if (clickSound) {
         clickSound.currentTime = 0;
         clickSound.play().catch(e => console.log('Audio play failed:', e));
     }
-    
-    // Add tilt animation
     const rect = $circle.getBoundingClientRect();
     let clientX = event.clientX;
     let clientY = event.clientY;
-    // Touch support
     if (clientX == null || clientY == null) {
         if (event.touches && event.touches[0]) {
             clientX = event.touches[0].clientX;
@@ -267,48 +231,40 @@ function handleClick(event) {
     const offsetX = clientX - rect.left - rect.width / 2;
     const offsetY = clientY - rect.top - rect.height / 2;
     const DEG = 20;
-    
+
     $circle.style.setProperty('--tiltX', `${(offsetY / rect.height) * DEG}deg`);
     $circle.style.setProperty('--tiltY', `${(offsetX / rect.width) * -DEG}deg`);
-    
+
     setTimeout(() => {
         $circle.style.setProperty('--tiltX', '0deg');
         $circle.style.setProperty('--tiltY', '0deg');
     }, 200);
-    
-    // Add +1 popup
+
     const plusOne = document.createElement('div');
     plusOne.classList.add('plus-one');
     plusOne.textContent = '+1';
     plusOne.style.left = `${(clientX ?? rect.left + rect.width/2) - rect.left}px`;
     plusOne.style.top = `${(clientY ?? rect.top + rect.height/2) - rect.top}px`;
-    
+
     $circle.parentNode.appendChild(plusOne);
-    
+
     setTimeout(() => {
         plusOne.remove();
     }, 1500);
-    
-    // Add score
+
     addScore(1);
 }
 
-// Set up event listeners
 function setupEventListeners() {
     if ($circle) {
         $circle.addEventListener('click', handleClick);
     }
-    
-    // Prevent context menu on long press
     document.addEventListener('contextmenu', (e) => {
         e.preventDefault();
     });
-    
-    // Handle touch events for mobile
     if ('ontouchstart' in window) {
         $circle.addEventListener('touchstart', handleClick, { passive: true });
     }
 }
 
-// Initialize the game when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', init);
