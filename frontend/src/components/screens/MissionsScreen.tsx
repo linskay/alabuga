@@ -1,189 +1,363 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { motion, Variants } from 'framer-motion';
+import styled, { keyframes } from 'styled-components';
+import MainButton from '../MainButton';
+import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
+import SystemNotification from '../SystemNotification';
+
+type StatusId = 'active' | 'available' | 'soon';
+
+interface MissionItem { id?: number; title: string; description: string; difficulty: string; reward: string; status: StatusId; requiredExperience?: number; requiredRank?: number; type?: string }
+
+const StyledCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(1, 180px);
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto;
+
+  @media (min-width: 640px) { grid-template-columns: repeat(2, 180px); }
+  @media (min-width: 1024px) { grid-template-columns: repeat(3, 180px); }
+`;
+
+// Декоративная сфера в левом верхнем углу
+const rotateXY = keyframes`
+  0% { transform: rotateX(0deg) rotateY(0deg); }
+  50% { transform: rotateX(90deg) rotateY(180deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg); }
+`;
+
+const DecoOrb = styled.div`
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  width: 180px;
+  height: 180px;
+  opacity: 0.25;
+  pointer-events: none;
+  filter: blur(1px);
+  .ring {
+    position: absolute;
+    border: 2px solid rgba(0, 234, 255, 0.4);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(0, 234, 255, 0.25);
+    animation: ${rotateXY} 12s linear infinite;
+  }
+  .ring.r1 { width: 180px; height: 180px; top: 0; left: 0; }
+  .ring.r2 { width: 140px; height: 140px; top: 20px; left: 20px; animation-duration: 10s; }
+  .ring.r3 { width: 100px; height: 100px; top: 40px; left: 40px; animation-duration: 8s; }
+`;
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } }
+};
+
+const StyledCard = styled.div`
+  .card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    color: #fff;
+    transition: 0.5s;
+    cursor: pointer;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  .card:hover { transform: translateY(-8px); }
+  .card::before {
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    background: linear-gradient(45deg, #ffbc00, #ff0058);
+    border-radius: 1.2em;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(45deg, #ffbc00, #ff0058);
+    filter: blur(30px);
+  }
+  .card span {
+    position: absolute;
+    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    background-color: rgba(0,0,0,0.6);
+    z-index: 2;
+    border-radius: 1em;
+  }
+  .card span::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 50%; height: 100%;
+    background-color: rgba(255,255,255,0.08);
+  }
+  .badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 15;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px);
+  }
+  .card .content {
+    position: relative;
+    padding: 10px;
+    z-index: 10;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    font-weight: 700;
+  }
+  .title { font-size: 0.95rem; line-height: 1.3; }
+  .desc { font-size: 0.8rem; opacity: 0.85; margin-top: 0.2rem; }
+  .meta { margin-top: auto; display: flex; gap: 0.5rem; font-size: 0.75rem; opacity: 0.9; }
+`;
 
 const MissionsScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'academy' | 'operations' | 'challenges'>('academy');
+  const [status, setStatus] = useState<StatusId>('active');
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 6; // 3x2 на десктопе
 
-  const tabs = [
-    { id: 'academy' as const, name: 'АКАДЕМИЯ', icon: '🎓', color: 'from-blue-400 to-cyan-500' },
-    { id: 'operations' as const, name: 'ОПЕРАЦИИ', icon: '⚡', color: 'from-orange-400 to-red-500' },
-    { id: 'challenges' as const, name: 'ИСПЫТАНИЯ', icon: '🏆', color: 'from-purple-400 to-pink-500' }
-  ];
+  const [missions, setMissions] = useState<MissionItem[]>([]);
+  const [user, setUser] = useState<UserDTO | null>(null);
+  const [userMissions, setUserMissions] = useState<UserMission[]>([]);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingMission, setPendingMission] = useState<MissionItem | null>(null);
 
-  const academyMissions = [
-    { title: 'Основы React', description: 'Изучение базовых концепций React', progress: 75, difficulty: 'Начинающий', reward: '500 XP' },
-    { title: 'TypeScript для разработчиков', description: 'Продвинутое использование TypeScript', progress: 45, difficulty: 'Средний', reward: '750 XP' },
-    { title: 'Архитектура приложений', description: 'Паттерны и принципы проектирования', progress: 0, difficulty: 'Продвинутый', reward: '1000 XP' }
-  ];
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const u = await backend.users.byLogin(login);
+        if (!mounted) return;
+        setUser(u);
+        const [data, myMissions] = await Promise.all([
+          backend.missions.list(),
+          backend.users.missions(u.id)
+        ]);
+        if (!mounted) return;
+        const mapped: MissionItem[] = data.map((m: MissionDTO) => ({
+          id: m.id,
+          title: m.name,
+          description: m.description || '',
+          difficulty: m.difficulty || '—',
+          reward: `${m.experienceReward ?? 0} XP`,
+          status: (m.isActive ? 'available' : 'soon') as StatusId,
+          requiredExperience: m.requiredExperience,
+          requiredRank: m.requiredRank,
+          type: m.type,
+        }));
+        setMissions(mapped);
+        setUserMissions(myMissions || []);
+      } catch (e) {
+        setMissions([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
-  const operationsMissions = [
-    { title: 'Оптимизация производительности', description: 'Улучшение скорости загрузки сайта', progress: 100, difficulty: 'Средний', reward: '600 XP' },
-    { title: 'Рефакторинг legacy кода', description: 'Модернизация старого кода', progress: 30, difficulty: 'Продвинутый', reward: '800 XP' },
-    { title: 'Интеграция с API', description: 'Подключение внешних сервисов', progress: 0, difficulty: 'Средний', reward: '550 XP' }
-  ];
+  const filtered = useMemo(() => {
+    const userRank = user?.rank ?? 0;
+    const userXP = user?.experience ?? 0;
+    const canAccess = (m: MissionItem) => {
+      const rankOk = m.requiredRank == null || userRank >= m.requiredRank;
+      const xpOk = m.requiredExperience == null || userXP >= m.requiredExperience;
+      return rankOk && xpOk;
+    };
+    const isActiveForUser = (m: MissionItem) => userMissions.some(um => (um.missionId === m.id) && (um.status || '').toUpperCase() !== 'COMPLETED');
 
-  const challengesMissions = [
-    { title: 'Хакатон 2024', description: '48-часовой марафон разработки', progress: 0, difficulty: 'Эксперт', reward: '2000 XP' },
-    { title: 'Code Review Challenge', description: 'Анализ и улучшение кода команды', progress: 60, difficulty: 'Продвинутый', reward: '900 XP' },
-    { title: 'Bug Hunt', description: 'Поиск и исправление критических ошибок', progress: 0, difficulty: 'Средний', reward: '700 XP' }
-  ];
+    return missions.filter(m =>
+      status === 'active' ? isActiveForUser(m) :
+      status === 'available' ? (canAccess(m) && !isActiveForUser(m)) :
+      !canAccess(m)
+    );
+  }, [missions, status, user, userMissions]);
 
-  const getCurrentMissions = () => {
-    switch (activeTab) {
-      case 'academy': return academyMissions;
-      case 'operations': return operationsMissions;
-      case 'challenges': return challengesMissions;
-      default: return academyMissions;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const itemsToRender = pageItems;
+
+  const changeStatus = (id: StatusId) => { setStatus(id); setPage(1); };
+
+  const handleTakeMission = async (mission: MissionItem) => {
+    if (!mission.id || !user) return;
+    try {
+      await backend.users.takeMission(user.id, mission.id);
+      setNotif({ open: true, title: 'Готово — миссия назначена', message: 'Миссия добавлена в раздел Активные', variant: 'success' });
+      // Обновляем список миссий и активные пользователя
+      const [data, myMissions] = await Promise.all([
+        backend.missions.list(),
+        backend.users.missions(user.id),
+      ]);
+      const mapped: MissionItem[] = data.map((m: MissionDTO) => ({
+        id: m.id,
+        title: m.name,
+        description: m.description || '',
+        difficulty: m.difficulty || '—',
+        reward: `${m.experienceReward ?? 0} XP`,
+        status: (m.isActive ? 'available' : 'soon') as StatusId,
+        requiredExperience: m.requiredExperience,
+        requiredRank: m.requiredRank,
+        type: m.type,
+      }));
+      setMissions(mapped);
+      setUserMissions(myMissions || []);
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка', message: e?.message || 'Не удалось взять миссию', variant: 'error' });
     }
   };
 
-  return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen">
+  const askConfirm = (mission: MissionItem) => {
+    setPendingMission(mission);
+    setConfirmOpen(true);
+  };
 
-      {/* Tabs */}
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setPendingMission(null);
+  };
+
+  const confirmTake = async () => {
+    if (pendingMission) {
+      await handleTakeMission(pendingMission);
+    }
+    closeConfirm();
+  };
+
+  return (
+    <div className="h-full pb-8 overflow-y-auto max-h-screen relative">
+      <DecoOrb>
+        <div className="ring r1" />
+        <div className="ring r2" />
+        <div className="ring r3" />
+      </DecoOrb>
+      {/* Кнопки главных вкладок удалены */}
+
+      {/* Под-вкладки статуса */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="flex space-x-4 mb-8"
+        className="flex flex-wrap gap-3 mb-8 justify-center"
       >
-        {tabs.map((tab) => (
-          <motion.button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-3 rounded-xl border transition-all duration-300 ${
-              activeTab === tab.id
-                ? 'border-orange-400 bg-orange-400/10 shadow-lg shadow-orange-400/20'
-                : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <div className="flex items-center space-x-2">
-              <span className="text-xl">{tab.icon}</span>
-              <span className={`font-bold text-sm tracking-wider ${
-                activeTab === tab.id ? 'text-orange-300' : 'text-white'
-              }`}>
-                {tab.name}
-              </span>
-            </div>
-          </motion.button>
-        ))}
+        <MainButton onClick={() => changeStatus('active')} className={status === 'active' ? '' : 'opacity-70'}>
+          Активные
+        </MainButton>
+        <MainButton onClick={() => changeStatus('available')} className={status === 'available' ? '' : 'opacity-70'}>
+          Доступно
+        </MainButton>
+        <MainButton onClick={() => changeStatus('soon')} className={status === 'soon' ? '' : 'opacity-70'}>
+          Будет позже
+        </MainButton>
       </motion.div>
 
-      {/* Mission Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+      {/* Сетка карточек */}
+      <motion.div variants={containerVariants} initial="hidden" animate="show" className="px-4"
+        transition={{ when: 'beforeChildren' }}
       >
-        {[
-          { title: 'Активные миссии', value: '3', color: 'from-blue-400 to-cyan-500' },
-          { title: 'Завершено', value: '24', color: 'from-green-400 to-emerald-500' },
-          { title: 'Получено XP', value: '12,450', color: 'from-purple-400 to-violet-500' },
-          { title: 'Текущий рейтинг', value: '#1,247', color: 'from-orange-400 to-red-500' }
-        ].map((stat, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-            className="bg-black/30 backdrop-blur-md border border-white/20 rounded-xl p-4"
-          >
-            <div className="text-center">
-              <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                {stat.value}
-              </div>
-              <div className="text-gray-300 text-sm mt-1">{stat.title}</div>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Missions List */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        className="space-y-6"
-      >
-        {getCurrentMissions().map((mission, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
-            className="bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl p-6"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">{mission.title}</h3>
-                <p className="text-gray-300 mb-3">{mission.description}</p>
-                <div className="flex items-center space-x-4 text-sm">
-                  <span className="text-gray-400">Сложность: <span className="text-cyan-400">{mission.difficulty}</span></span>
-                  <span className="text-gray-400">Награда: <span className="text-yellow-400">{mission.reward}</span></span>
+        <StyledCardGrid>
+          {itemsToRender.map((m, idx) => (
+            <motion.div key={`${m.title}-${idx}`} variants={itemVariants}>
+              <StyledCard>
+                <div className="card" style={{ width: 180 }}>
+                  <span />
+                  <div className="content">
+                    {m.type && (
+                      <div className="badge" style={{
+                        background: m.type === 'QUEST' ? 'rgba(16,185,129,0.2)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.2)' : m.type === 'TEST' ? 'rgba(245,158,11,0.2)' : 'rgba(168,85,247,0.2)',
+                        borderColor: m.type === 'QUEST' ? 'rgba(16,185,129,0.35)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.35)' : m.type === 'TEST' ? 'rgba(245,158,11,0.35)' : 'rgba(168,85,247,0.35)',
+                        color: m.type === 'QUEST' ? '#34d399' : m.type === 'CHALLENGE' ? '#60a5fa' : m.type === 'TEST' ? '#fbbf24' : '#c084fc'
+                      }}>
+                        {m.type === 'QUEST' ? 'Квесты' : m.type === 'CHALLENGE' ? 'Рекрутинг' : m.type === 'TEST' ? 'Лекторий' : 'Симулятор'}
+                      </div>
+                    )}
+                    <div className="title">{m.title}</div>
+                    <div className="desc">{m.description}</div>
+                    <div className="meta">
+                      <div>Сложн.: {m.difficulty}</div>
+                      <div>Награда: {m.reward}</div>
+                    </div>
+                    {status === 'available' && (
+                      <button
+                        onClick={() => askConfirm(m)}
+                        className="mt-2 px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded text-cyan-300 text-xs hover:bg-cyan-500/30 transition-all duration-300"
+                      >
+                        Взять миссию
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="ml-6">
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-cyan-400 mb-1">{mission.progress}%</div>
-                  <div className="text-xs text-gray-400">Прогресс</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="w-full bg-gray-700 rounded-full h-3">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${mission.progress}%` }}
-                  transition={{ duration: 1, delay: 1.2 + index * 0.1 }}
-                  className="bg-gradient-to-r from-orange-400 to-red-500 h-3 rounded-full"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-4">
-              {mission.progress === 0 ? (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
-                >
-                  Начать миссию
-                </motion.button>
-              ) : mission.progress === 100 ? (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-green-400/25 transition-all duration-300"
-                >
-                  Завершено ✓
-                </motion.button>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300"
-                >
-                  Продолжить
-                </motion.button>
-              )}
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-2 border border-white/30 text-white rounded-lg font-semibold hover:bg-white/10 transition-all duration-300"
-              >
-                Подробнее
-              </motion.button>
-            </div>
-          </motion.div>
-        ))}
+              </StyledCard>
+            </motion.div>
+          ))}
+        </StyledCardGrid>
       </motion.div>
+
+      {/* Пагинация */}
+      <div className="mt-8 flex items-center justify-center gap-4">
+        <MainButton disabled={currentPage === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+          Назад
+        </MainButton>
+        <div className="text-white/80 text-sm min-w-[100px] text-center">Стр. {currentPage} / {totalPages}</div>
+        <MainButton disabled={currentPage === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+          Вперёд
+        </MainButton>
+      </div>
+
+      {/* Neon Confirm Modal */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeConfirm} />
+          <div className="relative z-[110] w-[90%] max-w-md rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
+            <h3 className="text-xl font-bold text-cyan-300 mb-2">Подтверждение</h3>
+            <p className="text-gray-300 text-sm mb-6">
+              Ты действительно хочешь пройти эту миссию{pendingMission?.title ? `: "${pendingMission.title}"` : ''}?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={closeConfirm} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
+              <button onClick={confirmTake} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30 transition">Да!</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <SystemNotification
+        open={notif.open}
+        title={notif.title}
+        message={notif.message}
+        variant={notif.variant}
+        onClose={() => setNotif(prev => ({ ...prev, open: false }))}
+        autoCloseMs={2500}
+        actionLabel={status !== 'active' ? 'Открыть Активные' : undefined}
+        onAction={status !== 'active' ? () => setStatus('active') : undefined}
+      />
     </div>
   );
 };

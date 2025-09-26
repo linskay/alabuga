@@ -35,6 +35,8 @@ public class MissionMapper {
                 .difficulty(mission.getDifficulty().name())
                 .experienceReward(mission.getExperienceReward())
                 .energyReward(mission.getEnergyReward())
+                .requiredRank(mission.getRequiredRank())
+                .requiredExperience(mission.getRequiredExperience())
                 .requiredCompetencies(mission.getRequiredCompetencies())
                 .isActive(mission.getIsActive())
                 .requiresModeration(mission.getRequiresModeration())
@@ -96,6 +98,8 @@ public class MissionMapper {
                 .difficulty(parseMissionDifficulty(dto.getDifficulty()))
                 .experienceReward(dto.getExperienceReward())
                 .energyReward(dto.getEnergyReward())
+                .requiredRank(dto.getRequiredRank())
+                .requiredExperience(dto.getRequiredExperience())
                 .requiredCompetencies(dto.getRequiredCompetencies())
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : Boolean.TRUE)
                 .requiresModeration(dto.getRequiresModeration() != null ? dto.getRequiresModeration() : Boolean.FALSE)
@@ -128,6 +132,12 @@ public class MissionMapper {
         }
         if (dto.getEnergyReward() != null) {
             mission.setEnergyReward(dto.getEnergyReward());
+        }
+        if (dto.getRequiredRank() != null) {
+            mission.setRequiredRank(dto.getRequiredRank());
+        }
+        if (dto.getRequiredExperience() != null) {
+            mission.setRequiredExperience(dto.getRequiredExperience());
         }
         if (dto.getRequiredCompetencies() != null) {
             mission.setRequiredCompetencies(dto.getRequiredCompetencies());

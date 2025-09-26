@@ -146,12 +146,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
       <div className="flex items-center space-x-3">
         {/* Кнопка входа */}
         {showLoginButton && (
-          <div className="relative">
-            <div
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              <LoginButton onClick={onLoginClick || (() => {})}>
+          <div
+            className="relative"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div>
+              <LoginButton onClick={() => setShowLogin((v) => !v)}>
                 <span className="hidden sm:inline">Вход в систему</span>
                 <span className="sm:hidden">Вход</span>
               </LoginButton>
@@ -165,6 +166,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                   className="absolute top-full right-0 mt-2 z-50"
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <LoginForm />
                 </motion.div>

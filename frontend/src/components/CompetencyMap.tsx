@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion';
 import ShinyText from './ShinyText';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 type BranchKey = 'tech' | 'humanities' | 'leadership';
 
@@ -11,8 +11,8 @@ type Competency = {
   branch: BranchKey;
   radius: number;
   size: number;
-  speed: number; // radians per second (+ clockwise, - counter)
-  phase: number; // initial angle
+  speed: number;
+  phase: number;
 };
 
 const branchMeta: Record<BranchKey, { label: string; color: string; short: string }>= {
@@ -21,7 +21,6 @@ const branchMeta: Record<BranchKey, { label: string; color: string; short: strin
   leadership: { label: 'Коммуникационно-Лидерская', color: '#22C55E', short: 'Лид' },
 };
 
-// Nine competencies provided by user
 const defaultCompetencies: Competency[] = [
   { id: 'mission-power', name: 'Сила Миссии', branch: 'leadership', radius: 280, size: 48, speed: 0.28, phase: 0.0 },
   { id: 'breakthrough-impulse', name: 'Импульс Прорыва', branch: 'leadership', radius: 280, size: 46, speed: 0.28, phase: 2.09 },
@@ -40,7 +39,7 @@ const OrbitRing: React.FC<{ radius: number; color: string; label: string }>= ({ 
   return (
     <div
       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-      style={{ width: radius * 2, height: radius * 2 }}
+      style={{ width: radius * 2, height: radius * 2, zIndex: 1 }}
     >
       <div
         className="absolute inset-0 rounded-full"
@@ -49,6 +48,8 @@ const OrbitRing: React.FC<{ radius: number; color: string; label: string }>= ({ 
           boxShadow: `0 0 24px ${color}40, inset 0 0 24px ${color}20`,
         }}
       />
+      {/* animated highlight arc */}
+      <AnimatedArc $color={color} className="absolute inset-0 rounded-full pointer-events-none" />
       <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs tracking-wide" style={{ color }}>
         {label}
       </div>
@@ -80,7 +81,7 @@ const CompetencyMap: React.FC<{ competencies?: Competency[]; userAngle?: number 
     return radii.reduce((m, r) => Math.max(m, r), 0);
   }, [competencies]);
   const padding = 40;
-  const baseSize = (maxOrbitRadius + padding) * 2;
+  const baseSize = useMemo(() => (maxOrbitRadius + padding) * 2, [maxOrbitRadius]);
   const center = useMemo(() => ({ x: maxOrbitRadius + padding, y: maxOrbitRadius + padding }), [maxOrbitRadius]);
 
   // reserved for future grouping/metrics
@@ -92,6 +93,7 @@ const CompetencyMap: React.FC<{ competencies?: Competency[]; userAngle?: number 
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
+  const sunSize = 300;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -103,18 +105,15 @@ const CompetencyMap: React.FC<{ competencies?: Competency[]; userAngle?: number 
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [baseSize]);
 
   return (
-    <div ref={containerRef} className="relative w-full" style={{ height: baseSize * scale }}>
-      <div className="absolute left-1/2 top-1/2 pointer-events-none" style={{ width: baseSize, height: baseSize, transform: `translate(-50%, -50%) scale(${scale})`, transformOrigin: 'center' }}>
-      <div className="absolute inset-0 rounded-full" style={{
-        background: 'radial-gradient(circle at center, rgba(255,255,255,0.06), transparent 60%)',
-        boxShadow: 'inset 0 0 80px rgba(255,255,255,0.06)'
-      }} />
+    <div ref={containerRef} className="relative w-full overflow-visible" style={{ height: baseSize * scale }}>
+      <div className="absolute left-1/2 top-1/2" style={{ width: baseSize, height: baseSize, transform: `translate(-50%, -50%) scale(${scale})`, transformOrigin: 'center' }}>
+      {/* backdrop disabled to avoid oval under the sun */}
 
       {/* Center sun (styled) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ width: '38%', height: '38%', minWidth: 120, minHeight: 120, maxWidth: 220, maxHeight: 220, zIndex: 2 }}>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ width: sunSize, height: sunSize, zIndex: 10 }}>
         <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', transformOrigin: 'center', width: '100%', height: '100%', zIndex: 2 }}>
           <SunWrapper>
             <div className="section-banner-sun" style={{ width: '100%', height: '100%' }}>
@@ -193,10 +192,15 @@ const CompetencyMap: React.FC<{ competencies?: Competency[]; userAngle?: number 
         </div>
       </div>
 
-      {/* Rings per branch */}
+      {/* Rings per branch (drawn behind via z-index) */}
       <OrbitRing radius={120} color={branchMeta.tech.color} label={branchMeta.tech.label} />
       <OrbitRing radius={200} color={branchMeta.humanities.color} label={branchMeta.humanities.label} />
       <OrbitRing radius={280} color={branchMeta.leadership.color} label={branchMeta.leadership.label} />
+
+      {/* Light beam separator between competencies and ranks */}
+      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -24, width: baseSize * 0.6, height: 10, zIndex: 0 }}>
+        <Beam />
+      </div>
 
       {/* User markers per ring */}
       {[120,200,280].map((r, i) => {
@@ -219,19 +223,12 @@ const CompetencyMap: React.FC<{ competencies?: Competency[]; userAngle?: number 
             style={{ left: x - c.size/2, top: y - c.size/2, width: c.size, height: c.size }}
           >
             {/* progress/rank ring */}
-            <div className="absolute -inset-2 rounded-full" style={{
-              background: `conic-gradient(${color}AA 35%, ${color}22 0)`,
-              filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.25))'
-            }} />
-            <div className="absolute -inset-[2px] rounded-full" style={{
-              mask: 'radial-gradient(circle, transparent 58%, black 60%)', WebkitMask: 'radial-gradient(circle, transparent 58%, black 60%)'
-            }} />
             <div className="relative w-full h-full rounded-full flex items-center justify-center text-[10px] font-semibold px-2 text-center"
               style={{
-                background: 'rgba(15,23,42,0.9)',
-                border: `1px solid ${color}80`,
-                boxShadow: `0 0 16px ${color}50, inset 0 0 12px ${color}30`,
-                color: '#dbeafe'
+                background: 'rgba(10,15,25,0.55)',
+                border: `1px solid ${color}88`,
+                color: '#ffffff',
+                boxShadow: `0 0 10px ${color}66`
               }}
               title={c.name}
             >
@@ -263,9 +260,7 @@ const SunWrapper = styled.div`
     width: 100%;
     position: relative;
     transition: left 0.3s linear;
-    background: url("data:image/jpeg;base64,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ЗаXa74WaMnqA2QKp3tg9r93LrjJIXp9a2rQr8vNsvIwpOjzWe/mUkkLKWMm1MeuM0xrk4AjYjPqSKSQZUq3yn6VXMX71ULkbuQSK4HOS0R3RjF7lkT9d7AEe9RZ...");
-    background-size: cover;
-    background-position: left;
+    background: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAFAAUADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD0T5f71GV/vfrWz/YVv3mk/IUDRrQnaJ2J9MjNfH/U666L70e79apdzJVVPWQCpo7UynCOGP1xVl9MhR8LOPoRzRFYAyHbIAB3PBqVSknZoHWi1dMb/Zc2MlkH1NJ/ZzDrKP8AgKk0PCJJNiM7MO4bdSPp90vKKxH0x/Wnydo3JU31lYja3jQ4ac5/3f8A69RMIx0kJ/Sh1dSQ4O73qq8gVsGsJzUehvCLfUsKN3Q/rUghJ/jX/vqq0ckeRnOPatqDT47iESRTvg+oq6MHV0jqyKs/Z7lH7FNt3bhj1qBo5FP3x+dbK6S4zunYj0Wqsmn3G47Izj1bFa1MLUitYszhXi3ujOxKO/6UZk9vyratJ4wPInBDjj1FJqFonkl4ozuHcVP1f3OaMv8AMaxHvcskYuZPRaa0si/wr+dK+9RmmKXZgAuSfQVySbvZNnUl1EFxJ3j/ACNPFwT/AAtUwtLs8iCTH+7TmgZFzIQr/wBw9atQqdyXKBALj2enCcnuwq/Alg6AycMOoOasRppgPJix7jP863hQnL7SMZVYr7LMxJCzDLnH1rUjhtggLSNuPZmIqdbjTIfutFn/AGV/wFMbVbBGyNxPriumNGENZVInPOc5/DFkyWaEZCLj13E0j28UYy7Ko/CqcmsbiTE4HopFULi7edsyOPwqalahFe4rsUKFST97Q1sWx6ЗаXa74WaMnqA2QKp3tg9r93LrjJIXp9a2rQr8vNsvIwpOjzWe/mUkkLKWMm1MeuM0xrk4AjYjPqSKSQZUq3yn6VXMX71ULkbuQSK4HOS0R3RjF7lkT9d7AEe9RZ...") center/cover no-repeat;
     border-radius: 50%;
     animation: sunRotate 30s linear 0s infinite, shadowPulse 5s ease-in-out infinite;
     box-shadow:
@@ -317,5 +312,42 @@ const SunWrapper = styled.div`
   #star-5 { left: 50px; top: 230px; animation: twinkling 1.5s infinite; }
   #star-6 { left: 200px; top: -40px; animation: twinkling 4s infinite; }
   #star-7 { left: 230px; top: 60px; animation: twinkling 2s infinite; }
+`;
+// Animated orbit arc
+const sweep = keyframes`
+  0% { transform: rotate(0deg); opacity: 0.15; }
+  50% { opacity: 0.4; }
+  100% { transform: rotate(360deg); opacity: 0.15; }
+`;
+const AnimatedArc = styled.div<{ $color: string }>`
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0turn, ${p => p.$color}80 0.05turn, transparent 0.1turn);
+    filter: blur(2px);
+    animation: ${sweep} 8s linear infinite;
+  }
+`;
+
+// Light beam separator
+const glow = keyframes`
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; }
+`;
+const Beam = styled.div`
+  position: relative;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(0,174,239,0.45) 20%, rgba(0,174,239,0.15) 45%, transparent 70%);
+    filter: blur(6px);
+    animation: ${glow} 3s ease-in-out infinite;
+  }
 `;
  

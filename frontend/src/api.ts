@@ -1,0 +1,82 @@
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${API_BASE_URL}${path}`;
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    credentials: 'include',
+    ...options,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
+  }
+  const contentType = res.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return (await res.json()) as T;
+  }
+  return undefined as unknown as T;
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>(path, { method: 'GET' as HttpMethod }),
+  post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST' as HttpMethod, body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT' as HttpMethod, body: body ? JSON.stringify(body) : undefined }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' as HttpMethod }),
+};
+
+// Domain helpers
+export type RankDTO = { id: number; name: string; level: number; branch: string; description?: string };
+export type ShopItemDTO = { id: number; name: string; price: number; available: boolean; description?: string };
+export type ArtifactDTO = { id: number; name: string; rarity?: string; active?: boolean; description?: string };
+export type UserRoleDTO = { value: string; displayName: string };
+export type UserDTO = { id: number; login: string; email: string; role: string; experience: number; energy: number; rank: number; firstName?: string; lastName?: string; createdAt?: string; isActive?: boolean; };
+export type UserCompetency = { id: number; name: string; points?: number; level?: number; maxPoints?: number };
+export type UserMission = { id: number; missionId?: number; missionName?: string; status?: string; progress?: number };
+export type MissionDTO = { id: number; name: string; description?: string; difficulty?: string; experienceReward?: number; isActive?: boolean; requiredExperience?: number; requiredRank?: number; type?: string };
+
+export const backend = {
+  ranks: {
+    list: () => api.get<RankDTO[]>('/api/ranks'),
+    requirements: () => api.get<any[]>('/api/ranks/requirements'),
+    requirementByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
+  },
+  shop: {
+    available: () => api.get<ShopItemDTO[]>('/api/shop/available'),
+    update: (id: number, body: Partial<ShopItemDTO>) => api.put<ShopItemDTO>(`/api/shop/${id}`, body),
+    create: (body: Partial<ShopItemDTO>) => api.post<ShopItemDTO>('/api/shop', body),
+  },
+  artifacts: {
+    list: () => api.get<ArtifactDTO[]>('/api/artifacts'),
+    active: () => api.get<ArtifactDTO[]>('/api/artifacts/active'),
+    create: (body: Partial<ArtifactDTO>) => api.post<ArtifactDTO>('/api/artifacts', body),
+    update: (id: number, body: Partial<ArtifactDTO>) => api.put<ArtifactDTO>(`/api/artifacts/${id}`, body),
+    delete: (id: number) => api.delete<void>(`/api/artifacts/${id}`),
+  },
+  competencies: {
+    list: () => api.get<any[]>('/api/competencies'),
+  },
+  users: {
+    create: (body: any) => api.post<any>('/api/users', body),
+    list: () => api.get<UserDTO[]>('/api/users'),
+    roles: () => api.get<UserRoleDTO[]>('/api/users/roles'),
+    byId: (id: number) => api.get<UserDTO>(`/api/users/${id}`),
+    byLogin: (login: string) => api.get<UserDTO>(`/api/users/login/${encodeURIComponent(login)}`),
+    update: (id: number, body: Partial<UserDTO>) => api.put<UserDTO>(`/api/users/${id}`, body),
+    delete: (id: number) => api.delete<void>(`/api/users/${id}`),
+    competencies: (userId: number) => api.get<UserCompetency[]>(`/api/users/${userId}/competencies`),
+    missions: (userId: number) => api.get<UserMission[]>(`/api/users/${userId}/missions`),
+    takeMission: (userId: number, missionId: number) => api.post(`/api/users/${userId}/missions/${missionId}/take`),
+  },
+  missions: {
+    create: (body: any) => api.post<any>('/api/missions', body),
+    byUser: (userId: number) => api.get<UserMission[]>(`/api/users/${userId}/missions`),
+    list: () => api.get<MissionDTO[]>('/api/missions'),
+    update: (id: number, body: Partial<MissionDTO>) => api.put<MissionDTO>(`/api/missions/${id}`, body),
+    delete: (id: number) => api.delete<void>(`/api/missions/${id}`),
+  },
+};
+
+

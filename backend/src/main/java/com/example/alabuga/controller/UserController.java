@@ -1,7 +1,9 @@
 package com.example.alabuga.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +49,15 @@ public class UserController {
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<UserDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/roles")
+    @Operation(summary = "Получить доступные роли пользователей")
+    public ResponseEntity<List<Map<String, String>>> getAllRoles() {
+        List<Map<String, String>> roles = Arrays.stream(UserRole.values())
+            .map(role -> Map.of("value", role.name(), "displayName", role.getDisplayName()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(roles);
     }
     
     @GetMapping("/{id}")
@@ -269,5 +280,24 @@ public class UserController {
             @Parameter(description = "Количество очков опыта") @RequestParam Integer experiencePoints) {
         UserCompetencyDTO userCompetency = userService.addExperienceToCompetency(id, competencyId, experiencePoints);
         return ResponseEntity.ok(userCompetency);
+    }
+    
+    // ========== MISSION ENDPOINTS ==========
+    
+    @GetMapping("/{id}/missions")
+    @Operation(summary = "Получить миссии пользователя")
+    public ResponseEntity<List<com.example.alabuga.dto.UserMissionDTO>> getUserMissions(
+            @Parameter(description = "ID пользователя") @PathVariable Long id) {
+        List<com.example.alabuga.dto.UserMissionDTO> missions = userService.getUserMissions(id);
+        return ResponseEntity.ok(missions);
+    }
+    
+    @PostMapping("/{id}/missions/{missionId}/take")
+    @Operation(summary = "Взять миссию")
+    public ResponseEntity<com.example.alabuga.dto.UserMissionDTO> takeMission(
+            @Parameter(description = "ID пользователя") @PathVariable Long id,
+            @Parameter(description = "ID миссии") @PathVariable Long missionId) {
+        com.example.alabuga.dto.UserMissionDTO userMission = userService.takeMission(id, missionId);
+        return ResponseEntity.ok(userMission);
     }
 }

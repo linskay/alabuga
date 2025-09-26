@@ -58,6 +58,14 @@ public class Mission {
     @Schema(description = "Награда Энергонов", example = "25")
     private Integer energyReward;
 
+    @Column(name = "required_rank")
+    @Schema(description = "Минимальный ранг для доступа")
+    private Integer requiredRank;
+
+    @Column(name = "required_experience")
+    @Schema(description = "Минимальный опыт для доступа")
+    private Integer requiredExperience;
+
     @Column(name = "required_competencies", length = 500)
     @Schema(description = "Требуемые компетенции (JSON)", example = "[\"navigation\", \"engineering\"]")
     private String requiredCompetencies;

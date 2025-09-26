@@ -24,7 +24,7 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
 }) => {
   const [showLoader, setShowLoader] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // Removed global cursor-follow glow
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -81,14 +81,7 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
     };
   }, [lastScrollY]);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  // Removed mousemove listener
 
 
   return (
@@ -107,21 +100,12 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Animated Cosmic Background */}
+      {/* Animated Cosmic Background (no cursor glow) */}
       <div className="absolute inset-0">
         <AnimatedStars />
         <div className="cosmic-orb cosmic-orb-1"></div>
         <div className="cosmic-orb cosmic-orb-2"></div>
         <div className="cosmic-orb cosmic-orb-3"></div>
-        
-        {/* Mouse-following gradient */}
-        <div 
-          className="mouse-gradient"
-          style={{
-            left: mousePosition.x - 200,
-            top: mousePosition.y - 200,
-          }}
-        ></div>
       </div>
 
       {/* Header */}

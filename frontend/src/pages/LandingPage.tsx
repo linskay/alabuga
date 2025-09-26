@@ -21,22 +21,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   const [currentPage, setCurrentPage] = useState<'home' | 'scroll' | 'dashboard' | 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin' | 'privacy' | 'cookies' | '404'>('home');
 
   useEffect(() => {
-    // Check current page based on hash
-    if (window.location.hash === '#privacy-policy') {
-      setCurrentPage('privacy');
-    } else if (window.location.hash === '#cookies') {
-      setCurrentPage('cookies');
-    }
+    const hash = window.location.hash;
+    if (hash === '#privacy-policy') setCurrentPage('privacy');
+    else if (hash === '#cookies') setCurrentPage('cookies');
+    else if (hash === '#dashboard') setCurrentPage('dashboard');
+    else if (hash === '#profile') setCurrentPage('profile');
+    else setCurrentPage('home');
 
-    // Listen for hash changes
     const handleHashChange = () => {
-      if (window.location.hash === '#privacy-policy') {
-        setCurrentPage('privacy');
-      } else if (window.location.hash === '#cookies') {
-        setCurrentPage('cookies');
-      } else if (window.location.hash === '') {
-        setCurrentPage('home');
-      }
+      const h = window.location.hash;
+      if (h === '#privacy-policy') setCurrentPage('privacy');
+      else if (h === '#cookies') setCurrentPage('cookies');
+      else if (h === '#dashboard') setCurrentPage('dashboard');
+      else if (h === '#profile') setCurrentPage('profile');
+      else if (h === '') setCurrentPage('home');
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -106,6 +104,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
 
   // Экспортируем функцию для использования в других компонентах
   (window as any).show404 = show404;
+
+  // Управляем флагом для отключения ClickSpark на home/scroll
+  useEffect(() => {
+    const isLanding = currentPage === 'home' || currentPage === 'scroll';
+    if (isLanding) {
+      document.body.setAttribute('data-clickspark', 'off');
+    } else {
+      document.body.removeAttribute('data-clickspark');
+    }
+    return () => {
+      // не трогаем здесь, управление выше по эффекту
+    };
+  }, [currentPage]);
 
   return (
     <AnimatePresence mode="wait">
