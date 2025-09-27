@@ -16,6 +16,7 @@ import ShinyText from '../ShinyText';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
 import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
+import { handleApiError } from '../../utils/errorHandler';
 
 const DEFAULT_COMPETENCIES: { name: string; max: number }[] = [
   { name: 'Сила Миссии', max: 500 },
@@ -85,6 +86,7 @@ const ProfileScreen: React.FC = () => {
           setNextRankReq(req || null);
         } catch {}
       } catch (e: any) {
+        console.warn('Не удалось загрузить профиль:', e?.message);
         setError(e?.message || 'Не удалось загрузить профиль');
       }
     })();

@@ -115,9 +115,80 @@ curl -X GET "http://localhost:8080/api/missions/user/1" \
    - Показ названия миссии в подтверждении
    - Информация о наградах
 
+## Shop Purchase History
+
+### Get User Purchase History
+**Endpoint:** `GET /api/shop/purchases/{userId}`  
+**Description:** Получить историю покупок пользователя  
+**Parameters:**
+- `userId` (path) - ID пользователя
+
+**Response:**
+- `200 OK` - Список покупок пользователя
+
+**Example:**
+```bash
+curl -X GET "http://localhost:8080/api/shop/purchases/1" \
+  -H "Authorization: Bearer <user-token>"
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "itemName": "Квантовый модуль",
+    "itemDescription": "Ускоряет навигацию по гиперпространству",
+    "pricePaid": 150,
+    "energyAfter": 350,
+    "purchasedAt": "2025-01-20T12:34:27"
+  },
+  {
+    "id": 2,
+    "itemName": "Ядро сингулярности",
+    "itemDescription": "Стабилизирует энергосети корабля",
+    "pricePaid": 200,
+    "energyAfter": 150,
+    "purchasedAt": "2025-01-19T15:22:10"
+  }
+]
+```
+
+### Purchase Shop Item
+**Endpoint:** `POST /api/shop/purchase`  
+**Description:** Купить товар в магазине  
+**Parameters:**
+- `userId` (query) - ID пользователя
+- `shopItemId` (query) - ID товара
+
+**Response:**
+- `200 OK` - Покупка успешно оформлена
+- `400 Bad Request` - Недостаточно средств или товар недоступен
+- `404 Not Found` - Пользователь или товар не найдены
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8080/api/shop/purchase?userId=1&shopItemId=3" \
+  -H "Authorization: Bearer <user-token>"
+```
+
+**Response:**
+```json
+{
+  "shopItemId": 3,
+  "itemName": "Двигатель «Гидра»",
+  "price": 300,
+  "userId": 1,
+  "userName": "Командир",
+  "remainingEnergy": 200,
+  "confirmationMessage": "Сообщение от бортпомощника: На покупку товара «Двигатель «Гидра»» вы потратите 300 Энергонов. Подтвердите выбор?"
+}
+```
+
 ## Security Notes
 
 - Все операции с миссиями пользователей доступны только администраторам
 - Проверка существования пользователя и миссии
 - Валидация прав доступа
 - Логирование всех операций
+- История покупок доступна только самому пользователю

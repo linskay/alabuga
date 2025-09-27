@@ -4,6 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import MainButton from '../MainButton';
 import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
 import SystemNotification from '../SystemNotification';
+import { handleApiError } from '../../utils/errorHandler';
 
 type StatusId = 'active' | 'available' | 'soon' | 'history';
 
@@ -160,7 +161,7 @@ const MissionsScreen: React.FC = () => {
   const [completedMissions, setCompletedMissions] = useState<UserMission[]>([]);
   const [toastOpen, setToastOpen] = useState(false);
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState<{ open: boolean; title?: string; message?: string }>({ open: false });
   const [pendingMission, setPendingMission] = useState<MissionItem | null>(null);
 
   useEffect(() => {
@@ -195,7 +196,8 @@ const MissionsScreen: React.FC = () => {
         const completedMissions = (myMissions || []).filter(m => m.status === 'COMPLETED');
         setUserMissions(activeMissions);
         setCompletedMissions(completedMissions);
-      } catch (e) {
+      } catch (e: any) {
+        console.warn('Не удалось загрузить данные миссий:', e?.message);
         setMissions([]);
       }
     })();
@@ -272,17 +274,33 @@ const MissionsScreen: React.FC = () => {
       setUserMissions(activeMissions);
       setCompletedMissions(completedMissions);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка', message: e?.message || 'Не удалось взять миссию', variant: 'error' });
+      const errorInfo = handleApiError(e, 'Ошибка', 'Не удалось взять миссию');
+      setNotif({ open: true, ...errorInfo });
     }
   };
 
-  const askConfirm = (mission: MissionItem) => {
+  const askConfirm = async (mission: MissionItem) => {
     setPendingMission(mission);
-    setConfirmOpen(true);
+    // Получаем сообщение подтверждения с бекенда
+    try {
+      const confirmationData = await backend.messages.takeMission(mission.id || 0);
+      setConfirmOpen({ 
+        open: true, 
+        title: confirmationData.title,
+        message: confirmationData.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmOpen({ 
+        open: true, 
+        title: 'Подтверждение',
+        message: `Ты действительно хочешь пройти эту миссию: «${mission.title}»?`
+      });
+    }
   };
 
   const closeConfirm = () => {
-    setConfirmOpen(false);
+    setConfirmOpen({ open: false });
     setPendingMission(null);
   };
 
@@ -392,14 +410,14 @@ const MissionsScreen: React.FC = () => {
       </div>
 
       {/* Neon Confirm Modal */}
-      {confirmOpen && (
+      {confirmOpen.open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeConfirm} />
           <div className="relative z-[110] w-[90%] max-w-md rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
-            <h3 className="text-xl font-bold text-cyan-300 mb-2">Подтверждение</h3>
+            <h3 className="text-xl font-bold text-cyan-300 mb-2">{confirmOpen.title || 'Подтверждение'}</h3>
             <p className="text-gray-300 text-sm mb-6">
-              Ты действительно хочешь пройти эту миссию{pendingMission?.title ? `: "${pendingMission.title}"` : ''}?
+              {confirmOpen.message || `Ты действительно хочешь пройти эту миссию: «${pendingMission?.title}»?`}
             </p>
             <div className="flex gap-3 justify-end">
               <button onClick={closeConfirm} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>

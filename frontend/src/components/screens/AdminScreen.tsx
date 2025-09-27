@@ -60,11 +60,16 @@ const AdminScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [list, rolesResp] = await Promise.all([backend.users.list(), backend.users.roles().catch(() => [])]);
+        const [list, rolesResp, shopItemsResp] = await Promise.all([
+          backend.users.list(), 
+          backend.users.roles().catch(() => []),
+          backend.shop.list().catch(() => [])
+        ]);
         setRoles(rolesResp || []);
         setUsers((list as any[]).map((u: any) => ({ id: u.id, name: u.firstName || u.login, email: u.email, role: u.role, status: (u.isActive ? 'active' : 'inactive'), lastLogin: u.createdAt || '—', level: u.rank, createdAt: u.createdAt })));
+        setShopItems(shopItemsResp || []);
       } catch (e) {
-        setNotif({ open: true, title: 'Не удалось загрузить пользователей', variant: 'error' });
+        setNotif({ open: true, title: 'Не удалось загрузить данные', variant: 'error' });
       }
     })();
   }, []);
@@ -74,8 +79,119 @@ const AdminScreen: React.FC = () => {
   const [userBranches, setUserBranches] = useState<any[]>([]);
   const [userMissions, setUserMissions] = useState<any[]>([]);
   const [showUserMissions, setShowUserMissions] = useState(false);
-  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; missionId?: number; missionName?: string }>({ open: false });
-  const [confirmRemoveMission, setConfirmRemoveMission] = useState<{ open: boolean; missionId?: number; missionName?: string }>({ open: false });
+  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
+  const [confirmRemoveMission, setConfirmRemoveMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
+  // Функции для получения сообщений подтверждения с бекенда
+  const openDeleteUserConfirm = async (user: any) => {
+    try {
+      const confirmation = await backend.messages.deleteUser(user.id);
+      setConfirmDelete({ 
+        open: true, 
+        id: user.id, 
+        name: user.name,
+        title: confirmation.title,
+        message: confirmation.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmDelete({ 
+        open: true, 
+        id: user.id, 
+        name: user.name,
+        title: 'Удаление пользователя',
+        message: `Вы уверены, что хотите удалить пользователя «${user.name}»? Это действие нельзя отменить.`
+      });
+    }
+  };
+
+  const openDeleteArtifactConfirm = async (artifact: any) => {
+    try {
+      const confirmation = await backend.messages.deleteArtifact(artifact.id);
+      setConfirmDeleteArtifact({ 
+        open: true, 
+        id: artifact.id, 
+        name: artifact.name,
+        title: confirmation.title,
+        message: confirmation.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmDeleteArtifact({ 
+        open: true, 
+        id: artifact.id, 
+        name: artifact.name,
+        title: 'Удаление артефакта',
+        message: `Вы уверены, что хотите удалить артефакт «${artifact.name}»? Это действие нельзя отменить.`
+      });
+    }
+  };
+
+  const openDeleteMissionConfirm = async (mission: any) => {
+    try {
+      const confirmation = await backend.messages.deleteMission(mission.id);
+      setConfirmDeleteMission({ 
+        open: true, 
+        id: mission.id, 
+        name: mission.name,
+        title: confirmation.title,
+        message: confirmation.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmDeleteMission({ 
+        open: true, 
+        id: mission.id, 
+        name: mission.name,
+        title: 'Удаление миссии',
+        message: `Вы уверены, что хотите удалить миссию «${mission.name}»? Это действие нельзя отменить.`
+      });
+    }
+  };
+
+  const openCompleteMissionConfirm = async (mission: any) => {
+    try {
+      const confirmation = await backend.messages.completeMission(mission.missionId);
+      setConfirmCompleteMission({ 
+        open: true, 
+        missionId: mission.missionId, 
+        missionName: mission.missionName,
+        title: confirmation.title,
+        message: confirmation.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmCompleteMission({ 
+        open: true, 
+        missionId: mission.missionId, 
+        missionName: mission.missionName,
+        title: 'Выполнение миссии',
+        message: `Вы действительно хотите пометить миссию «${mission.missionName}» как выполненную?`
+      });
+    }
+  };
+
+  const openRemoveMissionConfirm = async (mission: any, user: any) => {
+    try {
+      const confirmation = await backend.messages.removeMission(user.id, mission.missionId);
+      setConfirmRemoveMission({ 
+        open: true, 
+        missionId: mission.missionId, 
+        missionName: mission.missionName,
+        title: confirmation.title,
+        message: confirmation.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmRemoveMission({ 
+        open: true, 
+        missionId: mission.missionId, 
+        missionName: mission.missionName,
+        title: 'Удаление миссии у пользователя',
+        message: `Вы уверены, что хотите удалить миссию «${mission.missionName}» у пользователя «${user.firstName} ${user.lastName}»? Это действие нельзя отменить.`
+      });
+    }
+  };
+
   const openEditUser = async (u: any) => { 
     setEditUser(u); 
     setEditUserOpen(true);
@@ -111,16 +227,20 @@ const AdminScreen: React.FC = () => {
         level: updated.rank,
         branchId: updated.branchId
       } : u));
-      setNotif({ open: true, title: 'Пользователь обновлён', variant: 'success' });
+      setNotif({ open: true, title: 'Пользователь обновлён', message: 'Пользователь успешно обновлён', variant: 'success' });
       setEditUserOpen(false);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка обновления', message: getErrorMessage(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка обновления', message: 'Не удалось обновить пользователя', variant: 'error' });
     }
   };
 
   // Функции для управления миссиями пользователя
   const markMissionCompleted = (missionId: number, missionName: string) => {
-    setConfirmCompleteMission({ open: true, missionId, missionName });
+    // Находим миссию для получения данных
+    const mission = userMissions.find(m => m.missionId === missionId);
+    if (mission) {
+      openCompleteMissionConfirm(mission);
+    }
   };
 
   const confirmCompleteMissionAction = async () => {
@@ -137,7 +257,7 @@ const AdminScreen: React.FC = () => {
       setUserMissions(prev => prev.map(m => 
         m.id === confirmCompleteMission.missionId ? { ...m, status: 'COMPLETED' } : m
       ));
-      setNotif({ open: true, title: 'Миссия отмечена как выполненная', variant: 'success' });
+      setNotif({ open: true, title: 'Миссия отмечена как выполненная', message: 'Миссия успешно отмечена как выполненная', variant: 'success' });
       setConfirmCompleteMission({ open: false });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка', message: getErrorMessage(e), variant: 'error' });
@@ -145,7 +265,11 @@ const AdminScreen: React.FC = () => {
   };
 
   const removeUserMission = (missionId: number, missionName: string) => {
-    setConfirmRemoveMission({ open: true, missionId, missionName });
+    // Находим миссию для получения данных
+    const mission = userMissions.find(m => m.missionId === missionId);
+    if (mission && editUser) {
+      openRemoveMissionConfirm(mission, editUser);
+    }
   };
 
   const confirmRemoveMissionAction = async () => {
@@ -159,7 +283,7 @@ const AdminScreen: React.FC = () => {
       
       await backend.users.removeMission(editUser.id, userMission.missionId);
       setUserMissions(prev => prev.filter(m => m.id !== confirmRemoveMission.missionId));
-      setNotif({ open: true, title: 'Миссия удалена у пользователя', variant: 'success' });
+      setNotif({ open: true, title: 'Миссия удалена у пользователя', message: 'Миссия успешно удалена у пользователя', variant: 'success' });
       setConfirmRemoveMission({ open: false });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка', message: getErrorMessage(e), variant: 'error' });
@@ -168,9 +292,9 @@ const AdminScreen: React.FC = () => {
 
   const [editMissionOpen, setEditMissionOpen] = useState<any | null>(null);
   const [editMissionData, setEditMissionData] = useState<any | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
-  const [confirmDeleteArtifact, setConfirmDeleteArtifact] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
-  const [confirmDeleteMission, setConfirmDeleteMission] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id?: number; name?: string; title?: string; message?: string }>({ open: false });
+  const [confirmDeleteArtifact, setConfirmDeleteArtifact] = useState<{ open: boolean; id?: number; name?: string; title?: string; message?: string }>({ open: false });
+  const [confirmDeleteMission, setConfirmDeleteMission] = useState<{ open: boolean; id?: number; name?: string; title?: string; message?: string }>({ open: false });
   const [assignOpen, setAssignOpen] = useState<{ open: boolean; missionId?: number }>({ open: false });
   const [assignEmail, setAssignEmail] = useState<string>('');
   const [assignUserSearch, setAssignUserSearch] = useState<string>('');
@@ -181,7 +305,7 @@ const AdminScreen: React.FC = () => {
     try {
       const updated = await backend.missions.update(editMissionOpen.id, editMissionData);
       setMissions(prev => prev.map(m => m.id === editMissionOpen.id ? updated : m));
-      setNotif({ open: true, title: 'Миссия обновлена', variant: 'success' });
+      setNotif({ open: true, title: 'Миссия обновлена', message: 'Миссия успешно обновлена', variant: 'success' });
       setEditMissionOpen(null);
       setEditMissionData(null);
     } catch (e: any) {
@@ -192,7 +316,7 @@ const AdminScreen: React.FC = () => {
     try {
       await backend.missions.delete(id);
       setMissions(prev => prev.filter(m => m.id !== id));
-      setNotif({ open: true, title: 'Миссия удалена', variant: 'success' });
+      setNotif({ open: true, title: 'Миссия удалена', message: 'Миссия успешно удалена', variant: 'success' });
       setConfirmDeleteMission({ open: false });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка удаления миссии', message: e?.message || 'Не удалось удалить миссию', variant: 'error' });
@@ -283,23 +407,12 @@ const AdminScreen: React.FC = () => {
     { title: 'Время в системе', value: '2.4ч', change: '+15%', color: 'from-orange-400 to-red-500' }
   ];
 
-  const [shopItems, setShopItems] = useState([
-    { id: 1, name: 'Премиум подписка', price: 1000, currency: 'energon', status: 'active', sales: 45 },
-    { id: 2, name: 'Ускоритель опыта', price: 50, currency: 'energon', status: 'active', sales: 127 },
-    { id: 3, name: 'Космический костюм', price: 500, currency: 'energon', status: 'inactive', sales: 23 }
-  ]);
+  const [shopItems, setShopItems] = useState<any[]>([]);
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [editProductOpen, setEditProductOpen] = useState<any>(null);
   const [newProduct, setNewProduct] = useState<{ name: string; price: number; available: boolean; description?: string; imageUrl?: string }>({ name: '', price: 0, available: true, imageUrl: '' });
   const [editProduct, setEditProduct] = useState<any>(null);
   const handleAddProduct = async () => {
-    if (!newProduct.name) return setNotif({ open: true, title: 'Введите название товара', variant: 'warning' });
-    if (newProduct.price < 1) return setNotif({ open: true, title: 'Цена должна быть не менее 1', variant: 'warning' });
-    
-    // Проверка дубликатов по названию
-    const existingProduct = shopItems.find(item => item.name.toLowerCase() === newProduct.name.toLowerCase());
-    if (existingProduct) return setNotif({ open: true, title: 'Товар с таким названием уже существует', variant: 'warning' });
-    
     try {
       const created = await backend.shop.create({ name: newProduct.name, price: newProduct.price, available: newProduct.available, description: newProduct.description });
       setShopItems(prev => [{ id: created.id || Math.max(0, ...prev.map(s => s.id)) + 1, name: created.name || newProduct.name, price: created.price ?? newProduct.price, currency: 'energon', status: created.available ? 'active' : 'inactive', sales: 0 }, ...prev]);
@@ -307,12 +420,16 @@ const AdminScreen: React.FC = () => {
       setAddProductOpen(false);
       setNewProduct({ name: '', price: 0, available: true, description: '', imageUrl: '' });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка добавления товара', message: e?.message || 'Не удалось добавить товар', variant: 'error' });
+      // Обработка ошибок валидации от бекенда
+      if (e?.response?.data?.title && e?.response?.data?.message) {
+        setNotif({ open: true, title: e.response.data.title, message: e.response.data.message, variant: 'error' });
+      } else {
+        setNotif({ open: true, title: 'Ошибка добавления товара', message: e?.message || 'Не удалось добавить товар', variant: 'error' });
+      }
     }
   };
 
   const handleAddArtifact = async () => {
-    if (!newArtifact.name) return setNotif({ open: true, title: 'Введите название артефакта', variant: 'warning' });
     try {
       const created = await backend.artifacts.create(newArtifact);
       setArtifactList(prev => [created, ...prev]);
@@ -320,7 +437,12 @@ const AdminScreen: React.FC = () => {
       setAddArtifactOpen(false);
       setNewArtifact({ name: '', shortDescription: '', imageUrl: '', rarity: 'COMMON', isActive: true });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка создания артефакта', message: getErrorMessage(e), variant: 'error' });
+      // Обработка ошибок валидации от бекенда
+      if (e?.response?.data?.title && e?.response?.data?.message) {
+        setNotif({ open: true, title: e.response.data.title, message: e.response.data.message, variant: 'error' });
+      } else {
+        setNotif({ open: true, title: 'Ошибка создания артефакта', message: getErrorMessage(e), variant: 'error' });
+      }
     }
   };
 
@@ -349,7 +471,6 @@ const AdminScreen: React.FC = () => {
   };
 
   const handleAssignArtifact = async () => {
-    if (!assignArtifactUserSelected) return setNotif({ open: true, title: 'Выберите пользователя', variant: 'warning' });
     try {
       // Здесь должен быть API для назначения артефакта пользователю
       // await backend.artifacts.assign(assignArtifactOpen.id, assignArtifactUserSelected.id);
@@ -359,7 +480,12 @@ const AdminScreen: React.FC = () => {
       setAssignArtifactUserResults([]);
       setAssignArtifactUserSelected(null);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка назначения артефакта', message: getErrorMessage(e), variant: 'error' });
+      // Обработка ошибок валидации от бекенда
+      if (e?.response?.data?.title && e?.response?.data?.message) {
+        setNotif({ open: true, title: e.response.data.title, message: e.response.data.message, variant: 'error' });
+      } else {
+        setNotif({ open: true, title: 'Ошибка назначения артефакта', message: getErrorMessage(e), variant: 'error' });
+      }
     }
   };
 
@@ -389,7 +515,6 @@ const AdminScreen: React.FC = () => {
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [newUser, setNewUser] = useState({ login: '', email: '', password: '', role: 'USER', experience: 0, energy: 100, rank: 1 });
   const handleAddUser = async () => {
-    if (!newUser.login) return setNotif({ open: true, title: 'Заполните логин', variant: 'warning' });
     try {
       const body = { ...newUser, firstName: newUser.login, lastName: 'User' } as any;
       const created = await backend.users.create(body);
@@ -398,7 +523,12 @@ const AdminScreen: React.FC = () => {
       setAddUserOpen(false);
       setNewUser({ login: '', email: '', password: '', role: 'USER', experience: 0, energy: 100, rank: 0 });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка создания', message: getErrorMessage(e), variant: 'error' });
+      // Обработка ошибок валидации от бекенда
+      if (e?.response?.data?.title && e?.response?.data?.message) {
+        setNotif({ open: true, title: e.response.data.title, message: e.response.data.message, variant: 'error' });
+      } else {
+        setNotif({ open: true, title: 'Ошибка создания', message: getErrorMessage(e), variant: 'error' });
+      }
     }
   };
 
@@ -644,7 +774,7 @@ const AdminScreen: React.FC = () => {
                   <MainButton className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm hover:bg-white/20 transition-all duration-300" onClick={() => openEditUser(user)}>Редактировать</MainButton>
                   <MainButton
                     className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
-                    onClick={() => setConfirmDelete({ open: true, id: user.id, name: user.name })}
+                    onClick={() => openDeleteUserConfirm(user)}
                   >
                     Удалить
                   </MainButton>
@@ -801,7 +931,7 @@ const AdminScreen: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
-                  onClick={() => setConfirmDeleteMission({ open: true, id: mission.id, name: mission.name })}
+                  onClick={() => openDeleteMissionConfirm(mission)}
                 >
                   Удалить
                 </motion.button>
@@ -1189,7 +1319,7 @@ const AdminScreen: React.FC = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="col-span-2 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded text-red-200 text-xs hover:bg-red-500/40 transition-all duration-300 font-medium"
-                        onClick={() => setConfirmDeleteArtifact({ open: true, id: item.id, name: item.name })}
+                        onClick={() => openDeleteArtifactConfirm(item)}
                       >
                         Деактивировать
                       </motion.button>
@@ -1298,8 +1428,8 @@ const AdminScreen: React.FC = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDelete({ open: false }) as any} />
           <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
-            <h3 className="text-xl font-bold text-red-300 mb-2">Удалить пользователя?</h3>
-            <p className="text-gray-300">Вы действительно хотите удалить {confirmDelete.name || 'пользователя'}? Это действие необратимо.</p>
+            <h3 className="text-xl font-bold text-red-300 mb-2">{confirmDelete.title || 'Удалить пользователя?'}</h3>
+            <p className="text-gray-300">{confirmDelete.message || `Вы действительно хотите удалить ${confirmDelete.name || 'пользователя'}? Это действие необратимо.`}</p>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setConfirmDelete({ open: false }) as any} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={async () => { await deleteUser(confirmDelete.id as number); setConfirmDelete({ open: false }) as any; }} className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition">Удалить</button>
@@ -1945,11 +2075,10 @@ const AdminScreen: React.FC = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDeleteArtifact({ open: false })} />
           <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
-            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <h3 className="text-xl font-bold text-red-300 mb-4">{confirmDeleteArtifact.title || 'Подтверждение удаления'}</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-white/80 mb-2">Вы уверены, что хотите деактивировать артефакт:</p>
-                <p className="text-red-300 font-semibold text-lg">{confirmDeleteArtifact.name}</p>
+                <p className="text-white/80 mb-2">{confirmDeleteArtifact.message || `Вы уверены, что хотите деактивировать артефакт «${confirmDeleteArtifact.name}»?`}</p>
               </div>
               <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
                 <p className="text-red-200 text-sm">⚠️ Артефакт станет неактивным. Пользователи сохранят свои артефакты, но новые назначения будут невозможны.</p>
@@ -1979,11 +2108,10 @@ const AdminScreen: React.FC = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDeleteMission({ open: false })} />
           <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
-            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <h3 className="text-xl font-bold text-red-300 mb-4">{confirmDeleteMission.title || 'Подтверждение удаления'}</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-white/80 mb-2">Вы уверены, что хотите удалить миссию:</p>
-                <p className="text-red-300 font-semibold text-lg">{confirmDeleteMission.name}</p>
+                <p className="text-white/80 mb-2">{confirmDeleteMission.message || `Вы уверены, что хотите удалить миссию «${confirmDeleteMission.name}»?`}</p>
               </div>
               <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
                 <p className="text-red-200 text-sm">⚠️ Это действие нельзя отменить. Миссия будет удалена навсегда.</p>
@@ -2013,11 +2141,10 @@ const AdminScreen: React.FC = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmCompleteMission({ open: false })} />
           <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-green-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,197,94,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,197,94,0.25), inset 0 0 30px rgba(34,197,94,0.15)' }} />
-            <h3 className="text-xl font-bold text-green-300 mb-4">Подтверждение выполнения</h3>
+            <h3 className="text-xl font-bold text-green-300 mb-4">{confirmCompleteMission.title || 'Подтверждение выполнения'}</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-white/80 mb-2">Вы действительно хотите пометить миссию как выполненную:</p>
-                <p className="text-green-300 font-semibold text-lg">{confirmCompleteMission.missionName}</p>
+                <p className="text-white/80 mb-2">{confirmCompleteMission.message || `Вы действительно хотите пометить миссию «${confirmCompleteMission.missionName}» как выполненную?`}</p>
               </div>
               <div className="bg-green-500/10 border border-green-400/30 rounded p-3">
                 <p className="text-green-200 text-sm">✅ Пользователь получит награды за выполнение миссии.</p>
@@ -2047,11 +2174,10 @@ const AdminScreen: React.FC = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmRemoveMission({ open: false })} />
           <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
-            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <h3 className="text-xl font-bold text-red-300 mb-4">{confirmRemoveMission.title || 'Подтверждение удаления'}</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-white/80 mb-2">Вы действительно хотите удалить миссию у пользователя:</p>
-                <p className="text-red-300 font-semibold text-lg">{confirmRemoveMission.missionName}</p>
+                <p className="text-white/80 mb-2">{confirmRemoveMission.message || `Вы действительно хотите удалить миссию «${confirmRemoveMission.missionName}» у пользователя?`}</p>
               </div>
               <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
                 <p className="text-red-200 text-sm">⚠️ Миссия будет удалена у пользователя. Это действие нельзя отменить.</p>

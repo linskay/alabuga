@@ -9,12 +9,16 @@ import com.example.alabuga.dto.PurchaseDTO;
 import com.example.alabuga.dto.ShopItemCreateDTO;
 import com.example.alabuga.dto.ShopItemDTO;
 import com.example.alabuga.dto.ShopItemUpdateDTO;
+import com.example.alabuga.dto.UserPurchaseDTO;
 import com.example.alabuga.entity.ShopItem;
 import com.example.alabuga.entity.User;
+import com.example.alabuga.entity.UserPurchase;
 import com.example.alabuga.exception.BusinessLogicException;
 import com.example.alabuga.exception.ResourceNotFoundException;
 import com.example.alabuga.mapper.ShopItemMapper;
+import com.example.alabuga.mapper.UserPurchaseMapper;
 import com.example.alabuga.repository.ShopItemRepository;
+import com.example.alabuga.repository.UserPurchaseRepository;
 import com.example.alabuga.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +29,9 @@ public class ShopService {
     
     private final ShopItemRepository shopItemRepository;
     private final UserRepository userRepository;
+    private final UserPurchaseRepository userPurchaseRepository;
     private final ShopItemMapper shopItemMapper;
+    private final UserPurchaseMapper userPurchaseMapper;
     private final NotificationService notificationService;
     
     public List<ShopItemDTO> getAllShopItems() {
@@ -127,13 +133,24 @@ public class ShopService {
             shopItemRepository.save(shopItem);
         }
         
+        // Сохраняем покупку в историю
+        UserPurchase userPurchase = UserPurchase.builder()
+                .user(user)
+                .shopItem(shopItem)
+                .purchasedAt(java.time.LocalDateTime.now())
+                .pricePaid(shopItem.getPrice())
+                .energyAfter(user.getEnergy())
+                .build();
+        userPurchaseRepository.save(userPurchase);
+        
         // Создаем уведомление о покупке
         notificationService.createShopPurchaseNotification(user, shopItem.getName(), shopItem.getPrice());
         
         // Формируем сообщение подтверждения
         String confirmationMessage = String.format(
-            "Для активации чертежа требуется %d Энергонов. Подтвердить синтез в Нексусе?", 
-            shopItem.getPrice()
+            "Товар «%s» добавлен. Остаток: %d энергонов", 
+            shopItem.getName(), 
+            user.getEnergy()
         );
         
         return PurchaseDTO.builder()
@@ -146,4 +163,10 @@ public class ShopService {
                 .confirmationMessage(confirmationMessage)
                 .build();
     }
+    
+    public List<UserPurchaseDTO> getUserPurchaseHistory(Long userId) {
+        List<UserPurchase> purchases = userPurchaseRepository.findByUserIdOrderByPurchasedAtDesc(userId);
+        return userPurchaseMapper.toDTOList(purchases);
+    }
+    
 }

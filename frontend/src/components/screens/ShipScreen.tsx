@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import ShinyText from '../ShinyText';
 import MainButton from '../MainButton';
 import { backend, ArtifactDTO } from '../../api';
+import { handleApiError } from '../../utils/errorHandler';
+import Energon from '../Energon';
 
 const StyledFlip = styled.div`
   .container { width: 240px; height: 294px; perspective: 900px; }
@@ -39,6 +41,7 @@ const ShipScreen: React.FC = () => {
         const mapped = data.map((a: ArtifactDTO) => ({ id: a.id, name: a.name }));
         if (mapped.length) setArtefacts(mapped);
       } catch (e: any) {
+        console.warn('Не удалось загрузить артефакты:', e?.message);
         setError(e?.message || 'Не удалось загрузить артефакты');
       }
     })();
