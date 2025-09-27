@@ -11,12 +11,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @SpringBootApplication
-@EnableJpaRepositories
 public class AlabugaApplication {
     public static void main(String[] args) {
         SpringApplication.run(AlabugaApplication.class, args);
     }
-
+  
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();

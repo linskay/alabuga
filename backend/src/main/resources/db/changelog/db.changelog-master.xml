@@ -7,5 +7,7 @@
 
     <include file="db/changelog/001-initial-schema.xml" relativeToChangelogFile="true"/>
     <include file="db/changelog/003-user-artifacts.xml" relativeToChangelogFile="true"/>
+    <include file="db/changelog/011-create-goose-profile.xml" relativeToChangelogFile="true"/>
+    <include file="db/changelog/012-rename-goose-profile-columns.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
