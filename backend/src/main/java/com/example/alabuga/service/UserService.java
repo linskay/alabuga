@@ -230,8 +230,7 @@ public class UserService {
         
         Competency competency = competencyRepository.findById(competencyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Компетенция", competencyId));
-        
-        // Проверяем, есть ли уже такая компетенция у пользователя
+
         Optional<UserCompetency> existingCompetency = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId);
         if (existingCompetency.isPresent()) {
             throw new DuplicateResourceException("У пользователя уже есть компетенция " + competency.getName());
@@ -312,10 +311,12 @@ public class UserService {
             userArtifact.setIsEquipped(!userArtifact.getIsEquipped());
             UserArtifact saved = userArtifactRepository.save(userArtifact);
             return userArtifactMapper.toDTO(saved);
-        } catch (Exception e) {
-            System.err.println("Error in equipArtifact: " + e.getMessage());
-            e.printStackTrace();
+        } catch (BusinessLogicException e) {
+            // Re-throw business logic exceptions as they are already properly handled
             throw e;
+        } catch (Exception e) {
+            // Wrap unexpected exceptions in BusinessLogicException for proper handling
+            throw new BusinessLogicException("Произошла ошибка при экипировке артефакта: " + e.getMessage());
         }
     }
     

@@ -120,6 +120,12 @@ export const backend = {
     update: (id: number, body: Partial<MissionDTO>) => api.put<MissionDTO>(`/api/missions/${id}`, body),
     delete: (id: number) => api.delete<void>(`/api/missions/${id}`),
   },
+  ranks: {
+    list: () => api.get<any[]>('/api/ranks'),
+    byLevel: (level: number) => api.get<any>(`/api/ranks/level/${level}`),
+    requirements: () => api.get<any[]>('/api/ranks/requirements'),
+    requirementsByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
+  },
 };
 
 

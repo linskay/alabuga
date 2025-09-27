@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.alabuga.entity.UserRole;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -54,9 +55,11 @@ public class UserDTO {
     @Schema(description = "Активен ли пользователь", example = "true")
     private Boolean isActive;
     
-    @Schema(description = "Компетенции пользователя")
+    @JsonIgnore
+    @Schema(hidden = true)
     private List<UserCompetencyDTO> competencies;
     
-    @Schema(description = "Артефакты пользователя")
+    @JsonIgnore
+    @Schema(hidden = true)
     private List<UserArtifactDTO> artifacts;
 }

@@ -3,16 +3,19 @@ package com.example.alabuga.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
+@Order(1)
 public class GlobalExceptionHandler {
 
     /**
@@ -83,7 +86,18 @@ public class GlobalExceptionHandler {
      * Обработка общих исключений
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex, WebRequest request) {
+        // Исключаем пути SpringDoc OpenAPI из глобальной обработки ошибок
+        String requestPath = request.getDescription(false);
+        if (requestPath.contains("/v3/api-docs") || 
+            requestPath.contains("/swagger-ui") || 
+            requestPath.contains("/api-docs") ||
+            requestPath.contains("springdoc") ||
+            requestPath.contains("swagger")) {
+            // Не обрабатываем исключения для SpringDoc - пробрасываем их дальше
+            throw new RuntimeException(ex);
+        }
+        
         Map<String, Object> response = new HashMap<>();
         
         response.put("success", false);

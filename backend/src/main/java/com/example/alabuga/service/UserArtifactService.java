@@ -34,10 +34,12 @@ public class UserArtifactService {
     
     @Transactional
     public UserArtifactDTO equipArtifact(Long userId, Long artifactId) {
-        User user = userRepository.findById(userId)
+        // Проверяем существование пользователя
+        userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
-        Artifact artifact = artifactRepository.findById(artifactId)
+        // Проверяем существование артефакта
+        artifactRepository.findById(artifactId)
                 .orElseThrow(() -> new ResourceNotFoundException("Артефакт", artifactId));
         
         // Проверяем, есть ли у пользователя этот артефакт

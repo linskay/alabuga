@@ -12,6 +12,7 @@ interface ActivityCardProps {
   data: ActivityDataPoint[];
   className?: string;
   ranges?: string[];
+  icon?: React.ReactNode;
 }
 
 const ActivityCard: React.FC<ActivityCardProps> = ({
@@ -19,7 +20,8 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
   totalValue,
   data,
   className = '',
-  ranges = ['Неделя', 'Месяц', 'Год']
+  ranges = ['Неделя', 'Месяц', 'Год'],
+  icon
 }) => {
   const maxValue = React.useMemo(() => data.reduce((m, d) => Math.max(m, d.value), 0), [data]);
   const [open, setOpen] = React.useState(false);
@@ -60,9 +62,12 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
       aria-labelledby="activity-card-title"
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 id="activity-card-title" className="text-cyan-400 font-bold text-lg tracking-wide">
-          {title}
-        </h3>
+        <div className="flex items-center gap-2">
+          {icon && <div className="flex items-center">{icon}</div>}
+          <h3 id="activity-card-title" className="text-cyan-400 font-bold text-lg tracking-wide">
+            {title}
+          </h3>
+        </div>
         <div className="relative">
           <button
             ref={triggerRef}
