@@ -16,6 +16,7 @@ import ShinyText from '../ShinyText';
 import { useAppContext } from '../../contexts/AppContext';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
+import MissionIcon from '../MissionIcon';
 import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 
@@ -59,12 +60,30 @@ const ProfileScreen: React.FC = () => {
   
   const { refreshUserData } = useAppContext();
 
+  const getRankName = (rankLevel: number) => {
+    const rankNames: { [key: number]: string } = {
+      0: 'Космо-Кадет',
+      1: 'Навигатор Траекторий',
+      2: 'Аналитик Орбит', 
+      3: 'Архитектор Станции',
+      4: 'Хронист Галактики',
+      5: 'Исследователь Культур',
+      6: 'Мастер Лектория',
+      7: 'Связист Звёздного Флота',
+      8: 'Штурман Экипажа',
+      9: 'Командир Отряда',
+      10: 'Хранитель Станции «Алабуга.TECH»'
+    };
+    return rankNames[rankLevel] || `Ранг ${rankLevel}`;
+  };
+
   const [user, setUser] = useState<UserDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [competencies, setCompetencies] = useState<UserCompetency[]>([]);
   const [userMissions, setUserMissions] = useState<UserMission[]>([]);
   const [nextRankReq, setNextRankReq] = useState<any | null>(null);
   const [equippedArtifacts, setEquippedArtifacts] = useState<any[]>([]);
+  const [currentRank, setCurrentRank] = useState<any | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -76,14 +95,16 @@ const ProfileScreen: React.FC = () => {
         if (!mounted) return;
         setUser(u);
         try {
-          const [comp, missions, artifacts] = await Promise.all([
+          const [comp, missions, artifacts, rank] = await Promise.all([
             backend.users.competencies(u.id),
             backend.users.missions(u.id),
-            backend.users.artifacts(u.id)
+            backend.users.artifacts(u.id),
+            backend.ranks.byLevel(u.rank ?? 0)
           ]);
           if (!mounted) return;
           setCompetencies(comp || []);
           setUserMissions(missions || []);
+          setCurrentRank(rank || null);
           
           // Фильтруем только экипированные артефакты
           const equipped = (artifacts || []).filter((a: any) => a.isEquipped);
@@ -230,14 +251,17 @@ const ProfileScreen: React.FC = () => {
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Миссии (выполнено)</span>
+                  <span className="text-gray-300 flex items-center gap-2">
+                    <MissionIcon size={18} color="#51e4dc" />
+                    Миссии (выполнено)
+                  </span>
                   <span className="text-cyan-400 font-bold text-xl">{userMissions.filter(m => (m.status || '').toLowerCase() === 'completed').length}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Текущий ранг</span>
-                  <span className="text-cyan-400 font-bold">{user?.rank ?? 0}</span>
+                  <span className="text-cyan-400 font-bold">{currentRank?.name || getRankName(user?.rank ?? 0)}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
