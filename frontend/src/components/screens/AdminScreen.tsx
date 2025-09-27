@@ -70,16 +70,98 @@ const AdminScreen: React.FC = () => {
 
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [editUser, setEditUser] = useState<any | null>(null);
-  const openEditUser = (u: any) => { setEditUser(u); setEditUserOpen(true); };
+  const [userBranches, setUserBranches] = useState<any[]>([]);
+  const [userMissions, setUserMissions] = useState<any[]>([]);
+  const [showUserMissions, setShowUserMissions] = useState(false);
+  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; missionId?: number; missionName?: string }>({ open: false });
+  const [confirmRemoveMission, setConfirmRemoveMission] = useState<{ open: boolean; missionId?: number; missionName?: string }>({ open: false });
+  const openEditUser = async (u: any) => { 
+    setEditUser(u); 
+    setEditUserOpen(true);
+    setShowUserMissions(false);
+    
+    // Загружаем ветки и миссии пользователя
+    try {
+      const [branches, missions] = await Promise.all([
+        backend.branches.list().catch(() => []),
+        backend.users.missions(u.id).catch(() => [])
+      ]);
+      setUserBranches(branches || []);
+      setUserMissions(missions || []);
+    } catch (e) {
+      console.error('Ошибка загрузки данных пользователя:', e);
+    }
+  };
   const saveEditUser = async () => {
     if (!editUser?.id) return;
     try {
-      const updated = await backend.users.update(editUser.id, { email: editUser.email, role: editUser.role, rank: editUser.level, experience: editUser.experience, energy: editUser.energy });
-      setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, email: updated.email, role: updated.role, level: updated.rank } : u));
+      const updated = await backend.users.update(editUser.id, { 
+        email: editUser.email, 
+        role: editUser.role, 
+        rank: editUser.level, 
+        experience: editUser.experience, 
+        energy: editUser.energy,
+        branchId: editUser.branchId
+      });
+      setUsers(prev => prev.map(u => u.id === editUser.id ? { 
+        ...u, 
+        email: updated.email, 
+        role: updated.role, 
+        level: updated.rank,
+        branchId: updated.branchId
+      } : u));
       setNotif({ open: true, title: 'Пользователь обновлён', variant: 'success' });
       setEditUserOpen(false);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка обновления', message: e?.message || 'Не удалось обновить пользователя', variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка обновления', message: getErrorMessage(e), variant: 'error' });
+    }
+  };
+
+  // Функции для управления миссиями пользователя
+  const markMissionCompleted = (missionId: number, missionName: string) => {
+    setConfirmCompleteMission({ open: true, missionId, missionName });
+  };
+
+  const confirmCompleteMissionAction = async () => {
+    if (!confirmCompleteMission.missionId || !editUser?.id) return;
+    try {
+      // Используем missionId из UserMission, а не id самой UserMission
+      const userMission = userMissions.find(m => m.id === confirmCompleteMission.missionId);
+      if (!userMission) {
+        setNotif({ open: true, title: 'Ошибка', message: 'Миссия не найдена', variant: 'error' });
+        return;
+      }
+      
+      await backend.users.completeMission(editUser.id, userMission.missionId);
+      setUserMissions(prev => prev.map(m => 
+        m.id === confirmCompleteMission.missionId ? { ...m, status: 'COMPLETED' } : m
+      ));
+      setNotif({ open: true, title: 'Миссия отмечена как выполненная', variant: 'success' });
+      setConfirmCompleteMission({ open: false });
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка', message: getErrorMessage(e), variant: 'error' });
+    }
+  };
+
+  const removeUserMission = (missionId: number, missionName: string) => {
+    setConfirmRemoveMission({ open: true, missionId, missionName });
+  };
+
+  const confirmRemoveMissionAction = async () => {
+    if (!confirmRemoveMission.missionId || !editUser?.id) return;
+    try {
+      const userMission = userMissions.find(m => m.id === confirmRemoveMission.missionId);
+      if (!userMission) {
+        setNotif({ open: true, title: 'Ошибка', message: 'Миссия не найдена', variant: 'error' });
+        return;
+      }
+      
+      await backend.users.removeMission(editUser.id, userMission.missionId);
+      setUserMissions(prev => prev.filter(m => m.id !== confirmRemoveMission.missionId));
+      setNotif({ open: true, title: 'Миссия удалена у пользователя', variant: 'success' });
+      setConfirmRemoveMission({ open: false });
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -1471,10 +1553,31 @@ const AdminScreen: React.FC = () => {
               <label className="text-sm text-white/80">Email
                 <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Email" value={editUser.email} onChange={e => setEditUser((v: any) => ({ ...v, email: e.target.value }))} />
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <label className="text-sm text-white/80">Ранг
-                  <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Ранг" type="number" min={1} value={editUser.level ?? 1} onChange={e => setEditUser((v: any) => ({ ...v, level: Math.max(1, Number(e.target.value)) }))} />
+                  <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={editUser.level ?? 1} onChange={e => setEditUser((v: any) => ({ ...v, level: Number(e.target.value) }))}>
+                    <option value={1} className="bg-slate-800 text-white">1 - Космо-кадет</option>
+                    <option value={2} className="bg-slate-800 text-white">2 - Аналитик орбит</option>
+                    <option value={3} className="bg-slate-800 text-white">2 - Архитектор станций</option>
+                    <option value={4} className="bg-slate-800 text-white">2 - Навигатор</option>
+                    <option value={5} className="bg-slate-800 text-white">3 - Специалист</option>
+                    <option value={6} className="bg-slate-800 text-white">3 - Координатор</option>
+                    <option value={7} className="bg-slate-800 text-white">3 - Оператор</option>
+                    <option value={8} className="bg-slate-800 text-white">4 - Мастер</option>
+                    <option value={9} className="bg-slate-800 text-white">4 - Эксперт</option>
+                    <option value={10} className="bg-slate-800 text-white">4 - Лидер</option>
+                    <option value={11} className="bg-slate-800 text-white">5 - Командор</option>
+                  </select>
                 </label>
+                <label className="text-sm text-white/80">Ветка
+                  <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={editUser.branchId ?? 1} onChange={e => setEditUser((v: any) => ({ ...v, branchId: Number(e.target.value) }))}>
+                    {userBranches.map(branch => (
+                      <option key={branch.id} value={branch.id} className="bg-slate-800 text-white">{branch.name}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <label className="text-sm text-white/80">Опыт
                   <input className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" placeholder="Опыт" type="number" min={0} value={editUser.experience ?? 0} onChange={e => setEditUser((v: any) => ({ ...v, experience: Math.max(0, Number(e.target.value)) }))} />
                 </label>
@@ -1490,6 +1593,88 @@ const AdminScreen: React.FC = () => {
                 </select>
               </label>
             </div>
+            
+            {/* Управление миссиями пользователя */}
+            <div className="mt-6 border-t border-white/10 pt-4">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-semibold text-cyan-300">Миссии пользователя</h4>
+                <button 
+                  onClick={() => setShowUserMissions(!showUserMissions)}
+                  className="px-3 py-1 bg-blue-500/20 border border-blue-400/40 text-blue-300 rounded hover:bg-blue-500/30 transition"
+                >
+                  {showUserMissions ? 'Скрыть' : 'Показать'} миссии
+                </button>
+              </div>
+              
+              {showUserMissions && (
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {userMissions.length === 0 ? (
+                    <p className="text-gray-400 text-center py-4">У пользователя нет назначенных миссий</p>
+                  ) : (
+                    userMissions.map(mission => (
+                      <div key={mission.id} className="bg-white/5 border border-white/10 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h5 className="text-white font-medium">{mission.missionName || mission.name}</h5>
+                            <p className="text-gray-400 text-sm">{mission.description}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                mission.status === 'COMPLETED' 
+                                  ? 'bg-green-500/30 text-green-300' 
+                                  : mission.status === 'IN_PROGRESS'
+                                  ? 'bg-yellow-500/30 text-yellow-300'
+                                  : mission.status === 'FAILED'
+                                  ? 'bg-red-500/30 text-red-300'
+                                  : 'bg-gray-500/30 text-gray-400'
+                              }`}>
+                                {mission.status === 'COMPLETED' ? 'Выполнена' : 
+                                 mission.status === 'IN_PROGRESS' ? 'В процессе' : 
+                                 mission.status === 'FAILED' ? 'Провалена' : 'Назначена'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                Сложность: {mission.difficulty}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            {mission.status === 'COMPLETED' && (
+                              <span className="px-2 py-1 bg-green-500/20 border border-green-400/30 text-green-300 rounded text-xs">
+                                Выполнено
+                              </span>
+                            )}
+                            {mission.status === 'IN_PROGRESS' && (
+                              <span className="px-2 py-1 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded text-xs">
+                                Активные
+                              </span>
+                            )}
+                            {mission.status === 'NOT_STARTED' && (
+                              <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs">
+                                Доступно
+                              </span>
+                            )}
+                            {mission.status !== 'COMPLETED' && (
+                              <button
+                                onClick={() => markMissionCompleted(mission.id, mission.missionName || mission.name)}
+                                className="px-2 py-1 bg-green-500/20 border border-green-400/30 text-green-300 rounded text-xs hover:bg-green-500/30 transition"
+                              >
+                                Выполнена
+                              </button>
+                            )}
+                            <button
+                              onClick={() => removeUserMission(mission.id, mission.missionName || mission.name)}
+                              className="px-2 py-1 bg-red-500/20 border border-red-400/30 text-red-300 rounded text-xs hover:bg-red-500/30 transition"
+                            >
+                              Удалить
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+            
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setEditUserOpen(false)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>
               <button onClick={saveEditUser} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30 transition">Сохранить</button>
@@ -1812,6 +1997,74 @@ const AdminScreen: React.FC = () => {
               </button>
               <button 
                 onClick={() => confirmDeleteMission.id && handleDeleteMission(confirmDeleteMission.id)} 
+                className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition"
+              >
+                Удалить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка подтверждения выполнения миссии */}
+      {confirmCompleteMission.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmCompleteMission({ open: false })} />
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-green-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(34,197,94,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,197,94,0.25), inset 0 0 30px rgba(34,197,94,0.15)' }} />
+            <h3 className="text-xl font-bold text-green-300 mb-4">Подтверждение выполнения</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white/80 mb-2">Вы действительно хотите пометить миссию как выполненную:</p>
+                <p className="text-green-300 font-semibold text-lg">{confirmCompleteMission.missionName}</p>
+              </div>
+              <div className="bg-green-500/10 border border-green-400/30 rounded p-3">
+                <p className="text-green-200 text-sm">✅ Пользователь получит награды за выполнение миссии.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button 
+                onClick={() => setConfirmCompleteMission({ open: false })} 
+                className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={confirmCompleteMissionAction} 
+                className="px-4 py-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-200 hover:bg-green-500/30 transition"
+              >
+                Выполнена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка подтверждения удаления миссии */}
+      {confirmRemoveMission.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmRemoveMission({ open: false })} />
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
+            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white/80 mb-2">Вы действительно хотите удалить миссию у пользователя:</p>
+                <p className="text-red-300 font-semibold text-lg">{confirmRemoveMission.missionName}</p>
+              </div>
+              <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
+                <p className="text-red-200 text-sm">⚠️ Миссия будет удалена у пользователя. Это действие нельзя отменить.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button 
+                onClick={() => setConfirmRemoveMission({ open: false })} 
+                className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={confirmRemoveMissionAction} 
                 className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition"
               >
                 Удалить

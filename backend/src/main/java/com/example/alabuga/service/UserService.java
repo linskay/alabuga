@@ -390,6 +390,24 @@ public class UserService {
         return mapToUserMissionDTO(savedUserMission);
     }
     
+    @Transactional
+    public void removeMissionFromUser(Long userId, Long missionId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("Пользователь", userId);
+        }
+        
+        if (!missionRepository.existsById(missionId)) {
+            throw new ResourceNotFoundException("Миссия", missionId);
+        }
+        
+        Optional<UserMission> userMissionOpt = userMissionRepository.findByUserIdAndMissionId(userId, missionId);
+        if (userMissionOpt.isEmpty()) {
+            throw new BusinessLogicException("У пользователя нет этой миссии");
+        }
+        
+        userMissionRepository.delete(userMissionOpt.get());
+    }
+    
     private UserMissionDTO mapToUserMissionDTO(UserMission userMission) {
         return UserMissionDTO.builder()
                 .id(userMission.getId())

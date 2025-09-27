@@ -1,594 +1,123 @@
-# API Tests - Alabuga Backend
+# API Tests Documentation
 
-## Базовый URL
-```
-http://localhost:8080
-```
-
-## 1. Пользователи (Users)
-
-### Получить всех пользователей
-```bash
-curl -X GET "http://localhost:8080/api/users" \
-  -H "Content-Type: application/json"
-```
-
-### Получить пользователя по ID
-```bash
-curl -X GET "http://localhost:8080/api/users/1" \
-  -H "Content-Type: application/json"
-```
-
-### Создать пользователя
-```bash
-curl -X POST "http://localhost:8080/api/users" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "login": "testuser",
-    "email": "test@alabuga.com",
-    "password": "password123",
-    "firstName": "Тест",
-    "lastName": "Пользователь",
-    "role": "USER",
-    "experience": 0,
-    "energy": 100,
-    "rank": 0
-  }'
-```
-
-### Обновить пользователя
-```bash
-curl -X PUT "http://localhost:8080/api/users/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Обновленное",
-    "lastName": "Имя",
-    "experience": 1000
-  }'
-```
-
-### Удалить пользователя
-```bash
-curl -X DELETE "http://localhost:8080/api/users/1" \
-  -H "Content-Type: application/json"
-```
-
-### Добавить Энергоны пользователю
-```bash
-curl -X POST "http://localhost:8080/api/users/1/energy?energy=50" \
-  -H "Content-Type: application/json"
-```
-
-### Потратить Энергоны пользователя
-```bash
-curl -X POST "http://localhost:8080/api/users/1/energy/spend?energy=25" \
-  -H "Content-Type: application/json"
-```
-
-## 2. Компетенции (Competencies)
-
-### Получить все компетенции
-```bash
-curl -X GET "http://localhost:8080/api/competencies" \
-  -H "Content-Type: application/json"
-```
-
-### Получить компетенцию по ID
-```bash
-curl -X GET "http://localhost:8080/api/competencies/1" \
-  -H "Content-Type: application/json"
-```
-
-### Создать компетенцию
-```bash
-curl -X POST "http://localhost:8080/api/competencies" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Новая Компетенция",
-    "shortDescription": "Краткое описание",
-    "description": "Полное описание компетенции"
-  }'
-```
-
-### Обновить компетенцию
-```bash
-curl -X PUT "http://localhost:8080/api/competencies/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Обновленная Компетенция",
-    "description": "Обновленное описание"
-  }'
-```
-
-### Удалить компетенцию
-```bash
-curl -X DELETE "http://localhost:8080/api/competencies/1" \
-  -H "Content-Type: application/json"
-```
-
-## 3. Компетенции пользователей (User Competencies)
-
-### Получить компетенции пользователя
-```bash
-curl -X GET "http://localhost:8080/api/users/1/competencies" \
-  -H "Content-Type: application/json"
-```
-
-### Добавить очки опыта к компетенции
-```bash
-curl -X POST "http://localhost:8080/api/users/1/competencies/1/experience?points=100" \
-  -H "Content-Type: application/json"
-```
-
-## 4. Артефакты (Artifacts)
-
-### Получить все артефакты
-```bash
-curl -X GET "http://localhost:8080/api/artifacts" \
-  -H "Content-Type: application/json"
-```
-
-### Получить артефакт по ID
-```bash
-curl -X GET "http://localhost:8080/api/artifacts/1" \
-  -H "Content-Type: application/json"
-```
-
-### Создать артефакт
-```bash
-curl -X POST "http://localhost:8080/api/artifacts" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Новый Артефакт",
-    "shortDescription": "Краткое описание",
-    "rarity": "RARE",
-    "imageUrl": "https://example.com/image.jpg"
-  }'
-```
-
-### Обновить артефакт
-```bash
-curl -X PUT "http://localhost:8080/api/artifacts/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Обновленный Артефакт",
-    "rarity": "EPIC"
-  }'
-```
-
-### Удалить артефакт
-```bash
-curl -X DELETE "http://localhost:8080/api/artifacts/1" \
-  -H "Content-Type: application/json"
-```
-
-## 5. Артефакты пользователей (User Artifacts)
-
-### Получить артефакты пользователя
-```bash
-curl -X GET "http://localhost:8080/api/users/1/artifacts" \
-  -H "Content-Type: application/json"
-```
-
-### Назначить артефакт пользователю
-```bash
-curl -X POST "http://localhost:8080/api/users/1/artifacts/1" \
-  -H "Content-Type: application/json"
-```
-
-### Экипировать/снять артефакт
-```bash
-curl -X PUT "http://localhost:8080/api/users/1/artifacts/1/equip" \
-  -H "Content-Type: application/json"
-```
-
-## 6. Ветки миссий (Mission Branches)
-
-### Получить все ветки
-```bash
-curl -X GET "http://localhost:8080/api/branches" \
-  -H "Content-Type: application/json"
-```
-
-### Получить ветку по ID
-```bash
-curl -X GET "http://localhost:8080/api/branches/1" \
-  -H "Content-Type: application/json"
-```
-
-### Поиск веток по названию
-```bash
-curl -X GET "http://localhost:8080/api/branches/search?name=Лунная" \
-  -H "Content-Type: application/json"
-```
-
-## 7. Миссии (Missions)
-
-### Получить все миссии
-```bash
-curl -X GET "http://localhost:8080/api/missions" \
-  -H "Content-Type: application/json"
-```
-
-### Получить миссию по ID
-```bash
-curl -X GET "http://localhost:8080/api/missions/1" \
-  -H "Content-Type: application/json"
-```
-
-### Создать миссию
-```bash
-curl -X POST "http://localhost:8080/api/missions" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Новая Миссия",
-    "description": "Описание миссии",
-    "branchId": 1,
-    "type": "QUEST",
-    "difficulty": "EASY",
-    "experienceReward": 100,
-    "energyReward": 50,
-    "requiredCompetencies": "navigation,engineering",
-    "isActive": true,
-    "requiresModeration": false
-  }'
-```
-
-### Обновить миссию
-```bash
-curl -X PUT "http://localhost:8080/api/missions/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Обновленная Миссия",
-    "difficulty": "MEDIUM"
-  }'
-```
-
-### Удалить миссию
-```bash
-curl -X DELETE "http://localhost:8080/api/missions/1" \
-  -H "Content-Type: application/json"
-```
-
-### Поиск миссий по названию
-```bash
-curl -X GET "http://localhost:8080/api/missions/search?name=навигация" \
-  -H "Content-Type: application/json"
-```
-
-### Получить миссии по ветке
-```bash
-curl -X GET "http://localhost:8080/api/missions/branch/1" \
-  -H "Content-Type: application/json"
-```
-
-## 8. Миссии пользователей (User Missions)
-
-### Получить миссии пользователя
-```bash
-curl -X GET "http://localhost:8080/api/users/1/missions" \
-  -H "Content-Type: application/json"
-```
-
-### Начать миссию
-```bash
-curl -X POST "http://localhost:8080/api/users/1/missions/1/start" \
-  -H "Content-Type: application/json"
-```
-
-### Обновить прогресс миссии
-```bash
-curl -X PUT "http://localhost:8080/api/users/1/missions/1/progress?progress=50" \
-  -H "Content-Type: application/json"
-```
-
-### Завершить миссию
-```bash
-curl -X POST "http://localhost:8080/api/users/1/missions/1/complete" \
-  -H "Content-Type: application/json"
-```
-
-### Отменить миссию
-```bash
-curl -X POST "http://localhost:8080/api/users/1/missions/1/cancel" \
-  -H "Content-Type: application/json"
-```
-
-## 9. Магазин Нексус (Shop)
-
-### Получить все товары магазина
-```bash
-curl -X GET "http://localhost:8080/api/shop" \
-  -H "Content-Type: application/json"
-```
-
-### Получить доступные товары
-```bash
-curl -X GET "http://localhost:8080/api/shop/available" \
-  -H "Content-Type: application/json"
-```
-
-### Получить товар по ID
-```bash
-curl -X GET "http://localhost:8080/api/shop/1" \
-  -H "Content-Type: application/json"
-```
-
-### Поиск товаров по названию
-```bash
-curl -X GET "http://localhost:8080/api/shop/search?name=Чертеж" \
-  -H "Content-Type: application/json"
-```
-
-### Создать товар (только для админов)
-```bash
-curl -X POST "http://localhost:8080/api/shop" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Новый Товар",
-    "description": "Описание товара",
-    "price": 500,
-    "imageUrl": "https://example.com/image.jpg",
-    "isActive": true,
-    "stockQuantity": 10
-  }'
-```
-
-### Обновить товар (только для админов)
-```bash
-curl -X PUT "http://localhost:8080/api/shop/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Обновленный Товар",
-    "price": 600
-  }'
-```
-
-### Удалить товар (только для админов)
-```bash
-curl -X DELETE "http://localhost:8080/api/shop/1" \
-  -H "Content-Type: application/json"
-```
-
-### Переключить статус товара (только для админов)
-```bash
-curl -X POST "http://localhost:8080/api/shop/1/toggle-status" \
-  -H "Content-Type: application/json"
-```
-
-### Купить товар в Нексусе
-```bash
-curl -X POST "http://localhost:8080/api/shop/purchase?userId=1&shopItemId=1" \
-  -H "Content-Type: application/json"
-```
-
-## 10. Система Рангов (Ranks)
-
-### Получить все ранги
-```bash
-curl -X GET "http://localhost:8080/api/ranks" \
-  -H "Content-Type: application/json"
-```
-
-### Получить ранги по ветке
-```bash
-curl -X GET "http://localhost:8080/api/ranks/branch/ANALYTICAL_TECHNICAL" \
-  -H "Content-Type: application/json"
-```
-
-### Получить ранг по уровню
-```bash
-curl -X GET "http://localhost:8080/api/ranks/level/1" \
-  -H "Content-Type: application/json"
-```
-
-### Получить все требования рангов
-```bash
-curl -X GET "http://localhost:8080/api/ranks/requirements" \
-  -H "Content-Type: application/json"
-```
+## User Mission Management
 
-### Получить активные требования
-```bash
-curl -X GET "http://localhost:8080/api/ranks/requirements/active" \
-  -H "Content-Type: application/json"
-```
-
-### Получить требования ранга по уровню
-```bash
-curl -X GET "http://localhost:8080/api/ranks/requirements/level/1" \
-  -H "Content-Type: application/json"
-```
-
-### Создать требования ранга
-```bash
-curl -X POST "http://localhost:8080/api/ranks/requirements" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "rankLevel": 1,
-    "requiredExperience": 500,
-    "requiredMissionName": "Тестовая миссия",
-    "requiredCompetencyPoints": 100,
-    "competencyNames": "[\"navigation\", \"engineering\"]",
-    "isActive": true,
-    "description": "Требования для получения ранга"
-  }'
-```
-
-### Обновить требования ранга
-```bash
-curl -X PUT "http://localhost:8080/api/ranks/requirements/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "requiredExperience": 600,
-    "description": "Обновленные требования"
-  }'
-```
-
-### Удалить требования ранга
-```bash
-curl -X DELETE "http://localhost:8080/api/ranks/requirements/1" \
-  -H "Content-Type: application/json"
-```
-
-### Повысить пользователя до следующего ранга
-```bash
-curl -X POST "http://localhost:8080/api/ranks/promote?userId=1" \
-  -H "Content-Type: application/json"
-```
-
-### Проверить, может ли пользователь быть повышен
-```bash
-curl -X GET "http://localhost:8080/api/ranks/can-promote?userId=1" \
-  -H "Content-Type: application/json"
-```
-
-## 11. Системные Уведомления (Notifications)
-
-### Получить все уведомления пользователя
-```bash
-curl -X GET "http://localhost:8080/api/notifications/user/1" \
-  -H "Content-Type: application/json"
-```
-
-### Получить непрочитанные уведомления пользователя
-```bash
-curl -X GET "http://localhost:8080/api/notifications/user/1/unread" \
-  -H "Content-Type: application/json"
-```
+### Delete User Mission
+**Endpoint:** `DELETE /api/users/{userId}/missions/{missionId}`  
+**Description:** Удалить миссию у пользователя (только для админов)  
+**Parameters:**
+- `userId` (path) - ID пользователя
+- `missionId` (path) - ID миссии
 
-### Получить уведомление по ID
-```bash
-curl -X GET "http://localhost:8080/api/notifications/1" \
-  -H "Content-Type: application/json"
-```
-
-### Создать новое уведомление
-```bash
-curl -X POST "http://localhost:8080/api/notifications" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": 1,
-    "title": "Тестовое уведомление",
-    "content": "Содержимое уведомления",
-    "notificationType": "SYSTEM_MESSAGE",
-    "metadata": "{\"test\": true}"
-  }'
-```
-
-### Обновить уведомление
-```bash
-curl -X PUT "http://localhost:8080/api/notifications/1" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Обновленное уведомление",
-    "isRead": true
-  }'
-```
-
-### Удалить уведомление
-```bash
-curl -X DELETE "http://localhost:8080/api/notifications/1" \
-  -H "Content-Type: application/json"
-```
-
-### Отметить уведомление как прочитанное
-```bash
-curl -X PUT "http://localhost:8080/api/notifications/1/read" \
-  -H "Content-Type: application/json"
-```
+**Response:**
+- `200 OK` - Миссия успешно удалена
+- `404 Not Found` - Пользователь или миссия не найдены
+- `403 Forbidden` - Доступ запрещен (только для админов)
 
-### Отметить все уведомления пользователя как прочитанные
+**Example:**
 ```bash
-curl -X PUT "http://localhost:8080/api/notifications/user/1/read-all" \
-  -H "Content-Type: application/json"
+curl -X DELETE "http://localhost:8080/api/users/1/missions/5" \
+  -H "Authorization: Bearer <admin-token>"
 ```
 
-### Получить количество непрочитанных уведомлений
-```bash
-curl -X GET "http://localhost:8080/api/notifications/user/1/unread-count" \
-  -H "Content-Type: application/json"
+**Response:**
+```json
+HTTP/1.1 200 OK
 ```
-
-## 12. Swagger UI
 
-### Открыть Swagger UI в браузере
-```
-http://localhost:8080/swagger-ui.html
-```
+### Complete User Mission
+**Endpoint:** `POST /api/missions/complete`  
+**Description:** Завершить миссию пользователя  
+**Parameters:**
+- `userId` (query) - ID пользователя
+- `missionId` (query) - ID миссии
 
-## 12. Тестовые данные
+**Response:**
+- `200 OK` - Миссия успешно завершена
+- `404 Not Found` - Прогресс миссии не найден
+- `400 Bad Request` - Миссия уже завершена или требует модерации
 
-### Проверить создание тестовых данных
+**Example:**
 ```bash
-# Пользователи
-curl -X GET "http://localhost:8080/api/users" | jq '.[0]'
-
-# Компетенции
-curl -X GET "http://localhost:8080/api/competencies" | jq '.[0]'
-
-# Артефакты
-curl -X GET "http://localhost:8080/api/artifacts" | jq '.[0]'
-
-# Миссии
-curl -X GET "http://localhost:8080/api/missions" | jq '.[0]'
-
-# Товары магазина
-curl -X GET "http://localhost:8080/api/shop" | jq '.[0]'
-
-# Ранги
-curl -X GET "http://localhost:8080/api/ranks" | jq '.[0]'
-
-# Уведомления
-curl -X GET "http://localhost:8080/api/notifications/user/1" | jq '.[0]'
+curl -X POST "http://localhost:8080/api/missions/complete?userId=1&missionId=5" \
+  -H "Authorization: Bearer <admin-token>"
 ```
-
-## Примечания
-
-1. **Аутентификация**: В текущей версии аутентификация не реализована, все endpoints доступны без токенов
-2. **Роли**: Некоторые операции помечены как "только для админов", но проверка ролей не реализована
-3. **Валидация**: Все DTO содержат валидацию полей
-4. **Ошибки**: При ошибках возвращается JSON с описанием проблемы
-5. **Формат дат**: Все даты в формате ISO 8601 (например: 2025-09-20T16:39:11.463696)
-
-## Примеры ответов
 
-### Успешный ответ (200 OK)
+**Response:**
 ```json
 {
   "id": 1,
-  "login": "commander",
-  "email": "commander@alabuga.com",
-  "firstName": "Командир",
-  "lastName": "Звёздного Флота",
-  "role": "HR",
-  "experience": 5000,
-  "energy": 200,
-  "rank": 1,
-  "createdAt": "2025-09-20T16:39:11.463696",
-  "updatedAt": "2025-09-20T16:39:11.463696",
-  "isActive": true
+  "userId": 1,
+  "missionId": 5,
+  "missionName": "Исследование космоса",
+  "status": "COMPLETED",
+  "progress": 100,
+  "completedAt": "2024-01-15T10:30:00"
 }
 ```
 
-### Ошибка (404 Not Found)
-```json
-{
-  "timestamp": "2025-09-20T16:39:11.463696",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Пользователь с ID 999 не найден",
-  "path": "/api/users/999"
-}
+### Get User Missions
+**Endpoint:** `GET /api/missions/user/{userId}`  
+**Description:** Получить миссии пользователя  
+**Parameters:**
+- `userId` (path) - ID пользователя
+
+**Response:**
+- `200 OK` - Список миссий пользователя
+
+**Example:**
+```bash
+curl -X GET "http://localhost:8080/api/missions/user/1" \
+  -H "Authorization: Bearer <admin-token>"
 ```
 
-### Ошибка валидации (400 Bad Request)
+**Response:**
 ```json
-{
-  "timestamp": "2025-09-20T16:39:11.463696",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Название товара не может быть пустым",
-  "path": "/api/shop"
-}
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "missionId": 5,
+    "missionName": "Исследование космоса",
+    "status": "IN_PROGRESS",
+    "progress": 75,
+    "startedAt": "2024-01-10T09:00:00",
+    "completedAt": null
+  }
+]
 ```
+
+## Mission Status Values
+
+- `NOT_STARTED` - Миссия не начата
+- `IN_PROGRESS` - Миссия в процессе выполнения
+- `COMPLETED` - Миссия завершена
+- `FAILED` - Миссия провалена
+
+## Frontend Integration
+
+### Admin Panel Features
+
+1. **User Mission Management**
+   - Просмотр всех миссий пользователя
+   - Отметка миссий как выполненных
+   - Удаление миссий у пользователей
+   - Отображение статусов: Выполнено, Активные, Доступно
+
+2. **Mission Status Display**
+   - Зеленый бейдж для выполненных миссий
+   - Желтый бейдж для активных миссий
+   - Синий бейдж для доступных миссий
+   - Кнопки действий в зависимости от статуса
+
+3. **Confirmation Modals**
+   - Подтверждение выполнения миссии
+   - Показ названия миссии в подтверждении
+   - Информация о наградах
+
+## Security Notes
+
+- Все операции с миссиями пользователей доступны только администраторам
+- Проверка существования пользователя и миссии
+- Валидация прав доступа
+- Логирование всех операций

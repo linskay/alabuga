@@ -301,4 +301,13 @@ public class UserController {
         com.example.alabuga.dto.UserMissionDTO userMission = userService.takeMission(id, missionId);
         return ResponseEntity.ok(userMission);
     }
+    
+    @DeleteMapping("/{id}/missions/{missionId}")
+    @Operation(summary = "Удалить миссию у пользователя (только для админов)")
+    public ResponseEntity<Void> removeMissionFromUser(
+            @Parameter(description = "ID пользователя") @PathVariable Long id,
+            @Parameter(description = "ID миссии") @PathVariable Long missionId) {
+        userService.removeMissionFromUser(id, missionId);
+        return ResponseEntity.ok().build();
+    }
 }
