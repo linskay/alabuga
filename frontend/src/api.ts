@@ -11,7 +11,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
+    let errorMessage = text || res.statusText;
+    
+    // Пытаемся парсить JSON ответ от бекенда
+    try {
+      const errorData = JSON.parse(text);
+      if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch {
+      // Если не JSON, используем исходный текст
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).response = { data: { message: errorMessage } };
+    throw error;
   }
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
