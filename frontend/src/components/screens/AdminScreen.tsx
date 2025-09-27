@@ -38,8 +38,23 @@ const AdminScreen: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<{value: string, displayName: string}[]>([]);
   const [search, setSearch] = useState<string>('');
-  const [sortKey, setSortKey] = useState<'name' | 'email' | 'role' | 'level' | 'createdAt'>('name');
+  const [sortKey, setSortKey] = useState<'name' | 'email' | 'role' | 'level' | 'createdAt' | 'isActive'>('name');
   const [sortAsc, setSortAsc] = useState<boolean>(true);
+  
+  // Mission search and sort states
+  const [missionSearch, setMissionSearch] = useState<string>('');
+  const [missionSortKey, setMissionSortKey] = useState<'name' | 'createdAt' | 'difficulty' | 'isActive'>('name');
+  const [missionSortAsc, setMissionSortAsc] = useState<boolean>(true);
+  
+  // Shop search and sort states
+  const [shopSearch, setShopSearch] = useState<string>('');
+  const [shopSortKey, setShopSortKey] = useState<'name' | 'price' | 'status'>('name');
+  const [shopSortAsc, setShopSortAsc] = useState<boolean>(true);
+  
+  // Artifact search and sort states
+  const [artifactSearch, setArtifactSearch] = useState<string>('');
+  const [artifactSortKey, setArtifactSortKey] = useState<'name' | 'rarity' | 'createdAt' | 'isActive'>('name');
+  const [artifactSortAsc, setArtifactSortAsc] = useState<boolean>(true);
   // Загрузка пользователей из бэкенда
   useEffect(() => {
     (async () => {
@@ -175,6 +190,7 @@ const AdminScreen: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentMissionPage, setCurrentMissionPage] = useState(1);
   const [currentArtifactPage, setCurrentArtifactPage] = useState(1);
+  const [currentShopPage, setCurrentShopPage] = useState(1);
   const itemsPerPage = 10;
 
   const analytics = [
@@ -387,6 +403,57 @@ const AdminScreen: React.FC = () => {
         case 'role': return (String(a.role) || '').localeCompare(String(b.role) || '') * dir;
         case 'level': return ((a.level ?? 0) - (b.level ?? 0)) * dir;
         case 'createdAt': return (new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()) * dir;
+        case 'isActive': return ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0)) * dir;
+        default: return (a.name || '').localeCompare(b.name || '') * dir;
+      }
+    });
+
+  const filteredSortedMissions = missions
+    .filter(m => {
+      const q = missionSearch.trim().toLowerCase();
+      if (!q) return true;
+      return (m.name || '').toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      const dir = missionSortAsc ? 1 : -1;
+      switch (missionSortKey) {
+        case 'name': return ((a.name || '').localeCompare(b.name || '')) * dir;
+        case 'createdAt': return (new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()) * dir;
+        case 'difficulty': return ((a.difficulty || '').localeCompare(b.difficulty || '')) * dir;
+        case 'isActive': return ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0)) * dir;
+        default: return (a.name || '').localeCompare(b.name || '') * dir;
+      }
+    });
+
+  const filteredSortedShopItems = shopItems
+    .filter(item => {
+      const q = shopSearch.trim().toLowerCase();
+      if (!q) return true;
+      return (item.name || '').toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      const dir = shopSortAsc ? 1 : -1;
+      switch (shopSortKey) {
+        case 'name': return ((a.name || '').localeCompare(b.name || '')) * dir;
+        case 'price': return ((a.price || 0) - (b.price || 0)) * dir;
+        case 'status': return ((a.status === 'active' ? 1 : 0) - (b.status === 'active' ? 1 : 0)) * dir;
+        default: return (a.name || '').localeCompare(b.name || '') * dir;
+      }
+    });
+
+  const filteredSortedArtifacts = artifactList
+    .filter(artifact => {
+      const q = artifactSearch.trim().toLowerCase();
+      if (!q) return true;
+      return (artifact.name || '').toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      const dir = artifactSortAsc ? 1 : -1;
+      switch (artifactSortKey) {
+        case 'name': return ((a.name || '').localeCompare(b.name || '')) * dir;
+        case 'rarity': return ((a.rarity || '').localeCompare(b.rarity || '')) * dir;
+        case 'createdAt': return (new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()) * dir;
+        case 'isActive': return ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0)) * dir;
         default: return (a.name || '').localeCompare(b.name || '') * dir;
       }
     });
@@ -401,21 +468,40 @@ const AdminScreen: React.FC = () => {
   const getPaginatedMissions = () => {
     const startIndex = (currentMissionPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return missions.slice(startIndex, endIndex);
+    return filteredSortedMissions.slice(startIndex, endIndex);
+  };
+
+  const getPaginatedShopItems = () => {
+    const startIndex = (currentShopPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSortedShopItems.slice(startIndex, endIndex);
   };
 
   const getPaginatedArtifacts = () => {
     const startIndex = (currentArtifactPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return artifactList.slice(startIndex, endIndex);
+    return filteredSortedArtifacts.slice(startIndex, endIndex);
   };
 
   const totalPages = Math.ceil(filteredSortedUsers.length / itemsPerPage);
-  const totalMissionPages = Math.ceil(missions.length / itemsPerPage);
-  const totalArtifactPages = Math.ceil(artifactList.length / itemsPerPage);
+  const totalMissionPages = Math.ceil(filteredSortedMissions.length / itemsPerPage);
+  const totalArtifactPages = Math.ceil(filteredSortedArtifacts.length / itemsPerPage);
+  const totalShopPages = Math.ceil(filteredSortedShopItems.length / itemsPerPage);
 
   const toggleSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortAsc(v => !v); else { setSortKey(key); setSortAsc(true); }
+  };
+
+  const toggleMissionSort = (key: typeof missionSortKey) => {
+    if (missionSortKey === key) setMissionSortAsc(v => !v); else { setMissionSortKey(key); setMissionSortAsc(true); }
+  };
+
+  const toggleShopSort = (key: typeof shopSortKey) => {
+    if (shopSortKey === key) setShopSortAsc(v => !v); else { setShopSortKey(key); setShopSortAsc(true); }
+  };
+
+  const toggleArtifactSort = (key: typeof artifactSortKey) => {
+    if (artifactSortKey === key) setArtifactSortAsc(v => !v); else { setArtifactSortKey(key); setArtifactSortAsc(true); }
   };
 
   const renderCrewTab = () => (
@@ -439,6 +525,7 @@ const AdminScreen: React.FC = () => {
             <button onClick={() => toggleSort('role')} className={`px-2 py-1 border rounded ${sortKey==='role'?'border-white/50':'border-white/20'}`}>Роль {sortKey==='role'?(sortAsc?'↑':'↓'):''}</button>
             <button onClick={() => toggleSort('level')} className={`px-2 py-1 border rounded ${sortKey==='level'?'border-white/50':'border-white/20'}`}>Ранг {sortKey==='level'?(sortAsc?'↑':'↓'):''}</button>
             <button onClick={() => toggleSort('createdAt')} className={`px-2 py-1 border rounded ${sortKey==='createdAt'?'border-white/50':'border-white/20'}`}>Первый вход {sortKey==='createdAt'?(sortAsc?'↑':'↓'):''}</button>
+            <button onClick={() => toggleSort('isActive')} className={`px-2 py-1 border rounded ${sortKey==='isActive'?'border-white/50':'border-white/20'}`}>Статус {sortKey==='isActive'?(sortAsc?'↑':'↓'):''}</button>
           </div>
         </div>
         
@@ -485,25 +572,25 @@ const AdminScreen: React.FC = () => {
         </div>
         
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-2 mt-6">
-            <button
+        {users.length > 0 && (
+          <div className="flex justify-center items-center space-x-4 mt-6">
+            <MainButton
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
-              ←
-            </button>
-            <span className="text-white/80">
+              ← Назад
+            </MainButton>
+            <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
               Страница {currentPage} из {totalPages}
             </span>
-            <button
+            <MainButton
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
-              →
-            </button>
+              Вперёд →
+            </MainButton>
           </div>
         )}
       </div>
@@ -523,12 +610,67 @@ const AdminScreen: React.FC = () => {
             >
               Статистика
             </MainButton>
-            <MainButton
-              className="px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
+          <MainButton
+            className="px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
               onClick={() => setCreateMissionOpen(true)}
+          >
+            Создать миссию
+          </MainButton>
+          </div>
+        </div>
+        
+        {/* Search and Sort */}
+        <div className="mb-6 space-y-4">
+          <div className="flex gap-4 items-center">
+            <input
+              type="text"
+              placeholder="Поиск миссий по названию..."
+              className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400"
+              value={missionSearch}
+              onChange={e => setMissionSearch(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => toggleMissionSort('name')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                missionSortKey === 'name' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
             >
-              Создать миссию
-            </MainButton>
+              Название {missionSortKey === 'name' && (missionSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleMissionSort('createdAt')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                missionSortKey === 'createdAt' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Дата создания {missionSortKey === 'createdAt' && (missionSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleMissionSort('difficulty')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                missionSortKey === 'difficulty' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Сложность {missionSortKey === 'difficulty' && (missionSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleMissionSort('isActive')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                missionSortKey === 'isActive' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Статус {missionSortKey === 'isActive' && (missionSortAsc ? '↑' : '↓')}
+            </button>
           </div>
         </div>
         
@@ -586,25 +728,25 @@ const AdminScreen: React.FC = () => {
         </div>
         
         {/* Pagination */}
-        {totalMissionPages > 1 && (
-          <div className="flex justify-center items-center space-x-2 mt-6">
-            <button
+        {missions.length > 0 && (
+          <div className="flex justify-center items-center space-x-4 mt-6">
+            <MainButton
               onClick={() => setCurrentMissionPage(prev => Math.max(1, prev - 1))}
               disabled={currentMissionPage === 1}
-              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
-              ←
-            </button>
-            <span className="text-white/80">
+              ← Назад
+            </MainButton>
+            <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
               Страница {currentMissionPage} из {totalMissionPages}
             </span>
-            <button
+            <MainButton
               onClick={() => setCurrentMissionPage(prev => Math.min(totalMissionPages, prev + 1))}
               disabled={currentMissionPage === totalMissionPages}
-              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
-              →
-            </button>
+              Вперёд →
+            </MainButton>
           </div>
         )}
       </div>
@@ -685,8 +827,53 @@ const AdminScreen: React.FC = () => {
           <MainButton className="px-4 py-2" onClick={() => setAddProductOpen(true)}>Добавить товар</MainButton>
         </div>
         
+        {/* Search and Sort */}
+        <div className="mb-6 space-y-4">
+          <div className="flex gap-4 items-center">
+            <input
+              type="text"
+              placeholder="Поиск товаров по названию..."
+              className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400"
+              value={shopSearch}
+              onChange={e => setShopSearch(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => toggleShopSort('name')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                shopSortKey === 'name' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Название {shopSortKey === 'name' && (shopSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleShopSort('price')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                shopSortKey === 'price' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Стоимость {shopSortKey === 'price' && (shopSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleShopSort('status')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                shopSortKey === 'status' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Статус {shopSortKey === 'status' && (shopSortAsc ? '↑' : '↓')}
+            </button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {shopItems.map((item, index) => (
+          {getPaginatedShopItems().map((item, index) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -770,6 +957,29 @@ const AdminScreen: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        
+        {/* Pagination */}
+        {shopItems.length > 0 && (
+          <div className="flex justify-center items-center space-x-4 mt-6">
+            <MainButton
+              onClick={() => setCurrentShopPage(prev => Math.max(1, prev - 1))}
+              disabled={currentShopPage === 1}
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+            >
+              ← Назад
+            </MainButton>
+            <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+              Страница {currentShopPage} из {totalShopPages}
+            </span>
+            <MainButton
+              onClick={() => setCurrentShopPage(prev => Math.min(totalShopPages, prev + 1))}
+              disabled={currentShopPage === totalShopPages}
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+            >
+              Вперёд →
+            </MainButton>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -782,6 +992,62 @@ const AdminScreen: React.FC = () => {
           <div className="text-white"><ShinyText text="АРТЕФАКТЫ" className="text-2xl font-bold" /></div>
           <MainButton className="px-4 py-2" onClick={() => setAddArtifactOpen(true)}>Добавить</MainButton>
         </div>
+        
+        {/* Search and Sort */}
+        <div className="mb-6 space-y-4">
+          <div className="flex gap-4 items-center">
+            <input
+              type="text"
+              placeholder="Поиск артефактов по названию..."
+              className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400"
+              value={artifactSearch}
+              onChange={e => setArtifactSearch(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => toggleArtifactSort('name')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                artifactSortKey === 'name' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Название {artifactSortKey === 'name' && (artifactSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleArtifactSort('rarity')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                artifactSortKey === 'rarity' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Редкость {artifactSortKey === 'rarity' && (artifactSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleArtifactSort('createdAt')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                artifactSortKey === 'createdAt' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Дата создания {artifactSortKey === 'createdAt' && (artifactSortAsc ? '↑' : '↓')}
+            </button>
+            <button
+              onClick={() => toggleArtifactSort('isActive')}
+              className={`px-3 py-1 rounded text-sm transition ${
+                artifactSortKey === 'isActive' 
+                  ? 'bg-blue-500/20 border border-blue-400/40 text-blue-300' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              Статус {artifactSortKey === 'isActive' && (artifactSortAsc ? '↑' : '↓')}
+            </button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {getPaginatedArtifacts().map((item: any, index: number) => (
             <motion.div
@@ -853,25 +1119,25 @@ const AdminScreen: React.FC = () => {
         </div>
         
         {/* Pagination */}
-        {totalArtifactPages > 1 && (
-          <div className="flex justify-center items-center space-x-2 mt-6">
-            <button
+        {artifactList.length > 0 && (
+          <div className="flex justify-center items-center space-x-4 mt-6">
+            <MainButton
               onClick={() => setCurrentArtifactPage(prev => Math.max(1, prev - 1))}
               disabled={currentArtifactPage === 1}
-              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
-              ←
-            </button>
-            <span className="text-white/80">
+              ← Назад
+            </MainButton>
+            <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
               Страница {currentArtifactPage} из {totalArtifactPages}
             </span>
-            <button
+            <MainButton
               onClick={() => setCurrentArtifactPage(prev => Math.min(totalArtifactPages, prev + 1))}
               disabled={currentArtifactPage === totalArtifactPages}
-              className="px-3 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
-              →
-            </button>
+              Вперёд →
+            </MainButton>
           </div>
         )}
       </div>
@@ -995,19 +1261,27 @@ const AdminScreen: React.FC = () => {
               <label className="text-sm text-white/80">Награда (Энергон)
                 <input type="number" min={0} className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={createMission.energyReward} onChange={e => setCreateMission((v: any) => ({ ...v, energyReward: Math.max(0, Number(e.target.value)) }))} />
               </label>
-              <label className="text-sm text-white/80">Требуемый ранг
+              <label className="text-sm text-white/80 flex items-center gap-2">
+                Требуемый ранг
+                <div className="relative group">
+                  <span className="text-blue-400 cursor-help">?</span>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[500px] bg-slate-900/95 border border-blue-400/30 rounded-lg p-4 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-[200] pointer-events-none shadow-2xl">
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-300">Система рангов:</div>
+                      <div><span className="text-yellow-300">1</span> - Космо-Кадет (старт)</div>
+                      <div><span className="text-yellow-300">2</span> - Навигатор Траекторий, Аналитик Орбит, Архитектор Станции (Аналитико-Техническая)</div>
+                      <div><span className="text-yellow-300">3</span> - Хронист Галактики, Исследователь Культур, Мастер Лектория (Гуманитарно-Исследовательская)</div>
+                      <div><span className="text-yellow-300">4</span> - Связист Звёздного Флота, Штурман Экипажа, Командир Отряда (Коммуникационно-Лидерская)</div>
+                      <div><span className="text-yellow-300">5</span> - Хранитель Станции «Алабуга.TECH» (финальный)</div>
+                    </div>
+                  </div>
+                </div>
                 <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={createMission.requiredRank || 1} onChange={e => setCreateMission((v: any) => ({ ...v, requiredRank: Number(e.target.value) }))}>
-                  <option value={1} className="bg-slate-800 text-white">1 - Космо-Кадет (старт)</option>
-                  <option value={2} className="bg-slate-800 text-white">2 - Навигатор Траекторий (Аналитико-Техническая)</option>
-                  <option value={3} className="bg-slate-800 text-white">3 - Аналитик Орбит (Аналитико-Техническая)</option>
-                  <option value={4} className="bg-slate-800 text-white">4 - Архитектор Станции (Аналитико-Техническая)</option>
-                  <option value={5} className="bg-slate-800 text-white">5 - Хронист Галактики (Гуманитарно-Исследовательская)</option>
-                  <option value={6} className="bg-slate-800 text-white">6 - Исследователь Культур (Гуманитарно-Исследовательская)</option>
-                  <option value={7} className="bg-slate-800 text-white">7 - Мастер Лектория (Гуманитарно-Исследовательская)</option>
-                  <option value={8} className="bg-slate-800 text-white">8 - Связист Звёздного Флота (Коммуникационно-Лидерская)</option>
-                  <option value={9} className="bg-slate-800 text-white">9 - Штурман Экипажа (Коммуникационно-Лидерская)</option>
-                  <option value={10} className="bg-slate-800 text-white">10 - Командир Отряда (Коммуникационно-Лидерская)</option>
-                  <option value={11} className="bg-slate-800 text-white">11 - Хранитель Станции «Алабуга.TECH» (финальный)</option>
+                  <option value={1} className="bg-slate-800 text-white">1</option>
+                  <option value={2} className="bg-slate-800 text-white">2</option>
+                  <option value={3} className="bg-slate-800 text-white">3</option>
+                  <option value={4} className="bg-slate-800 text-white">4</option>
+                  <option value={5} className="bg-slate-800 text-white">5</option>
                 </select>
               </label>
               <label className="text-sm text-white/80">Требуемый опыт (≥0)
@@ -1073,8 +1347,8 @@ const AdminScreen: React.FC = () => {
               {allCompetencies?.length > 0 && (
                 <div className="md:col-span-2">
                   <div className="text-sm text-white/80 mb-2">Добавить очки в компетенции</div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {allCompetencies.slice(0, 6).map((c: any) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    {allCompetencies.map((c: any) => (
                       <label key={c.id} className="text-sm text-white/80">
                         {c.name}
                         <input type="number" min={0} className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" onChange={e => setCreateMission((prev: any) => {
@@ -1277,19 +1551,27 @@ const AdminScreen: React.FC = () => {
               <label className="text-sm text-white/80">Награда (XP)
                 <input type="number" className="mt-1 w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" defaultValue={editMissionOpen?.experienceReward ?? 0} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), experienceReward: Number(e.target.value) }))} />
               </label>
-              <label className="text-sm text-white/80">Требуемый ранг
+              <label className="text-sm text-white/80 flex items-center gap-2">
+                Требуемый ранг
+                <div className="relative group">
+                  <span className="text-blue-400 cursor-help">?</span>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[500px] bg-slate-900/95 border border-blue-400/30 rounded-lg p-4 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-[200] pointer-events-none shadow-2xl">
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-300">Система рангов:</div>
+                      <div><span className="text-yellow-300">1</span> - Космо-Кадет (старт)</div>
+                      <div><span className="text-yellow-300">2</span> - Навигатор Траекторий, Аналитик Орбит, Архитектор Станции (Аналитико-Техническая)</div>
+                      <div><span className="text-yellow-300">3</span> - Хронист Галактики, Исследователь Культур, Мастер Лектория (Гуманитарно-Исследовательская)</div>
+                      <div><span className="text-yellow-300">4</span> - Связист Звёздного Флота, Штурман Экипажа, Командир Отряда (Коммуникационно-Лидерская)</div>
+                      <div><span className="text-yellow-300">5</span> - Хранитель Станции «Алабуга.TECH» (финальный)</div>
+                    </div>
+                  </div>
+                </div>
                 <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" defaultValue={editMissionOpen?.requiredRank ?? 1} onChange={e => setEditMissionData((v: any) => ({ ...(v||{}), requiredRank: Number(e.target.value) }))}>
-                  <option value={1} className="bg-slate-800 text-white">1 - Космо-Кадет (старт)</option>
-                  <option value={2} className="bg-slate-800 text-white">2 - Навигатор Траекторий (Аналитико-Техническая)</option>
-                  <option value={3} className="bg-slate-800 text-white">3 - Аналитик Орбит (Аналитико-Техническая)</option>
-                  <option value={4} className="bg-slate-800 text-white">4 - Архитектор Станции (Аналитико-Техническая)</option>
-                  <option value={5} className="bg-slate-800 text-white">5 - Хронист Галактики (Гуманитарно-Исследовательская)</option>
-                  <option value={6} className="bg-slate-800 text-white">6 - Исследователь Культур (Гуманитарно-Исследовательская)</option>
-                  <option value={7} className="bg-slate-800 text-white">7 - Мастер Лектория (Гуманитарно-Исследовательская)</option>
-                  <option value={8} className="bg-slate-800 text-white">8 - Связист Звёздного Флота (Коммуникационно-Лидерская)</option>
-                  <option value={9} className="bg-slate-800 text-white">9 - Штурман Экипажа (Коммуникационно-Лидерская)</option>
-                  <option value={10} className="bg-slate-800 text-white">10 - Командир Отряда (Коммуникационно-Лидерская)</option>
-                  <option value={11} className="bg-slate-800 text-white">11 - Хранитель Станции «Алабуга.TECH» (финальный)</option>
+                  <option value={1} className="bg-slate-800 text-white">1</option>
+                  <option value={2} className="bg-slate-800 text-white">2</option>
+                  <option value={3} className="bg-slate-800 text-white">3</option>
+                  <option value={4} className="bg-slate-800 text-white">4</option>
+                  <option value={5} className="bg-slate-800 text-white">5</option>
                 </select>
               </label>
               <label className="text-sm text-white/80">Требуемый опыт
