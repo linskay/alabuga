@@ -84,6 +84,31 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>add-tapgame-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>tapgame/backend/src/main/java</source>
+                            </sources>
+                            <resources>
+                                <resource>
+                                    <directory>tapgame/backend/src/main/resources</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -107,6 +132,19 @@
                         </exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <!-- Второй исполняемый артефакт: tapgame -->
+                    <execution>
+                        <id>repackage-tapgame</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>tapgame</classifier>
+                            <mainClass>com.example.tapgame.TapGameApplication</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

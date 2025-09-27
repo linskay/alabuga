@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>КосмоГусь: Алабу-га-га</title>
+  <link rel="stylesheet" href="components/styles.css" />
+</head>
+<body>
+  <div class="game">
+    <div class="header">
+      <div class="score-container">
+        <img class="img1" src="assets/coin.png" alt="монеты" />
+        <h2 class="score" id="score">0</h2>
+      </div>
+      <div class="level-container">
+        <span class="level-label">Уровень</span>
+        <span class="level" id="level">1</span>
+      </div>
+    </div>
+
+    <div class="circle">
+      <img id="circle" class="img2" src="assets/Goose.png" alt="КосмоГусь" />
+    </div>
+
+    <div id="achievement-toast" class="achievement-toast">
+      <span class="achievement-text"></span>
+    </div>
+  </div>
+
+  <audio id="clickSound" preload="auto">
+    <source src="assets/sounds/click.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="levelUpSound" preload="auto">
+    <source src="assets/sounds/level-up.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="achievementSound" preload="auto">
+    <source src="assets/sounds/achievement.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script src="components/app.js" defer></script>
+</body>
+</html>
