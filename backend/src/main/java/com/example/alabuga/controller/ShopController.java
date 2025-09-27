@@ -17,6 +17,7 @@ import com.example.alabuga.dto.PurchaseDTO;
 import com.example.alabuga.dto.ShopItemCreateDTO;
 import com.example.alabuga.dto.ShopItemDTO;
 import com.example.alabuga.dto.ShopItemUpdateDTO;
+import com.example.alabuga.dto.UserPurchaseDTO;
 import com.example.alabuga.service.ShopService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -103,4 +104,13 @@ public class ShopController {
         PurchaseDTO purchase = shopService.purchaseItem(userId, shopItemId);
         return ResponseEntity.ok(purchase);
     }
+    
+    @GetMapping("/purchases/{userId}")
+    @Operation(summary = "Получить историю покупок пользователя")
+    public ResponseEntity<List<UserPurchaseDTO>> getUserPurchaseHistory(
+            @Parameter(description = "ID пользователя") @PathVariable Long userId) {
+        List<UserPurchaseDTO> purchases = shopService.getUserPurchaseHistory(userId);
+        return ResponseEntity.ok(purchases);
+    }
+    
 }

@@ -1,8 +1,7 @@
 package com.example.alabuga.exception;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,136 +9,87 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 
-import com.example.alabuga.dto.ErrorResponse;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
-@Slf4j
-@Hidden
 public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
-            ResourceNotFoundException ex, WebRequest request) {
-        
-        log.warn("Resource not found: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Not Found")
-                .message(ex.getMessage())
-                .path(getPath(request))
-                .build();
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-    
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
-            DuplicateResourceException ex, WebRequest request) {
-        
-        log.warn("Duplicate resource: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error("Conflict")
-                .message(ex.getMessage())
-                .path(getPath(request))
-                .build();
-        
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-    }
-    
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
-            ValidationException ex, WebRequest request) {
-        
-        log.warn("Validation error: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(ex.getMessage())
-                .path(getPath(request))
-                .build();
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-    
-    @ExceptionHandler(BusinessLogicException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessLogicException(
-            BusinessLogicException ex, WebRequest request) {
-        
-        log.warn("Business logic error: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.UNPROCESSABLE_ENTITY.value())
-                .error("Unprocessable Entity")
-                .message(ex.getMessage())
-                .path(getPath(request))
-                .build();
-        
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
-    }
-    
+
+    /**
+     * Обработка ошибок валидации @Valid
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(
-            MethodArgumentNotValidException ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, Object> response = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
         
-        log.warn("Validation errors: {}", ex.getBindingResult().getFieldErrors());
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
         
-        List<ErrorResponse.ValidationError> validationErrors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(this::mapToValidationError)
-                .collect(Collectors.toList());
+        response.put("success", false);
+        response.put("title", "Ошибка валидации");
+        response.put("message", "Проверьте введенные данные");
+        response.put("errors", errors);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message("Ошибки валидации")
-                .path(getPath(request))
-                .validationErrors(validationErrors)
-                .build();
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.badRequest().body(response);
     }
     
+    /**
+     * Обработка ошибок валидации ConstraintViolationException
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, Object> response = new HashMap<>();
+        
+        response.put("success", false);
+        response.put("title", "Ошибка валидации");
+        response.put("message", ex.getMessage());
+        
+        return ResponseEntity.badRequest().body(response);
+    }
+    
+    /**
+     * Обработка ResourceNotFoundException
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        Map<String, Object> response = new HashMap<>();
+        
+        response.put("success", false);
+        response.put("title", "Ресурс не найден");
+        response.put("message", ex.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+    
+    /**
+     * Обработка BusinessLogicException
+     */
+    @ExceptionHandler(BusinessLogicException.class)
+    public ResponseEntity<Map<String, Object>> handleBusinessLogicException(BusinessLogicException ex) {
+        Map<String, Object> response = new HashMap<>();
+        
+        response.put("success", false);
+        response.put("title", "Ошибка бизнес-логики");
+        response.put("message", ex.getMessage());
+        
+        return ResponseEntity.badRequest().body(response);
+    }
+    
+    /**
+     * Обработка общих исключений
+     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+        Map<String, Object> response = new HashMap<>();
         
-        log.error("Unexpected error occurred", ex);
+        response.put("success", false);
+        response.put("title", "Внутренняя ошибка сервера");
+        response.put("message", "Произошла неожиданная ошибка");
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("Произошла внутренняя ошибка сервера")
-                .path(getPath(request))
-                .build();
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-    }
-    
-    private ErrorResponse.ValidationError mapToValidationError(FieldError fieldError) {
-        return ErrorResponse.ValidationError.builder()
-                .field(fieldError.getField())
-                .rejectedValue(fieldError.getRejectedValue())
-                .message(fieldError.getDefaultMessage())
-                .build();
-    }
-    
-    private String getPath(WebRequest request) {
-        return request.getDescription(false).replace("uri=", "");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }
