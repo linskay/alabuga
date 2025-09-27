@@ -46,7 +46,7 @@ export type RankDTO = { id: number; name: string; level: number; branch: string;
 export type ShopItemDTO = { id: number; name: string; price: number; available: boolean; description?: string };
 export type ArtifactDTO = { id: number; name: string; rarity?: string; isActive?: boolean; description?: string };
 export type UserRoleDTO = { value: string; displayName: string };
-export type UserDTO = { id: number; login: string; email: string; role: string; experience: number; energy: number; rank: number; firstName?: string; lastName?: string; createdAt?: string; isActive?: boolean; };
+export type UserDTO = { id: number; login: string; email: string; role: string; experience: number; energy: number; rank: number; branchId?: number; firstName?: string; lastName?: string; createdAt?: string; isActive?: boolean; };
 export type UserCompetency = { id: number; name: string; points?: number; level?: number; maxPoints?: number };
 export type UserMission = { id: number; missionId?: number; missionName?: string; status?: string; progress?: number };
 export type MissionDTO = { id: number; name: string; description?: string; difficulty?: string; experienceReward?: number; isActive?: boolean; requiredExperience?: number; requiredRank?: number; type?: string };
@@ -82,8 +82,13 @@ export const backend = {
     update: (id: number, body: Partial<UserDTO>) => api.put<UserDTO>(`/api/users/${id}`, body),
     delete: (id: number) => api.delete<void>(`/api/users/${id}`),
     competencies: (userId: number) => api.get<UserCompetency[]>(`/api/users/${userId}/competencies`),
-    missions: (userId: number) => api.get<UserMission[]>(`/api/users/${userId}/missions`),
+    missions: (userId: number) => api.get<UserMission[]>(`/api/missions/user/${userId}`),
     takeMission: (userId: number, missionId: number) => api.post(`/api/users/${userId}/missions/${missionId}/take`),
+    completeMission: (userId: number, missionId: number) => api.post(`/api/missions/complete?userId=${userId}&missionId=${missionId}`),
+    removeMission: (userId: number, missionId: number) => api.delete(`/api/users/${userId}/missions/${missionId}`),
+  },
+  branches: {
+    list: () => api.get<any[]>('/api/branches'),
   },
   missions: {
     create: (body: any) => api.post<any>('/api/missions', body),
