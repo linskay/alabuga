@@ -12,6 +12,21 @@ const AdminScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts'>('crew');
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
+  // Универсальная функция для обработки ошибок
+  const getErrorMessage = (e: any): string => {
+    if (e?.response?.data?.message) {
+      // Ошибка от бекенда с полем message
+      return e.response.data.message;
+    } else if (e?.message) {
+      // Ошибка JavaScript
+      return e.message;
+    } else if (typeof e === 'string') {
+      // Строковая ошибка
+      return e;
+    }
+    return 'Неизвестная ошибка';
+  };
+
   const tabs = [
     { id: 'crew' as const, name: 'ЭКИПАЖ', color: 'from-blue-400 to-cyan-500' },
     { id: 'missions' as const, name: 'ЗАДАНИЯ', color: 'from-orange-400 to-red-500' },
@@ -57,6 +72,7 @@ const AdminScreen: React.FC = () => {
   const [editMissionData, setEditMissionData] = useState<any | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
   const [confirmDeleteArtifact, setConfirmDeleteArtifact] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
+  const [confirmDeleteMission, setConfirmDeleteMission] = useState<{ open: boolean; id?: number; name?: string }>({ open: false });
   const [assignOpen, setAssignOpen] = useState<{ open: boolean; missionId?: number }>({ open: false });
   const [assignEmail, setAssignEmail] = useState<string>('');
   const [assignUserSearch, setAssignUserSearch] = useState<string>('');
@@ -79,6 +95,7 @@ const AdminScreen: React.FC = () => {
       await backend.missions.delete(id);
       setMissions(prev => prev.filter(m => m.id !== id));
       setNotif({ open: true, title: 'Миссия удалена', variant: 'success' });
+      setConfirmDeleteMission({ open: false });
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка удаления миссии', message: e?.message || 'Не удалось удалить миссию', variant: 'error' });
     }
@@ -121,7 +138,7 @@ const AdminScreen: React.FC = () => {
       setAssignUserResults([]);
       setAssignUserSelected(null);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Не удалось назначить миссию', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Не удалось назначить миссию', message: getErrorMessage(e), variant: 'error' });
     }
   };
   const deleteUser = async (id: number) => {
@@ -204,7 +221,7 @@ const AdminScreen: React.FC = () => {
       setAddArtifactOpen(false);
       setNewArtifact({ name: '', shortDescription: '', imageUrl: '', rarity: 'COMMON', isActive: true });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка создания артефакта', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка создания артефакта', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -217,7 +234,7 @@ const AdminScreen: React.FC = () => {
       setEditArtifactOpen(null);
       setEditArtifact(null);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка обновления артефакта', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка обновления артефакта', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -228,7 +245,7 @@ const AdminScreen: React.FC = () => {
       setNotif({ open: true, title: 'Артефакт удалён', variant: 'success' });
       setConfirmDeleteArtifact({ open: false });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка удаления артефакта', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка удаления артефакта', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -243,7 +260,7 @@ const AdminScreen: React.FC = () => {
       setAssignArtifactUserResults([]);
       setAssignArtifactUserSelected(null);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка назначения артефакта', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка назначения артефакта', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -256,7 +273,7 @@ const AdminScreen: React.FC = () => {
       setEditProductOpen(null);
       setEditProduct(null);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка обновления товара', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка обновления товара', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -266,7 +283,7 @@ const AdminScreen: React.FC = () => {
       setShopItems(prev => prev.filter(s => s.id !== id));
       setNotif({ open: true, title: 'Товар удалён', variant: 'success' });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка удаления товара', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка удаления товара', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -282,7 +299,7 @@ const AdminScreen: React.FC = () => {
       setAddUserOpen(false);
       setNewUser({ login: '', email: '', password: '', role: 'USER', experience: 0, energy: 100, rank: 0 });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка создания', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка создания', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -304,7 +321,7 @@ const AdminScreen: React.FC = () => {
       setCreateMissionOpen(false);
       setCreateMission({ name: '', description: '', type: 'QUEST', difficulty: 'EASY', experienceReward: 0, energyReward: 50, requiredRank: 1, requiredExperience: 0, requiredCompetencies: [], competencyRewards: [], isActive: true, artifactName: '' });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка создания миссии', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка создания миссии', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -349,7 +366,7 @@ const AdminScreen: React.FC = () => {
       setShopItems(prev => prev.map(s => s.id === id ? { ...s, price: updated.price ?? newPrice } : s));
       setNotif({ open: true, title: 'Товар обновлён', message: `${item.name}: новая цена ${newPrice}`, variant: 'success' });
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка обновления товара', message: e?.message || String(e), variant: 'error' });
+      setNotif({ open: true, title: 'Ошибка обновления товара', message: getErrorMessage(e), variant: 'error' });
     }
   };
 
@@ -499,12 +516,20 @@ const AdminScreen: React.FC = () => {
       <div className="bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="text-white"><ShinyText text="КОНСТРУКТОР МИССИЙ" className="text-2xl font-bold" /></div>
-          <MainButton
-            className="px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
-            onClick={() => setCreateMissionOpen(true)}
-          >
-            Создать миссию
-          </MainButton>
+          <div className="flex gap-3">
+            <MainButton
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300"
+              onClick={() => setNotif({ open: true, title: 'Статистика миссий', message: 'Функция в разработке', variant: 'info' })}
+            >
+              Статистика
+            </MainButton>
+            <MainButton
+              className="px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-400/25 transition-all duration-300"
+              onClick={() => setCreateMissionOpen(true)}
+            >
+              Создать миссию
+            </MainButton>
+          </div>
         </div>
         
         <div className="space-y-4">
@@ -551,7 +576,7 @@ const AdminScreen: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
-                  onClick={() => handleDeleteMission(mission.id)}
+                  onClick={() => setConfirmDeleteMission({ open: true, id: mission.id, name: mission.name })}
                 >
                   Удалить
                 </motion.button>
@@ -695,7 +720,7 @@ const AdminScreen: React.FC = () => {
                               const updated = await backend.shop.update(item.id, { available: v });
                               setShopItems(prev => prev.map(s => s.id === item.id ? { ...s, status: v ? 'active' : 'inactive' } : s));
                             } catch (e: any) {
-                              setNotif({ open: true, title: 'Ошибка обновления статуса', message: e?.message || String(e), variant: 'error' });
+                              setNotif({ open: true, title: 'Ошибка обновления статуса', message: getErrorMessage(e), variant: 'error' });
                             }
                           }} 
                         />
@@ -783,7 +808,7 @@ const AdminScreen: React.FC = () => {
                             const updated = await backend.artifacts.update(item.id, { isActive: v });
                             setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.isActive } : a));
                           } catch (e: any) {
-                            setNotif({ open: true, title: 'Ошибка статуса артефакта', message: e?.message || String(e), variant: 'error' });
+                            setNotif({ open: true, title: 'Ошибка статуса артефакта', message: getErrorMessage(e), variant: 'error' });
                           }
                         }} />
                       </div>
@@ -817,7 +842,7 @@ const AdminScreen: React.FC = () => {
                         className="col-span-2 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded text-red-200 text-xs hover:bg-red-500/40 transition-all duration-300 font-medium"
                         onClick={() => setConfirmDeleteArtifact({ open: true, id: item.id, name: item.name })}
                       >
-                        Удалить артефакт
+                        Деактивировать
                       </motion.button>
                     </div>
                   </div>
@@ -922,7 +947,7 @@ const AdminScreen: React.FC = () => {
       {confirmDelete.open && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDelete({ open: false }) as any} />
-          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
             <h3 className="text-xl font-bold text-red-300 mb-2">Удалить пользователя?</h3>
             <p className="text-gray-300">Вы действительно хотите удалить {confirmDelete.name || 'пользователя'}? Это действие необратимо.</p>
@@ -1455,11 +1480,11 @@ const AdminScreen: React.FC = () => {
             <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-white/80 mb-2">Вы уверены, что хотите удалить артефакт:</p>
+                <p className="text-white/80 mb-2">Вы уверены, что хотите деактивировать артефакт:</p>
                 <p className="text-red-300 font-semibold text-lg">{confirmDeleteArtifact.name}</p>
               </div>
               <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
-                <p className="text-red-200 text-sm">⚠️ Это действие нельзя отменить. Артефакт будет удален навсегда.</p>
+                <p className="text-red-200 text-sm">⚠️ Артефакт станет неактивным. Пользователи сохранят свои артефакты, но новые назначения будут невозможны.</p>
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
@@ -1471,6 +1496,40 @@ const AdminScreen: React.FC = () => {
               </button>
               <button 
                 onClick={() => confirmDeleteArtifact.id && handleDeleteArtifact(confirmDeleteArtifact.id)} 
+                className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition"
+              >
+                Деактивировать
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Mission Modal */}
+      {confirmDeleteMission.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmDeleteMission({ open: false })} />
+          <div className="relative z-[210] w-[90%] max-w-md rounded-2xl border border-red-400/30 bg-slate-900/80 p-6 max-h-[80vh] overflow-x-hidden hide-scrollbar shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(239,68,68,0.25), inset 0 0 30px rgba(239,68,68,0.15)' }} />
+            <h3 className="text-xl font-bold text-red-300 mb-4">Подтверждение удаления</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white/80 mb-2">Вы уверены, что хотите удалить миссию:</p>
+                <p className="text-red-300 font-semibold text-lg">{confirmDeleteMission.name}</p>
+              </div>
+              <div className="bg-red-500/10 border border-red-400/30 rounded p-3">
+                <p className="text-red-200 text-sm">⚠️ Это действие нельзя отменить. Миссия будет удалена навсегда.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button 
+                onClick={() => setConfirmDeleteMission({ open: false })} 
+                className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={() => confirmDeleteMission.id && handleDeleteMission(confirmDeleteMission.id)} 
                 className="px-4 py-2 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 hover:bg-red-500/30 transition"
               >
                 Удалить

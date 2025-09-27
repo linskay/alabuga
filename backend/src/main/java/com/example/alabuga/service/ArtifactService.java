@@ -82,12 +82,8 @@ public class ArtifactService {
     public void deleteArtifact(Long id) {
         Artifact artifact = artifactRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Артефакт", id));
-        
-        // Сначала удаляем все связи с пользователями
-        userArtifactRepository.deleteByArtifactId(id);
-        
-        // Затем удаляем сам артефакт
-        artifactRepository.delete(artifact);
+        artifact.setIsActive(false);
+        artifactRepository.save(artifact);
     }
     
     @Transactional
@@ -108,7 +104,6 @@ public class ArtifactService {
     }
     
     public List<UserArtifactDTO> getOtherUserArtifacts(Long userId) {
-        // Проверяем, что пользователь существует
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
         
@@ -123,8 +118,6 @@ public class ArtifactService {
         
         Artifact artifact = artifactRepository.findById(artifactId)
                 .orElseThrow(() -> new ResourceNotFoundException("Артефакт", artifactId));
-        
-        // Проверяем, не имеет ли уже пользователь этот артефакт
         if (userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId).isPresent()) {
             throw new BusinessLogicException("Пользователь уже имеет этот артефакт");
         }
