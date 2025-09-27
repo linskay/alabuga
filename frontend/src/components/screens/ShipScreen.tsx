@@ -5,6 +5,7 @@ import MainButton from '../MainButton';
 import { backend, ArtifactDTO } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 import Energon from '../Energon';
+import { useAppContext } from '../../contexts/AppContext';
 
 const StyledFlip = styled.div`
   .container { width: 240px; height: 294px; perspective: 900px; }
@@ -22,36 +23,107 @@ const StyledGlow = styled.div`
 `;
 
 const ShipScreen: React.FC = () => {
+  const { refreshUserData } = useAppContext();
   const [pageCosmo, setPageCosmo] = useState(1);
   const [pageArte, setPageArte] = useState(1);
   const pageSize = 6; // 3x2
 
   const cosmoCards = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ id: i+1, title: `Космокарта #${i+1}` })), []);
-  const [artefacts, setArtefacts] = useState<{ id: number; name?: string }[]>(
-    Array.from({ length: 18 }, (_, i) => ({ id: i+1 }))
-  );
+  const [artefacts, setArtefacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
+  const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
+  const [equippedArtifacts, setEquippedArtifacts] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const data = await backend.artifacts.active();
+        setLoading(true);
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const user = await backend.users.byLogin(login);
+        
+        const [allArtifacts, userArtifactsData] = await Promise.all([
+          backend.artifacts.active(),
+          backend.users.artifacts(user.id)
+        ]);
+        
         if (!mounted) return;
-        const mapped = data.map((a: ArtifactDTO) => ({ id: a.id, name: a.name }));
-        if (mapped.length) setArtefacts(mapped);
+        
+        // Все доступные артефакты
+        const mappedArtifacts = allArtifacts.map((a: ArtifactDTO) => ({ 
+          id: a.id, 
+          name: a.name,
+          rarity: a.rarity,
+          isEquipped: false
+        }));
+        setArtefacts(mappedArtifacts);
+        
+        // Артефакты пользователя
+        const mappedUserArtifacts = userArtifactsData.map((a: any) => ({ 
+          id: a.id, 
+          name: a.name,
+          rarity: a.rarity,
+          isEquipped: a.isEquipped || false
+        }));
+        setUserArtifacts(mappedUserArtifacts);
+        
+        // Экипированные артефакты
+        const equipped = mappedUserArtifacts.filter(a => a.isEquipped).map(a => a.id);
+        setEquippedArtifacts(equipped);
+        
       } catch (e: any) {
-        console.warn('Не удалось загрузить артефакты:', e?.message);
-        setError(e?.message || 'Не удалось загрузить артефакты');
+        console.warn('Не удалось загрузить данные корабля:', e?.message);
+        setError(e?.message || 'Не удалось загрузить данные корабля');
+      } finally {
+        setLoading(false);
       }
     })();
     return () => { mounted = false; };
   }, []);
 
+  const handleEquipArtifact = async (artifactId: number) => {
+    try {
+      const login = localStorage.getItem('currentLogin') || 'commander';
+      const user = await backend.users.byLogin(login);
+      
+      // Проверяем лимит экипированных артефактов
+      if (equippedArtifacts.length >= 3 && !equippedArtifacts.includes(artifactId)) {
+        alert('Можно экипировать максимум 3 артефакта');
+        return;
+      }
+      
+      // Переключаем состояние экипировки
+      await backend.users.equipArtifact(user.id, artifactId);
+      
+      // Полностью перезагружаем данные артефактов пользователя
+      const userArtifactsData = await backend.users.artifacts(user.id);
+      const mappedUserArtifacts = userArtifactsData.map((a: any) => ({ 
+        id: a.id, 
+        name: a.name,
+        rarity: a.rarity,
+        isEquipped: a.isEquipped || false
+      }));
+      setUserArtifacts(mappedUserArtifacts);
+      
+      // Обновляем экипированные артефакты
+      const equipped = mappedUserArtifacts.filter(a => a.isEquipped).map(a => a.id);
+      setEquippedArtifacts(equipped);
+      
+      // Уведомляем другие экраны об обновлении данных пользователя
+      refreshUserData();
+      
+    } catch (e: any) {
+      const errorInfo = handleApiError(e);
+      console.warn('Не удалось экипировать артефакт:', errorInfo.message);
+      alert(`${errorInfo.title}: ${errorInfo.message}`);
+    }
+  };
+
   const totalCosmo = Math.max(1, Math.ceil(cosmoCards.length / pageSize));
-  const totalArte = Math.max(1, Math.ceil(artefacts.length / pageSize));
+  const totalArte = Math.max(1, Math.ceil(userArtifacts.length / pageSize));
   const cosmoPageItems = cosmoCards.slice((pageCosmo-1)*pageSize, pageCosmo*pageSize);
-  const artePageItems = artefacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
+  const artePageItems = userArtifacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
 
   return (
     <div className="h-full pb-8">
@@ -59,7 +131,7 @@ const ShipScreen: React.FC = () => {
         {/* Подзаголовок */}
         <div className="mt-6 mb-6">
           <h2 className="text-center">
-            <ShinyText text="КОЛЛЕКЦИЯ КОСМОКАРТ" speed={6} />
+            <ShinyText text="КОЛЛЕКЦИЯ КОСМОКАРТ" className="text-2xl font-bold" speed={6} />
           </h2>
         </div>
 
@@ -106,18 +178,42 @@ const ShipScreen: React.FC = () => {
 
         {/* Коллекция артефактов */}
         <div className="mt-12 mb-6 text-center">
-          <ShinyText text="КОЛЛЕКЦИЯ АРТЕФАКТОВ" speed={6} />
+          <h2 className="text-center">
+            <ShinyText text="КОЛЛЕКЦИЯ АРТЕФАКТОВ" className="text-2xl font-bold" speed={6} />
+          </h2>
         </div>
         <div className="mx-auto" style={{ maxWidth: '660px' }}>
-          {error && (
-            <div className="mb-4 text-sm text-red-300 text-center">{error} — показаны демонстрационные данные</div>
-          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-8 gap-x-4 justify-items-center">
-            {artePageItems.map((a) => (
-              <StyledGlow key={a.id}>
-                <div className="card" title={a.name || `Артефакт #${a.id}`} />
-              </StyledGlow>
-            ))}
+            {loading ? (
+              <div className="col-span-full text-center text-white/60">Загрузка артефактов...</div>
+            ) : artePageItems.length === 0 ? (
+              <div className="col-span-full text-center text-white/60">У вас пока нет артефактов</div>
+            ) : (
+              artePageItems.map((a) => (
+                <div key={a.id} className="relative">
+                  <StyledGlow>
+                    <div className="card" title={a.name || `Артефакт #${a.id}`} />
+                  </StyledGlow>
+                  <div className="mt-2 text-center">
+                    <div className="text-white text-sm font-medium mb-1">{a.name || `Артефакт #${a.id}`}</div>
+                    <div className="text-white/60 text-xs mb-2">{a.rarity || 'COMMON'}</div>
+                    <MainButton
+                      onClick={() => handleEquipArtifact(a.id)}
+                      className={`px-3 py-1 text-xs rounded ${
+                        a.isEquipped 
+                          ? 'bg-red-500 hover:bg-red-600' 
+                          : equippedArtifacts.length >= 3 
+                            ? 'bg-gray-500 cursor-not-allowed' 
+                            : 'bg-green-500 hover:bg-green-600'
+                      } text-white font-medium transition-colors`}
+                      disabled={!a.isEquipped && equippedArtifacts.length >= 3}
+                    >
+                      {a.isEquipped ? 'Снять' : 'Экипировать'}
+                    </MainButton>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
         <div className="mt-6 flex items-center justify-center space-x-4">

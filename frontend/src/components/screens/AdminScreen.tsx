@@ -8,8 +8,10 @@ import { backend, api, UserDTO } from '../../api';
 import SystemNotification from '../SystemNotification';
 import ShinyText from '../ShinyText';
 import Energon from '../Energon';
+import { useAppContext } from '../../contexts/AppContext';
 
 const AdminScreen: React.FC = () => {
+  const { refreshUserData } = useAppContext();
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts'>('crew');
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
@@ -472,13 +474,16 @@ const AdminScreen: React.FC = () => {
 
   const handleAssignArtifact = async () => {
     try {
-      // Здесь должен быть API для назначения артефакта пользователю
-      // await backend.artifacts.assign(assignArtifactOpen.id, assignArtifactUserSelected.id);
+      // Используем реальный API для назначения артефакта пользователю
+      await backend.users.giveArtifact(assignArtifactUserSelected.id, assignArtifactOpen.id);
       setNotif({ open: true, title: 'Артефакт назначен', message: `Пользователю ${assignArtifactUserSelected.name || assignArtifactUserSelected.email}`, variant: 'success' });
       setAssignArtifactOpen(null);
       setAssignArtifactUserSearch('');
       setAssignArtifactUserResults([]);
       setAssignArtifactUserSelected(null);
+      
+      // Уведомляем другие экраны об обновлении данных пользователя
+      refreshUserData();
     } catch (e: any) {
       // Обработка ошибок валидации от бекенда
       if (e?.response?.data?.title && e?.response?.data?.message) {

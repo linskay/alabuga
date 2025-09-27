@@ -6,5 +6,6 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
     <include file="db/changelog/001-initial-schema.xml" relativeToChangelogFile="true"/>
+    <include file="db/changelog/003-user-artifacts.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

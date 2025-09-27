@@ -236,14 +236,6 @@ public class UserController {
         return ResponseEntity.ok(artifacts);
     }
     
-    @GetMapping("/{id}/artifacts")
-    @Operation(summary = "Получить артефакты пользователя")
-    public ResponseEntity<List<UserArtifactDTO>> getUserArtifacts(
-            @Parameter(description = "ID пользователя") @PathVariable Long id) {
-        List<UserArtifactDTO> artifacts = userService.getUserArtifacts(id);
-        return ResponseEntity.ok(artifacts);
-    }
-    
     @PostMapping("/{id}/artifacts")
     @Operation(summary = "Добавить артефакт пользователю")
     public ResponseEntity<UserArtifactDTO> addUserArtifact(
@@ -253,23 +245,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userArtifact);
     }
     
-    @PostMapping("/{id}/artifacts/{artifactId}/equip")
-    @Operation(summary = "Экипировать артефакт")
-    public ResponseEntity<UserArtifactDTO> equipArtifact(
-            @Parameter(description = "ID пользователя") @PathVariable Long id,
-            @Parameter(description = "ID артефакта") @PathVariable Long artifactId) {
-        UserArtifactDTO userArtifact = userService.equipArtifact(id, artifactId);
-        return ResponseEntity.ok(userArtifact);
-    }
-    
-    @PostMapping("/{id}/artifacts/{artifactId}/unequip")
-    @Operation(summary = "Снять артефакт")
-    public ResponseEntity<UserArtifactDTO> unequipArtifact(
-            @Parameter(description = "ID пользователя") @PathVariable Long id,
-            @Parameter(description = "ID артефакта") @PathVariable Long artifactId) {
-        UserArtifactDTO userArtifact = userService.unequipArtifact(id, artifactId);
-        return ResponseEntity.ok(userArtifact);
-    }
     
     // ========== COMPETENCY TRACKING ENDPOINTS ==========
     
