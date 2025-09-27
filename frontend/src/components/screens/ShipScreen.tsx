@@ -51,7 +51,7 @@ const ShipScreen: React.FC = () => {
   const artePageItems = artefacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
 
   return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen">
+    <div className="h-full pb-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Подзаголовок */}
         <div className="mt-6 mb-6">
@@ -81,10 +81,24 @@ const ShipScreen: React.FC = () => {
           ))}
           </div>
         </div>
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <MainButton disabled={pageCosmo===1} onClick={()=>setPageCosmo(p=>Math.max(1,p-1))}>Назад</MainButton>
-          <div className="text-white/80 text-sm min-w-[100px] text-center">Стр. {pageCosmo} / {totalCosmo}</div>
-          <MainButton disabled={pageCosmo===totalCosmo} onClick={()=>setPageCosmo(p=>Math.min(totalCosmo,p+1))}>Вперёд</MainButton>
+        <div className="mt-6 flex items-center justify-center space-x-4">
+          <MainButton
+            onClick={() => setPageCosmo(p => Math.max(1, p - 1))}
+            disabled={pageCosmo === 1}
+            className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+          >
+            ← Назад
+          </MainButton>
+          <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+            Страница {pageCosmo} из {totalCosmo}
+          </span>
+          <MainButton
+            onClick={() => setPageCosmo(p => Math.min(totalCosmo, p + 1))}
+            disabled={pageCosmo === totalCosmo}
+            className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+          >
+            Вперёд →
+          </MainButton>
         </div>
 
         {/* Коллекция артефактов */}
@@ -103,10 +117,24 @@ const ShipScreen: React.FC = () => {
             ))}
           </div>
         </div>
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <MainButton disabled={pageArte===1} onClick={()=>setPageArte(p=>Math.max(1,p-1))}>Назад</MainButton>
-          <div className="text-white/80 text-sm min-w-[100px] text-center">Стр. {pageArte} / {totalArte}</div>
-          <MainButton disabled={pageArte===totalArte} onClick={()=>setPageArte(p=>Math.min(totalArte,p+1))}>Вперёд</MainButton>
+        <div className="mt-6 flex items-center justify-center space-x-4">
+          <MainButton
+            onClick={() => setPageArte(p => Math.max(1, p - 1))}
+            disabled={pageArte === 1}
+            className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+          >
+            ← Назад
+          </MainButton>
+          <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+            Страница {pageArte} из {totalArte}
+          </span>
+          <MainButton
+            onClick={() => setPageArte(p => Math.min(totalArte, p + 1))}
+            disabled={pageArte === totalArte}
+            className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+          >
+            Вперёд →
+          </MainButton>
         </div>
       </div>
     </div>

@@ -58,6 +58,7 @@ export const backend = {
     requirementByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
   },
   shop: {
+    list: () => api.get<ShopItemDTO[]>('/api/shop'),
     available: () => api.get<ShopItemDTO[]>('/api/shop/available'),
     update: (id: number, body: Partial<ShopItemDTO>) => api.put<ShopItemDTO>(`/api/shop/${id}`, body),
     create: (body: Partial<ShopItemDTO>) => api.post<ShopItemDTO>('/api/shop', body),

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import MainButton from '../MainButton';
 import styled, { keyframes } from 'styled-components';
 import CircularLoader from '../CircularLoader';
-import { backend, ShopItemDTO } from '../../api';
+import { backend, ShopItemDTO, UserDTO } from '../../api';
 import SystemNotification from '../SystemNotification';
+import Energon from '../Energon';
 
 // Фоновое размещение нашей сферической анимации (CircularLoader)
 const LoaderBg = styled.div`
@@ -36,30 +37,41 @@ const TerminalScreen: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const pageSize = 6; // 3x2 на странице
 
-  const [items, setItems] = useState<{ title: string; desc: string }[]>([
-    { title: 'Квантовый модуль', desc: 'Ускоряет навигацию по гиперпространству' },
-    { title: 'Ядро сингулярности', desc: 'Стабилизирует энергосети корабля' },
-    { title: 'Двигатель «Гидра»', desc: 'Повышает маневренность на орбите' },
-    { title: 'Щит «Атлас»', desc: 'Поглощает микрометеоритные удары' },
-    { title: 'Сканер «Нептун»', desc: 'Выявляет аномалии на дальних дистанциях' },
-    { title: 'Дрон «Церера»', desc: 'Автоматизирует добычу ресурсов' },
-    { title: 'Маяк «Гелиос»', desc: 'Передаёт сигналы через ионосферу' },
-    { title: 'Контур «Персей»', desc: 'Снижает турбулентность в штормах' },
-    { title: 'Иниціатор «Орфей»', desc: 'Запускает автономные протоколы' },
-  ]);
+  const [items, setItems] = useState<{ title: string; desc: string; price?: number; currency?: string }[]>([]);
+  const [user, setUser] = useState<UserDTO | null>(null);
+  const [purchaseHistory, setPurchaseHistory] = useState<{ title: string; desc: string; price: number; currency: string; purchasedAt: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
+  const [confirmPurchase, setConfirmPurchase] = useState<{ open: boolean; item?: { title: string; price: number } }>({ open: false });
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const data = await backend.shop.available();
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const [userData, shopData] = await Promise.all([
+          backend.users.byLogin(login),
+          backend.shop.list()
+        ]);
         if (!mounted) return;
-        const mapped = data.map((d: ShopItemDTO) => ({ title: d.name, desc: d.description || '' }));
-        if (mapped.length) setItems(mapped);
+        
+        setUser(userData);
+        const mapped = shopData.map((d: ShopItemDTO) => ({ 
+          title: d.name, 
+          desc: d.description || '', 
+          price: d.price,
+          currency: 'энергоны' 
+        }));
+        setItems(mapped);
+        
+        // Загружаем историю покупок (заглушка)
+        setPurchaseHistory([
+          { title: 'Квантовый модуль', desc: 'Ускоряет навигацию по гиперпространству', price: 150, currency: 'энергоны', purchasedAt: '2024-01-15' },
+          { title: 'Ядро сингулярности', desc: 'Стабилизирует энергосети корабля', price: 200, currency: 'энергоны', purchasedAt: '2024-01-14' },
+          { title: 'Двигатель «Гидра»', desc: 'Повышает маневренность на орбите', price: 300, currency: 'энергоны', purchasedAt: '2024-01-13' },
+        ]);
       } catch (e: any) {
-        setError(e?.message || 'Не удалось загрузить товары');
+        setError(e?.message || 'Не удалось загрузить данные');
       }
     })();
     return () => { mounted = false; };
@@ -69,8 +81,22 @@ const TerminalScreen: React.FC = () => {
   const currentPage = Math.min(page, totalPages);
   const pageItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const handlePurchase = async () => {
+    if (!confirmPurchase.item) return;
+    try {
+      setNotif({ open: true, title: 'Покупка оформлена', message: `Товар «${confirmPurchase.item.title}» добавлен`, variant: 'success' });
+      setConfirmPurchase({ open: false });
+    } catch (e: any) {
+      setNotif({ open: true, title: 'Ошибка покупки', message: e?.message || 'Не удалось оформить покупку', variant: 'error' });
+    }
+  };
+
+  const closePurchaseConfirm = () => {
+    setConfirmPurchase({ open: false });
+  };
+
   return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen relative">
+    <div className="h-full pb-8 relative">
       <LoaderBg>
         <CircularLoader />
       </LoaderBg>
@@ -111,16 +137,16 @@ const TerminalScreen: React.FC = () => {
                       {it.title}
                     </h3>
                     <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,240,255,0.85)' }}>{it.desc}</p>
+                    {it.price && (
+                      <div className="mt-4 flex items-center justify-center gap-2 text-lg font-bold" style={{ color: 'rgba(0,174,239,0.9)' }}>
+                        {it.price}
+                        <Energon size={20} />
+                      </div>
+                    )}
                     <div className="mt-6 w-1/3 h-0.5 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, transparent, rgba(0,174,239,0.8), transparent)' }}></div>
                     <div className="mt-6 flex justify-center">
                       <MainButton
-                        onClick={async () => {
-                          try {
-                            setNotif({ open: true, title: 'Покупка оформлена', message: `Товар «${it.title}» добавлен`, variant: 'success' });
-                          } catch (e: any) {
-                            setNotif({ open: true, title: 'Ошибка покупки', message: e?.message || 'Не удалось оформить покупку', variant: 'error' });
-                          }
-                        }}
+                        onClick={() => setConfirmPurchase({ open: true, item: { title: it.title, price: it.price || 0 } })}
                         className="px-5 py-2"
                       >
                         Купить
@@ -131,15 +157,25 @@ const TerminalScreen: React.FC = () => {
               </div>
           ))}
         </div>
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <MainButton disabled={currentPage === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
-              Назад
+          <div className="mt-8 flex items-center justify-center space-x-4">
+            <MainButton
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+            >
+              ← Назад
             </MainButton>
-            <div className="text-white/80 text-sm min-w-[100px] text-center">Стр. {currentPage} / {totalPages}</div>
-            <MainButton disabled={currentPage === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
-              Вперёд
+            <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+              Страница {currentPage} из {totalPages}
+            </span>
+            <MainButton
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+            >
+              Вперёд →
             </MainButton>
-      </div>
+          </div>
     </div>
       )}
 
@@ -147,25 +183,60 @@ const TerminalScreen: React.FC = () => {
         <div className="px-4">
           <div className="overflow-hidden rounded-2xl shadow-2xl backdrop-blur-xl" style={{ border: '1px solid rgba(0,174,239,0.25)', background: 'linear-gradient(135deg, #031521, #061a27)' }}>
             <div className="h-12 flex items-center px-4" style={{ background: 'linear-gradient(90deg, rgba(0,174,239,0.25), rgba(0,174,239,0.12), transparent)' }}>
-              <span className="font-semibold" style={{ color: 'rgba(200,240,255,0.95)' }}>История операций</span>
+              <span className="font-semibold" style={{ color: 'rgba(200,240,255,0.95)' }}>История покупок</span>
             </div>
             <div className="divide-y" style={{ borderColor: 'rgba(0,174,239,0.12)' }}>
-              {[
-                { action: 'Активация модуля', detail: 'Квантовый модуль', time: '02:14' },
-                { action: 'Обновление ядра', detail: 'Ядро сингулярности', time: '02:09' },
-                { action: 'Калибровка щита', detail: 'Атлас', time: '01:58' },
-                { action: 'Диагностика двигателя', detail: 'Гидра', time: '01:41' },
-                { action: 'Запуск дрона', detail: 'Церера', time: '01:10' },
-              ].map((row, idx) => (
-                <div key={idx} className="grid grid-cols-3 gap-2 px-4 py-3 transition-colors" style={{ color: 'rgba(200,240,255,0.9)' }}>
-                  <div className="font-medium">{row.action}</div>
-                  <div style={{ color: 'rgba(200,240,255,0.75)' }}>{row.detail}</div>
-                  <div className="text-right" style={{ color: 'rgba(200,240,255,0.85)' }}>{row.time}</div>
+              {purchaseHistory.length > 0 ? (
+                purchaseHistory.map((purchase, idx) => (
+                  <div key={idx} className="grid grid-cols-4 gap-2 px-4 py-3 transition-colors" style={{ color: 'rgba(200,240,255,0.9)' }}>
+                    <div className="font-medium">{purchase.title}</div>
+                    <div style={{ color: 'rgba(200,240,255,0.75)' }}>{purchase.desc}</div>
+                    <div className="text-center flex items-center justify-center gap-1" style={{ color: 'rgba(0,174,239,0.9)' }}>
+                      {purchase.price} <Energon size={16} /> энерг.
+                    </div>
+                    <div className="text-right" style={{ color: 'rgba(200,240,255,0.85)' }}>{purchase.purchasedAt}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-8 text-center" style={{ color: 'rgba(200,240,255,0.6)' }}>
+                  История покупок пуста
                 </div>
-              ))}
+              )}
             </div>
             <div className="h-1 animate-pulse" style={{ background: 'linear-gradient(90deg, transparent, rgba(0,174,239,0.45), transparent)' }} />
               </div>
+        </div>
+      )}
+
+      {/* Purchase Confirmation Modal */}
+      {confirmPurchase.open && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closePurchaseConfirm} />
+          <div className="relative z-[110] w-[90%] max-w-md rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
+            <h3 className="text-xl font-bold text-cyan-300 mb-2">Сообщение от бортпомощника</h3>
+            <p className="text-gray-300 text-sm mb-4">
+              На покупку товара «{confirmPurchase.item?.title}» вы потратите{' '}
+              <span className="inline-flex items-center gap-1 text-cyan-300 font-semibold">
+                {confirmPurchase.item?.price} <Energon size={16} />
+              </span>
+            </p>
+            <p className="text-gray-400 text-xs mb-6">Подтвердите выбор</p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={closePurchaseConfirm} 
+                className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={handlePurchase} 
+                className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30 transition"
+              >
+                Да
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

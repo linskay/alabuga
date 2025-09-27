@@ -7,6 +7,7 @@ import CardTsup from '../CardTsup';
 import { backend, api, UserDTO } from '../../api';
 import SystemNotification from '../SystemNotification';
 import ShinyText from '../ShinyText';
+import Energon from '../Energon';
 
 const AdminScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts'>('crew');
@@ -283,9 +284,9 @@ const AdminScreen: React.FC = () => {
   ];
 
   const [shopItems, setShopItems] = useState([
-    { id: 1, name: 'Премиум подписка', price: 1000, currency: '⚡', status: 'active', sales: 45 },
-    { id: 2, name: 'Ускоритель опыта', price: 50, currency: '⚡', status: 'active', sales: 127 },
-    { id: 3, name: 'Космический костюм', price: 500, currency: '⚡', status: 'inactive', sales: 23 }
+    { id: 1, name: 'Премиум подписка', price: 1000, currency: 'energon', status: 'active', sales: 45 },
+    { id: 2, name: 'Ускоритель опыта', price: 50, currency: 'energon', status: 'active', sales: 127 },
+    { id: 3, name: 'Космический костюм', price: 500, currency: 'energon', status: 'inactive', sales: 23 }
   ]);
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [editProductOpen, setEditProductOpen] = useState<any>(null);
@@ -301,7 +302,7 @@ const AdminScreen: React.FC = () => {
     
     try {
       const created = await backend.shop.create({ name: newProduct.name, price: newProduct.price, available: newProduct.available, description: newProduct.description });
-      setShopItems(prev => [{ id: created.id || Math.max(0, ...prev.map(s => s.id)) + 1, name: created.name || newProduct.name, price: created.price ?? newProduct.price, currency: '⚡', status: created.available ? 'active' : 'inactive', sales: 0 }, ...prev]);
+      setShopItems(prev => [{ id: created.id || Math.max(0, ...prev.map(s => s.id)) + 1, name: created.name || newProduct.name, price: created.price ?? newProduct.price, currency: 'energon', status: created.available ? 'active' : 'inactive', sales: 0 }, ...prev]);
       setNotif({ open: true, title: 'Товар добавлен', variant: 'success' });
       setAddProductOpen(false);
       setNewProduct({ name: '', price: 0, available: true, description: '', imageUrl: '' });
@@ -969,8 +970,8 @@ const AdminScreen: React.FC = () => {
                       <div className="text-3xl">🛍️</div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-white font-bold text-lg truncate" title={item.name}>{item.name}</h4>
-                        <div className="text-2xl font-bold text-green-400">
-                          {item.price} {item.currency}
+                        <div className="text-2xl font-bold text-green-400 flex items-center gap-1">
+                          {item.price} <Energon size={20} />
                         </div>
                       </div>
                     </div>
