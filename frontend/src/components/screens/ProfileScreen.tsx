@@ -13,6 +13,7 @@ import CosmicProgressBar from '../CosmicProgressBar';
 import { useNotifications } from '../../hooks/useNotifications';
 import { NeonGradientCard } from '../NeonGradientCard';
 import ShinyText from '../ShinyText';
+import { useAppContext } from '../../contexts/AppContext';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
 import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
@@ -55,12 +56,15 @@ const ProfileScreen: React.FC = () => {
     togglePanel,
     closePanel
   } = useNotifications();
+  
+  const { refreshUserData } = useAppContext();
 
   const [user, setUser] = useState<UserDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [competencies, setCompetencies] = useState<UserCompetency[]>([]);
   const [userMissions, setUserMissions] = useState<UserMission[]>([]);
   const [nextRankReq, setNextRankReq] = useState<any | null>(null);
+  const [equippedArtifacts, setEquippedArtifacts] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -72,13 +76,18 @@ const ProfileScreen: React.FC = () => {
         if (!mounted) return;
         setUser(u);
         try {
-          const [comp, missions] = await Promise.all([
+          const [comp, missions, artifacts] = await Promise.all([
             backend.users.competencies(u.id),
             backend.users.missions(u.id),
+            backend.users.artifacts(u.id)
           ]);
           if (!mounted) return;
           setCompetencies(comp || []);
           setUserMissions(missions || []);
+          
+          // Фильтруем только экипированные артефакты
+          const equipped = (artifacts || []).filter((a: any) => a.isEquipped);
+          setEquippedArtifacts(equipped);
         } catch {}
         try {
           const req = await backend.ranks.requirementByLevel((u.rank ?? 0) + 1);
@@ -91,7 +100,7 @@ const ProfileScreen: React.FC = () => {
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [refreshUserData]);
 
   return (
     <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden z-10">
@@ -301,9 +310,39 @@ const ProfileScreen: React.FC = () => {
             </div>
           </NeonGradientCard>
 
-          
-
-          
+          {/* Избранные артефакты */}
+          <NeonGradientCard className="p-8">
+            <div className="mb-6 flex items-center">
+              <ShinyText text="ИЗБРАННЫЕ АРТЕФАКТЫ" className="text-2xl font-bold" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {equippedArtifacts.length === 0 ? (
+                <div className="col-span-full text-center text-gray-400 py-8">
+                  <div className="text-lg mb-2">Нет экипированных артефактов</div>
+                  <div className="text-sm">Перейдите в раздел "Корабль" для экипировки артефактов</div>
+                </div>
+              ) : (
+                equippedArtifacts.map((artifact, index) => (
+                  <motion.div
+                    key={artifact.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                    className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-400/20 hover:border-blue-400/40 transition-all duration-300"
+                  >
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">A</span>
+                      </div>
+                      <div className="text-white font-medium mb-1">{artifact.name}</div>
+                      <div className="text-gray-400 text-sm mb-2">{artifact.rarity}</div>
+                      <div className="text-green-400 text-xs">Экипирован</div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </NeonGradientCard>
         </motion.div>
       </div>
 

@@ -138,12 +138,4 @@ public class ArtifactController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/user/{userId}/artifact/{artifactId}/equip")
-    @Operation(summary = "Переключить экипировку артефакта")
-    public ResponseEntity<UserArtifactDTO> toggleArtifactEquip(
-            @Parameter(description = "ID пользователя") @PathVariable Long userId,
-            @Parameter(description = "ID артефакта") @PathVariable Long artifactId) {
-        UserArtifactDTO userArtifact = artifactService.toggleArtifactEquip(userId, artifactId);
-        return ResponseEntity.ok(userArtifact);
-    }
 }

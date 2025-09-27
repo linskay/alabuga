@@ -118,7 +118,7 @@ public class ArtifactService {
         
         Artifact artifact = artifactRepository.findById(artifactId)
                 .orElseThrow(() -> new ResourceNotFoundException("Артефакт", artifactId));
-        if (userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId).isPresent()) {
+        if (userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId) != null) {
             throw new BusinessLogicException("Пользователь уже имеет этот артефакт");
         }
         
@@ -134,16 +134,20 @@ public class ArtifactService {
     
     @Transactional
     public void removeArtifactFromUser(Long userId, Long artifactId) {
-        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId)
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт пользователя", artifactId));
+        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId);
+        if (userArtifact == null) {
+            throw new ResourceNotFoundException("Артефакт пользователя", artifactId);
+        }
         
         userArtifactRepository.delete(userArtifact);
     }
     
     @Transactional
     public UserArtifactDTO toggleArtifactEquip(Long userId, Long artifactId) {
-        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId)
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт пользователя", artifactId));
+        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId);
+        if (userArtifact == null) {
+            throw new ResourceNotFoundException("Артефакт пользователя", artifactId);
+        }
         
         userArtifact.setIsEquipped(!userArtifact.getIsEquipped());
         UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);

@@ -36,15 +36,13 @@ public class ArtifactMapper {
         }
         
         return UserArtifactDTO.builder()
-                .id(userArtifact.getId())
-                .userId(userArtifact.getUser() != null ? userArtifact.getUser().getId() : null)
-                .artifactId(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getId() : null)
-                .artifactName(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getName() : null)
-                .artifactShortDescription(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getShortDescription() : null)
-                .artifactImageUrl(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getImageUrl() : null)
-                .artifactRarity(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getRarity().toString() : null)
+                .id(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getId() : null)
+                .name(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getName() : null)
+                .shortDescription(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getShortDescription() : null)
+                .imageUrl(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getImageUrl() : null)
+                .rarity(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getRarity() : null)
                 .isEquipped(userArtifact.getIsEquipped())
-                .isActive(true) // UserArtifact не имеет поля isActive, используем true по умолчанию
+                .acquiredAt(userArtifact.getAcquiredAt() != null ? userArtifact.getAcquiredAt().toString() : null)
                 .build();
     }
     

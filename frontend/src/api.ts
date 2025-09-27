@@ -106,6 +106,9 @@ export const backend = {
     takeMission: (userId: number, missionId: number) => api.post(`/api/users/${userId}/missions/${missionId}/take`),
     completeMission: (userId: number, missionId: number) => api.post(`/api/missions/complete?userId=${userId}&missionId=${missionId}`),
     removeMission: (userId: number, missionId: number) => api.delete(`/api/users/${userId}/missions/${missionId}/remove`),
+    artifacts: (userId: number) => api.get<any[]>(`/api/users/${userId}/artifacts`),
+    equipArtifact: (userId: number, artifactId: number) => api.post(`/api/users/${userId}/artifacts/${artifactId}/equip`),
+    giveArtifact: (userId: number, artifactId: number) => api.post(`/api/users/${userId}/artifacts/${artifactId}/give`),
   },
   branches: {
     list: () => api.get<any[]>('/api/branches'),
