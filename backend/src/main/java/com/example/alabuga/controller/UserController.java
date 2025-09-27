@@ -302,7 +302,7 @@ public class UserController {
         return ResponseEntity.ok(userMission);
     }
     
-    @DeleteMapping("/{id}/missions/{missionId}")
+    @DeleteMapping("/{id}/missions/{missionId}/remove")
     @Operation(summary = "Удалить миссию у пользователя (только для админов)")
     public ResponseEntity<Void> removeMissionFromUser(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
