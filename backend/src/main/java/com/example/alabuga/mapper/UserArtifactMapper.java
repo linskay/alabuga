@@ -23,7 +23,6 @@ public class UserArtifactMapper {
         return UserArtifactDTO.builder()
                 .id(userArtifact.getArtifact().getId())
                 .name(userArtifact.getArtifact().getName())
-                .shortDescription(userArtifact.getArtifact().getShortDescription())
                 .imageUrl(userArtifact.getArtifact().getImageUrl())
                 .rarity(userArtifact.getArtifact().getRarity())
                 .isEquipped(userArtifact.getIsEquipped())

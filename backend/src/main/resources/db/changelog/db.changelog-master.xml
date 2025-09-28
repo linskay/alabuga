@@ -17,7 +17,8 @@
 
     <!-- Data Insertion Migrations -->
     <include file="007-insert-competencies-data.xml" relativeToChangelogFile="true"/>
-    <include file="008-insert-production-data.xml" relativeToChangelogFile="true"/>
+    <include file="013-insert-artifacts-data.xml" relativeToChangelogFile="true"/>
+    <include file="014-insert-missions-data.xml" relativeToChangelogFile="true"/>
     <include file="009-insert-test-users.xml" relativeToChangelogFile="true"/>
     <include file="010-insert-shop-items.xml" relativeToChangelogFile="true"/>
     <include file="011-insert-rank-requirements.xml" relativeToChangelogFile="true"/>

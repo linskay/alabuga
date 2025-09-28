@@ -102,6 +102,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="artifact_reward_id" type="BIGINT"/>
+            <column name="image_url" type="VARCHAR(500)"/>
         </createTable>
     </changeSet>
 

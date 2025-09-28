@@ -37,7 +37,6 @@ public class ArtifactDTO {
         return ArtifactDTO.builder()
                 .id(artifact.getId())
                 .name(artifact.getName())
-                .shortDescription(artifact.getShortDescription())
                 .imageUrl(artifact.getImageUrl())
                 .rarity(artifact.getRarity())
                 .isActive(artifact.getIsActive())
