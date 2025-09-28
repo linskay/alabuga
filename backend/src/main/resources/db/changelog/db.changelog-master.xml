@@ -8,6 +8,7 @@
     <!-- Table Creation Migrations -->
     <include file="001-create-users-table.xml" relativeToChangelogFile="true"/>
     <include file="003-create-competencies-table.xml" relativeToChangelogFile="true"/>
+    <include file="008-create-user-competencies-table.xml" relativeToChangelogFile="true"/>
     <include file="003-create-goose-game-profile.xml" relativeToChangelogFile="true"/>
     <include file="004-create-artifacts-table.xml" relativeToChangelogFile="true"/>
     <include file="002-create-user-artifacts-table.xml" relativeToChangelogFile="true"/>

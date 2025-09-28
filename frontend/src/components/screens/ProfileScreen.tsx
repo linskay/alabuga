@@ -17,6 +17,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
 import MissionIcon from '../MissionIcon';
+import ExperienceIcon from '../ExperienceIcon';
 import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 
@@ -89,17 +90,36 @@ const ProfileScreen: React.FC = () => {
     let mounted = true;
     (async () => {
       try {
-        // Временный способ получить текущий логин: берём из localStorage или fallback
-        const login = localStorage.getItem('currentLogin') || 'commander';
-        const u = await backend.users.byLogin(login);
-        if (!mounted) return;
-        setUser(u);
+        // Получаем текущий логин из localStorage
+        const login = localStorage.getItem('currentLogin');
+        if (!login) {
+          setError('Пользователь не авторизован');
+          return;
+        }
+
+        // Проверяем валидность сессии
+        try {
+          const validationResponse = await backend.auth.validate(login);
+          if (!validationResponse.valid) {
+            setError('Сессия истекла. Пожалуйста, войдите заново.');
+            return;
+          }
+          setUser(validationResponse.user);
+        } catch (validationError) {
+          // Если валидация не удалась, пробуем получить пользователя напрямую
+          const u = await backend.users.byLogin(login);
+          if (!mounted) return;
+          setUser(u);
+        }
+
+        if (!mounted || !user) return;
+        
         try {
           const [comp, missions, artifacts, rank] = await Promise.all([
-            backend.users.competencies(u.id),
-            backend.users.missions(u.id),
-            backend.users.artifacts(u.id),
-            backend.ranks.byLevel(u.rank ?? 0)
+            backend.users.competencies(user.id),
+            backend.users.missions(user.id),
+            backend.users.artifacts(user.id),
+            backend.ranks.byLevel(user.rank ?? 0)
           ]);
           if (!mounted) return;
           setCompetencies(comp || []);
@@ -111,7 +131,7 @@ const ProfileScreen: React.FC = () => {
           setEquippedArtifacts(equipped);
         } catch {}
         try {
-          const req = await backend.ranks.requirementsByLevel((u.rank ?? 0) + 1);
+          const req = await backend.ranks.requirementsByLevel((user.rank ?? 0) + 1);
           if (!mounted) return;
           setNextRankReq(req || null);
         } catch {}
@@ -172,7 +192,7 @@ const ProfileScreen: React.FC = () => {
           )}
           <AstronautCard 
             login={user?.login || 'КОМАНДИР НЕКСУС'} 
-            rank={user?.rank ?? 42} 
+            rank={currentRank?.level ?? user?.rank ?? 0} 
             experience={user?.experience ?? 15420} 
           />
           
@@ -266,7 +286,10 @@ const ProfileScreen: React.FC = () => {
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Опыт</span>
+                  <span className="text-gray-300 flex items-center gap-2">
+                    <ExperienceIcon size={34} />
+                    Опыт
+                  </span>
                   <span className="text-cyan-400 font-bold">{user?.experience ?? 0}</span>
                 </div>
               </NeonGradientCard>

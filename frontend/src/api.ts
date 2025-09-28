@@ -55,6 +55,10 @@ export type CardDTO = { id: number; name: string; seriesName: string; frontImage
 export type UserCardDTO = { id: number; user: any; card: CardDTO; obtainedAt: string; isNew: boolean };
 
 export const backend = {
+  auth: {
+    login: (login: string, password?: string) => api.post<{ success: boolean; user: UserDTO; message: string }>('/api/auth/login', { login, password }),
+    validate: (login: string) => api.post<{ valid: boolean; user: UserDTO }>('/api/auth/validate', { login }),
+  },
   shop: {
     list: () => api.get<ShopItemDTO[]>('/api/shop'),
     available: () => api.get<ShopItemDTO[]>('/api/shop/available'),
