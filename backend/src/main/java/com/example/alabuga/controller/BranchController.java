@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/branches")
@@ -18,8 +19,7 @@ public class BranchController {
     @GetMapping
     @Operation(summary = "Получить все ветки миссий")
     public ResponseEntity<List<BranchDTO>> getAllBranches() {
-        List<BranchDTO> branches = List.of(MissionBranch.values())
-                .stream()
+        List<BranchDTO> branches = Stream.of(MissionBranch.values())
                 .map(this::toDTO)
                 .toList();
         return ResponseEntity.ok(branches);
@@ -38,8 +38,7 @@ public class BranchController {
     @Operation(summary = "Поиск веток по названию")
     public ResponseEntity<List<BranchDTO>> searchBranches(
             @Parameter(description = "Название для поиска") @RequestParam String name) {
-        List<BranchDTO> branches = List.of(MissionBranch.values())
-                .stream()
+        List<BranchDTO> branches = Stream.of(MissionBranch.values())
                 .filter(branch -> branch.getName().toLowerCase().contains(name.toLowerCase()))
                 .map(this::toDTO)
                 .toList();

@@ -38,6 +38,7 @@ import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserCompetencyRepository;
 import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
+import com.example.alabuga.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -108,6 +109,8 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", id));
         
+        Integer oldRank = user.getRank();
+        
         // Проверяем уникальность логина и email (если они изменились)
         if (userUpdateDTO.getLogin() != null && !user.getLogin().equals(userUpdateDTO.getLogin()) && 
             userRepository.existsByLogin(userUpdateDTO.getLogin())) {
@@ -122,6 +125,14 @@ public class UserService {
         userMapper.updateEntity(user, userUpdateDTO);
         
         User savedUser = userRepository.save(user);
+        
+        // Создаем уведомление о повышении ранга, если ранг изменился
+        if (userUpdateDTO.getRank() != null && !userUpdateDTO.getRank().equals(oldRank)) {
+            Rank oldRankObj = Rank.fromLevel(oldRank);
+            Rank newRankObj = Rank.fromLevel(userUpdateDTO.getRank());
+            notificationService.createRankPromotionNotification(savedUser, oldRankObj, newRankObj);
+        }
+        
         return userMapper.toDTO(savedUser);
     }
     

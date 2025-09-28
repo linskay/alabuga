@@ -13,6 +13,7 @@ const LoginForm: React.FC = () => {
     window.dispatchEvent(new Event('auth:login'));
     window.location.reload();
   };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -29,7 +30,7 @@ const LoginForm: React.FC = () => {
         >
           Вход в систему
         </motion.h3>
-        
+
         <motion.input
           type="text"
           placeholder="Имя пользователя"
@@ -40,7 +41,7 @@ const LoginForm: React.FC = () => {
           value={login}
           onChange={e => setLogin(e.target.value)}
         />
-        
+
         <motion.input
           type="password"
           placeholder="Пароль"
@@ -51,7 +52,7 @@ const LoginForm: React.FC = () => {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        
+
         <motion.button
           type="submit"
           className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all duration-300 shadow-lg hover:shadow-xl"

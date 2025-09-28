@@ -2,7 +2,6 @@ package com.example.alabuga.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,26 +20,31 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/cards")
 @Tag(name = "Карты", description = "API для работы с коллекционными картами")
 @Slf4j
+@RequiredArgsConstructor
 public class CardController {
 
-    @Autowired
-    private CardService cardService;
+    private final CardService cardService;
 
     @GetMapping("/available/{userId}")
-    @Operation(summary = "Получить доступные карты для пользователя", 
+    @Operation(summary = "Получить доступные карты для пользователя",
                description = "Возвращает список карт, которые пользователь может получить")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Список доступных карт"),
         @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     public ResponseEntity<List<CardDTO>> getAvailableCards(
-            @Parameter(description = "ID пользователя") @PathVariable Long userId) {
+            @Parameter(description = "ID пользователя", required = true)
+            @PathVariable
+            @Positive(message = "ID пользователя должен быть положительным")
+            Long userId) {
         try {
             List<Card> cards = cardService.getAvailableCardsForUser(userId);
             List<CardDTO> cardDTOs = cards.stream()

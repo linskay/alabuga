@@ -17,7 +17,7 @@
             </column>
             <column name="short_description" type="VARCHAR(200)"/>
             <column name="image_url" type="VARCHAR(500)"/>
-            <column name="rarity" type="VARCHAR(20)">
+            <column name="rarity" type="VARCHAR(20)" defaultValue="COMMON">
                 <constraints nullable="false"/>
             </column>
             <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">

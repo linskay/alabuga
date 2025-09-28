@@ -9,55 +9,67 @@
     <changeSet id="007-insert-competencies-data" author="Lins">
         <comment>Вставка начальных данных компетенций</comment>
 
-        <!-- Аналитико-Техническая ветка -->
+        <!-- 9 космических компетенций -->
         <insert tableName="competencies">
-            <column name="name" value="Анализ данных"/>
-            <column name="short_description" value="Умение анализировать большие объемы данных"/>
-            <column name="description" value="Компетенция в области анализа данных включает способность работать с большими объемами информации, выявлять закономерности и делать выводы на основе статистического анализа."/>
+            <column name="name" value="Сила Миссии"/>
+            <column name="short_description" value="Вера в дело"/>
+            <column name="description" value="Глубокая вера в важность и ценность выполняемой миссии, понимание её вклада в общее дело"/>
             <column name="is_active" value="true"/>
         </insert>
 
         <insert tableName="competencies">
-            <column name="name" value="Программирование"/>
-            <column name="short_description" value="Навыки разработки программного обеспечения"/>
-            <column name="description" value="Компетенция в программировании охватывает знание языков программирования, алгоритмов, структур данных и принципов разработки программного обеспечения."/>
+            <column name="name" value="Импульс Прорыва"/>
+            <column name="short_description" value="Стремление к большему"/>
+            <column name="description" value="Неустанное стремление к самосовершенствованию и достижению новых высот в космической деятельности"/>
             <column name="is_active" value="true"/>
         </insert>
 
         <insert tableName="competencies">
-            <column name="name" value="Системное мышление"/>
-            <column name="short_description" value="Способность видеть систему в целом"/>
-            <column name="description" value="Системное мышление позволяет понимать взаимосвязи между элементами системы, предвидеть последствия изменений и оптимизировать процессы."/>
-            <column name="is_active" value="true"/>
-        </insert>
-
-        <!-- Управленческо-Организационная ветка -->
-        <insert tableName="competencies">
-            <column name="name" value="Управление проектами"/>
-            <column name="short_description" value="Навыки управления проектами и командами"/>
-            <column name="description" value="Компетенция в управлении проектами включает планирование, организацию, мотивацию и контроль ресурсов для достижения поставленных целей."/>
+            <column name="name" value="Канал Связи"/>
+            <column name="short_description" value="Общение"/>
+            <column name="description" value="Эффективное общение и установление связей с другими участниками космических миссий"/>
             <column name="is_active" value="true"/>
         </insert>
 
         <insert tableName="competencies">
-            <column name="name" value="Коммуникация"/>
-            <column name="short_description" value="Эффективное общение и презентация"/>
-            <column name="description" value="Навыки коммуникации включают умение четко излагать мысли, слушать собеседника, вести переговоры и презентовать идеи."/>
-            <column name="is_active" value="true"/>
-        </insert>
-
-        <!-- Производственно-Технологическая ветка -->
-        <insert tableName="competencies">
-            <column name="name" value="Техническое обслуживание"/>
-            <column name="short_description" value="Обеспечение работоспособности оборудования"/>
-            <column name="description" value="Компетенция в техническом обслуживании включает диагностику, ремонт и профилактику технического оборудования и систем."/>
+            <column name="name" value="Модуль Аналитики"/>
+            <column name="short_description" value="Аналитика"/>
+            <column name="description" value="Аналитическое мышление и способность обрабатывать большие объемы данных для принятия решений"/>
             <column name="is_active" value="true"/>
         </insert>
 
         <insert tableName="competencies">
-            <column name="name" value="Контроль качества"/>
-            <column name="short_description" value="Обеспечение качества продукции и процессов"/>
-            <column name="description" value="Навыки контроля качества включают разработку стандартов, проведение инспекций и улучшение процессов для обеспечения высокого качества."/>
+            <column name="name" value="Пульт Командования"/>
+            <column name="short_description" value="Командование"/>
+            <column name="description" value="Навыки командования и координации действий в космических операциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Кодекс Звёздного Права"/>
+            <column name="short_description" value="Юриспруденция"/>
+            <column name="description" value="Знание космического права и этических норм поведения в межзвездном пространстве"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Голограммное Мышление"/>
+            <column name="short_description" value="Трёхмерное мышление"/>
+            <column name="description" value="Способность мыслить в трехмерном пространстве и понимать сложные голографические системы"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Кредитный Поток"/>
+            <column name="short_description" value="Базовая экономика"/>
+            <column name="description" value="Понимание экономических принципов и управление ресурсами в космических условиях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Курс Аэронавигации"/>
+            <column name="short_description" value="Основы аэронавигации"/>
+            <column name="description" value="Базовые знания аэронавигации и космической навигации для безопасного перемещения"/>
             <column name="is_active" value="true"/>
         </insert>
     </changeSet>

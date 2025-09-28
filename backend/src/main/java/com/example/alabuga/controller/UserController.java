@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,10 @@ public class UserController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить пользователя по ID")
     public ResponseEntity<UserDTO> getUserById(
-            @Parameter(description = "ID пользователя") @PathVariable Long id) {
+            @Parameter(description = "ID пользователя", required = true)
+            @PathVariable
+            @Positive(message = "ID пользователя должен быть положительным")
+            Long id) {
         Optional<UserDTO> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
