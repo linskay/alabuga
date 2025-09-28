@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- User Artifacts Table -->
+    <changeSet id="002-create-user-artifacts-table" author="Lins">
+        <comment>Создание таблицы пользовательских артефактов</comment>
+        <createTable tableName="user_artifacts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="artifact_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_equipped" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="obtained_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rarity" type="VARCHAR(20)"/>
+        </createTable>
+
+        <!-- Foreign Key Constraints -->
+        <addForeignKeyConstraint baseTableName="user_artifacts" baseColumnNames="user_id"
+                                 constraintName="fk_user_artifacts_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="user_artifacts" baseColumnNames="artifact_id"
+                                 constraintName="fk_user_artifacts_artifact"
+                                 referencedTableName="artifacts" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

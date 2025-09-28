@@ -1,28 +1,21 @@
 package com.example.alabuga.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.alabuga.dto.ArtifactCreateDTO;
 import com.example.alabuga.dto.ArtifactDTO;
 import com.example.alabuga.dto.ArtifactUpdateDTO;
 import com.example.alabuga.dto.UserArtifactDTO;
+import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.service.ArtifactService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/artifacts")
@@ -49,7 +42,10 @@ public class ArtifactController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить артефакт по ID")
     public ResponseEntity<ArtifactDTO> getArtifactById(
-            @Parameter(description = "ID артефакта") @PathVariable Long id) {
+            @Parameter(description = "ID артефакта", required = true)
+            @PathVariable
+            @Positive(message = "ID артефакта должен быть положительным")
+            Long id) {
         ArtifactDTO artifact = artifactService.getArtifactById(id);
         return ResponseEntity.ok(artifact);
     }
@@ -57,8 +53,10 @@ public class ArtifactController {
     @GetMapping("/rarity/{rarity}")
     @Operation(summary = "Получить артефакты по редкости")
     public ResponseEntity<List<ArtifactDTO>> getArtifactsByRarity(
-            @Parameter(description = "Редкость артефакта") @PathVariable String rarity) {
-        List<ArtifactDTO> artifacts = artifactService.getArtifactsByRarity(rarity);
+            @Parameter(description = "Редкость артефакта", required = true, schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = Artifact.ArtifactRarity.class))
+            @PathVariable
+            Artifact.ArtifactRarity rarity) {
+        List<ArtifactDTO> artifacts = artifactService.getArtifactsByRarity(String.valueOf(rarity));
         return ResponseEntity.ok(artifacts);
     }
 
@@ -72,7 +70,8 @@ public class ArtifactController {
 
     @PostMapping
     @Operation(summary = "Создать артефакт")
-    public ResponseEntity<ArtifactDTO> createArtifact(@RequestBody ArtifactCreateDTO artifactCreateDTO) {
+    public ResponseEntity<ArtifactDTO> createArtifact(
+            @Valid @RequestBody ArtifactCreateDTO artifactCreateDTO) {
         ArtifactDTO artifact = artifactService.createArtifact(artifactCreateDTO);
         return ResponseEntity.ok(artifact);
     }

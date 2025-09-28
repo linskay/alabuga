@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import ShinyText from '../ShinyText';
 import MainButton from '../MainButton';
-import { backend, ArtifactDTO } from '../../api';
+import { backend, ArtifactDTO, CardDTO, UserCardDTO } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
@@ -28,7 +28,8 @@ const ShipScreen: React.FC = () => {
   const [pageArte, setPageArte] = useState(1);
   const pageSize = 6; // 3x2
 
-  const cosmoCards = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ id: i+1, title: `Космокарта #${i+1}` })), []);
+  const [userCards, setUserCards] = useState<UserCardDTO[]>([]);
+  const [availableCards, setAvailableCards] = useState<CardDTO[]>([]);
   const [artefacts, setArtefacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
   const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
   const [equippedArtifacts, setEquippedArtifacts] = useState<number[]>([]);
@@ -43,10 +44,60 @@ const ShipScreen: React.FC = () => {
         const login = localStorage.getItem('currentLogin') || 'commander';
         const user = await backend.users.byLogin(login);
         
-        const [allArtifacts, userArtifactsData] = await Promise.all([
-          backend.artifacts.active(),
-          backend.users.artifacts(user.id)
-        ]);
+        console.log('Загружаем данные для пользователя:', user.id);
+        
+        // Сначала проверим, что API карт работает
+        try {
+          console.log('Проверяем доступность API карт...');
+          const debugCards = await backend.cards.series();
+          console.log('Серии карт:', debugCards);
+        } catch (e) {
+          console.error('Ошибка при получении серий карт:', e);
+          console.error('Возможно, бекенд не запущен или API недоступен');
+          throw new Error(`API карт недоступен: ${(e as any)?.message || 'Неизвестная ошибка'}`);
+        }
+        
+        // Загружаем данные по отдельности для лучшей диагностики
+        let allArtifacts, userArtifactsData, userCardsData, availableCardsData;
+        
+        try {
+          console.log('Загружаем артефакты...');
+          allArtifacts = await backend.artifacts.active();
+          console.log('Артефакты загружены:', allArtifacts.length);
+        } catch (e) {
+          console.error('Ошибка при загрузке артефактов:', e);
+          throw new Error(`Ошибка загрузки артефактов: ${(e as any)?.message || 'Неизвестная ошибка'}`);
+        }
+        
+        try {
+          console.log('Загружаем артефакты пользователя...');
+          userArtifactsData = await backend.users.artifacts(user.id);
+          console.log('Артефакты пользователя загружены:', userArtifactsData.length);
+        } catch (e) {
+          console.error('Ошибка при загрузке артефактов пользователя:', e);
+          throw new Error(`Ошибка загрузки артефактов пользователя: ${(e as any)?.message || 'Неизвестная ошибка'}`);
+        }
+        
+        try {
+          console.log('Загружаем карты пользователя...');
+          userCardsData = await backend.cards.userCards(user.id);
+          console.log('Карты пользователя загружены:', userCardsData.length);
+        } catch (e) {
+          console.error('Ошибка при загрузке карт пользователя:', e);
+          throw new Error(`Ошибка загрузки карт пользователя: ${(e as any)?.message || 'Неизвестная ошибка'}`);
+        }
+        
+        try {
+          console.log('Загружаем доступные карты...');
+          availableCardsData = await backend.cards.available(user.id);
+          console.log('Доступные карты загружены:', availableCardsData.length);
+        } catch (e) {
+          console.error('Ошибка при загрузке доступных карт:', e);
+          throw new Error(`Ошибка загрузки доступных карт: ${(e as any)?.message || 'Неизвестная ошибка'}`);
+        }
+        
+        console.log('Получены карты пользователя:', userCardsData);
+        console.log('Доступные карты:', availableCardsData);
         
         if (!mounted) return;
         
@@ -72,15 +123,64 @@ const ShipScreen: React.FC = () => {
         const equipped = mappedUserArtifacts.filter(a => a.isEquipped).map(a => a.id);
         setEquippedArtifacts(equipped);
         
+        // Карты пользователя
+        setUserCards(userCardsData);
+        setAvailableCards(availableCardsData);
+        
+        // Проверяем и выдаем новые карты
+        try {
+          console.log('Проверяем и выдаем карты для пользователя:', user.id);
+          await backend.cards.checkAwards(user.id);
+          // Перезагружаем карты пользователя после проверки
+          const updatedUserCards = await backend.cards.userCards(user.id);
+          console.log('Обновленные карты пользователя:', updatedUserCards);
+          setUserCards(updatedUserCards);
+        } catch (e: any) {
+          console.warn('Не удалось проверить карты:', e?.message);
+        }
+        
       } catch (e: any) {
-        console.warn('Не удалось загрузить данные корабля:', e?.message);
-        setError(e?.message || 'Не удалось загрузить данные корабля');
+        console.error('Ошибка при загрузке данных корабля:', e);
+        console.error('Детали ошибки:', e?.response?.data || e?.message);
+        console.error('Stack trace:', e?.stack);
+        
+        let errorMessage = 'Не удалось загрузить данные корабля';
+        if (e?.response?.data?.message) {
+          errorMessage = e.response.data.message;
+        } else if (e?.message) {
+          errorMessage = e.message;
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
     })();
     return () => { mounted = false; };
   }, []);
+
+  const handleCardClick = async (userCard: UserCardDTO) => {
+    try {
+      const login = localStorage.getItem('currentLogin') || 'commander';
+      const user = await backend.users.byLogin(login);
+      
+      // Отмечаем карту как просмотренную
+      if (userCard.isNew) {
+        await backend.cards.markViewed(user.id, userCard.card.id);
+        
+        // Обновляем состояние карты
+        setUserCards(prevCards => 
+          prevCards.map(card => 
+            card.id === userCard.id 
+              ? { ...card, isNew: false }
+              : card
+          )
+        );
+      }
+    } catch (e: any) {
+      console.warn('Не удалось отметить карту как просмотренную:', e?.message);
+    }
+  };
 
   const handleEquipArtifact = async (artifactId: number) => {
     try {
@@ -120,10 +220,36 @@ const ShipScreen: React.FC = () => {
     }
   };
 
-  const totalCosmo = Math.max(1, Math.ceil(cosmoCards.length / pageSize));
+  const totalCosmo = Math.max(1, Math.ceil(userCards.length / pageSize));
   const totalArte = Math.max(1, Math.ceil(userArtifacts.length / pageSize));
-  const cosmoPageItems = cosmoCards.slice((pageCosmo-1)*pageSize, pageCosmo*pageSize);
+  const cosmoPageItems = userCards.slice((pageCosmo-1)*pageSize, pageCosmo*pageSize);
   const artePageItems = userArtifacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
+
+  if (loading) {
+    return (
+      <div className="h-full pb-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-white text-center">
+            <h2 className="text-xl font-bold mb-4">Загрузка карт...</h2>
+            <p>Пожалуйста, подождите</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full pb-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-red-400 text-center">
+            <h2 className="text-xl font-bold mb-4">Ошибка загрузки данных</h2>
+            <p>{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full pb-8">
@@ -138,17 +264,33 @@ const ShipScreen: React.FC = () => {
         {/* Космокарты: 3 в ряд + пагинация */}
         <div className="mx-auto" style={{ maxWidth: '820px' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-8 gap-x-4 justify-items-center">
-          {cosmoPageItems.map((c) => (
-            <StyledFlip key={c.id}>
+          {cosmoPageItems.map((userCard) => (
+            <StyledFlip key={userCard.id} onClick={() => handleCardClick(userCard)}>
               <div className="container">
                 <div className="card">
-                  <div className="front">
-                    <p className="front-heading">{c.title}</p>
-                    <p>Секреты галактики</p>
+                  <div className="front" style={{ textAlign: 'center' }}>
+                    {userCard.card.frontImageUrl && (
+                      <img 
+                        src={userCard.card.frontImageUrl} 
+                        alt={userCard.card.name}
+                        style={{
+                          width: '100%',
+                          height: '120px',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                          marginBottom: '8px'
+                        }}
+                      />
+                    )}
+                    <p className="front-heading">{userCard.card.name}</p>
+                    <p>{userCard.card.seriesName}</p>
+                    {userCard.isNew && <p style={{color: '#00ff00', fontSize: '12px'}}>НОВАЯ!</p>}
                   </div>
                   <div className="back">
-                    <p className="back-heading">{c.title}</p>
-                    <p>Редкая космокарта</p>
+                    <p className="back-heading">{userCard.card.name}</p>
+                    <p style={{fontSize: '12px', textAlign: 'center', padding: '0 10px', fontStyle: 'italic'}}>
+                      {userCard.card.backDescription}
+                    </p>
                   </div>
                 </div>
               </div>

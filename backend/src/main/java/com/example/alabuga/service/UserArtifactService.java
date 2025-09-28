@@ -13,6 +13,7 @@ import com.example.alabuga.exception.BusinessLogicException;
 import com.example.alabuga.exception.ResourceNotFoundException;
 import com.example.alabuga.mapper.UserArtifactMapper;
 import com.example.alabuga.repository.ArtifactRepository;
+
 import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserRepository;
 
@@ -26,6 +27,7 @@ public class UserArtifactService {
     private final UserRepository userRepository;
     private final ArtifactRepository artifactRepository;
     private final UserArtifactMapper userArtifactMapper;
+    private final NotificationService notificationService;
     
     public List<UserArtifactDTO> getUserArtifacts(Long userId) {
         List<UserArtifact> userArtifacts = userArtifactRepository.findByUserId(userId);
@@ -82,6 +84,10 @@ public class UserArtifactService {
                 .build();
         
         UserArtifact saved = userArtifactRepository.save(userArtifact);
+        
+        // Создаем уведомление о получении артефакта
+        notificationService.createArtifactAcquiredNotification(user, artifact.getName(), artifact.getRarity().getDisplayName());
+        
         return userArtifactMapper.toDTO(saved);
     }
 }

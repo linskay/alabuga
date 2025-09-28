@@ -2,25 +2,54 @@
 
 Полнофункциональное веб-приложение с Spring Boot backend и React frontend.
 
-## Структура проекта
+## 🚀 Быстрый запуск в режиме разработки
+
+### 1. Запуск базы данных PostgreSQL
+```bash
+docker-compose up -d
+```
+
+### 2. Запуск backend приложения
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+### 3. Проверка работы
+- **API:** http://localhost:8080/api/users
+- **Swagger UI:** http://localhost:8080/swagger-ui.html
+- **PostgreSQL:** localhost:5432 (alabuga/alabuga_dev/password)
+
+## 🛠️ Управление базой данных
+
+### Очистка базы данных (если нужно)
+```bash
+docker exec -i alabuga-postgres psql -U alabuga -d alabuga_dev < clear-database.sql
+```
+
+### Остановка и удаление данных
+```bash
+docker-compose down -v
+```
+
+## 📁 Структура проекта
 
 ```
 alabuga/
 ├── backend/          # Spring Boot приложение
 ├── frontend/         # React TypeScript приложение
+├── docker-compose.yml # PostgreSQL для разработки
+├── clear-database.sql # Скрипт очистки БД
 └── pom.xml          # Multi-module Maven конфигурация
 ```
 
-## Технологический стек
+## 🛠️ Технологический стек
 
 ### Backend
 - **Java 17**
 - **Spring Boot 3.1.0**
 - **Spring Data JPA**
-- **Spring Web**
+- **PostgreSQL** - основная база данных
 - **Liquibase** - управление миграциями БД
-- **H2 Database** - для разработки
-- **PostgreSQL** - для продакшена
 - **Lombok** - уменьшение boilerplate кода
 - **SpringDoc OpenAPI** - документация API
 - **Maven** - управление зависимостями
@@ -30,41 +59,13 @@ alabuga/
 - **TypeScript 5.3.3**
 - **React Scripts 5.0.1**
 
-## Быстрый старт
+## ⚙️ Профили конфигурации
 
-### Backend
-
-1. **Установка зависимостей:**
-   ```bash
-   cd backend
-   mvn clean install
-   ```
-
-2. **Запуск в режиме разработки:**
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-   ```
-
-### Frontend
-
-1. **Установка зависимостей:**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. **Запуск в режиме разработки:**
-   ```bash
-   npm start
-   ```
-
-## Профили конфигурации
-
-### Development (dev)
-- H2 in-memory база данных
-- H2 Console доступна на `/h2-console`
+### Development (dev) - РЕКОМЕНДУЕМЫЙ
+- PostgreSQL база данных в Docker
 - Подробное логирование
 - Liquibase включен
+- Swagger UI доступен
 
 **Запуск:**
 ```bash

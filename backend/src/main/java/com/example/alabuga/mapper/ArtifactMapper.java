@@ -23,7 +23,6 @@ public class ArtifactMapper {
         return ArtifactDTO.builder()
                 .id(artifact.getId())
                 .name(artifact.getName())
-                .shortDescription(artifact.getShortDescription())
                 .imageUrl(artifact.getImageUrl())
                 .rarity(artifact.getRarity())
                 .isActive(artifact.getIsActive())
@@ -38,7 +37,6 @@ public class ArtifactMapper {
         return UserArtifactDTO.builder()
                 .id(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getId() : null)
                 .name(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getName() : null)
-                .shortDescription(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getShortDescription() : null)
                 .imageUrl(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getImageUrl() : null)
                 .rarity(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getRarity() : null)
                 .isEquipped(userArtifact.getIsEquipped())
@@ -73,7 +71,6 @@ public class ArtifactMapper {
 
         return Artifact.builder()
                 .name(dto.getName())
-                .shortDescription(dto.getShortDescription())
                 .imageUrl(dto.getImageUrl())
                 .rarity(dto.getRarity())
                 .isActive(dto.getIsActive())
@@ -87,9 +84,6 @@ public class ArtifactMapper {
 
         if (dto.getName() != null) {
             artifact.setName(dto.getName());
-        }
-        if (dto.getShortDescription() != null) {
-            artifact.setShortDescription(dto.getShortDescription());
         }
         if (dto.getImageUrl() != null) {
             artifact.setImageUrl(dto.getImageUrl());

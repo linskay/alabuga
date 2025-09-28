@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Competencies Data -->
+    <changeSet id="007-insert-competencies-data" author="Lins">
+        <comment>Вставка начальных данных компетенций</comment>
+
+        <!-- 9 космических компетенций -->
+        <insert tableName="competencies">
+            <column name="name" value="Сила Миссии"/>
+            <column name="short_description" value="Вера в дело"/>
+            <column name="description" value="Глубокая вера в важность и ценность выполняемой миссии, понимание её вклада в общее дело"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Импульс Прорыва"/>
+            <column name="short_description" value="Стремление к большему"/>
+            <column name="description" value="Неустанное стремление к самосовершенствованию и достижению новых высот в космической деятельности"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Канал Связи"/>
+            <column name="short_description" value="Общение"/>
+            <column name="description" value="Эффективное общение и установление связей с другими участниками космических миссий"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Модуль Аналитики"/>
+            <column name="short_description" value="Аналитика"/>
+            <column name="description" value="Аналитическое мышление и способность обрабатывать большие объемы данных для принятия решений"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Пульт Командования"/>
+            <column name="short_description" value="Командование"/>
+            <column name="description" value="Навыки командования и координации действий в космических операциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Кодекс Звёздного Права"/>
+            <column name="short_description" value="Юриспруденция"/>
+            <column name="description" value="Знание космического права и этических норм поведения в межзвездном пространстве"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Голограммное Мышление"/>
+            <column name="short_description" value="Трёхмерное мышление"/>
+            <column name="description" value="Способность мыслить в трехмерном пространстве и понимать сложные голографические системы"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Кредитный Поток"/>
+            <column name="short_description" value="Базовая экономика"/>
+            <column name="description" value="Понимание экономических принципов и управление ресурсами в космических условиях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Курс Аэронавигации"/>
+            <column name="short_description" value="Основы аэронавигации"/>
+            <column name="description" value="Базовые знания аэронавигации и космической навигации для безопасного перемещения"/>
+            <column name="is_active" value="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

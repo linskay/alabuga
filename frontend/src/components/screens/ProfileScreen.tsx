@@ -111,7 +111,7 @@ const ProfileScreen: React.FC = () => {
           setEquippedArtifacts(equipped);
         } catch {}
         try {
-          const req = await backend.ranks.requirementByLevel((u.rank ?? 0) + 1);
+          const req = await backend.ranks.requirementsByLevel((u.rank ?? 0) + 1);
           if (!mounted) return;
           setNextRankReq(req || null);
         } catch {}
@@ -124,7 +124,7 @@ const ProfileScreen: React.FC = () => {
   }, [refreshUserData]);
 
   return (
-    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden z-10">
+    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden overflow-y-auto z-10">
       {/* PyramidLoader2 Component - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
