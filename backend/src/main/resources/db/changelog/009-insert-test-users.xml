@@ -17,8 +17,8 @@
             <column name="first_name" value="Администратор"/>
             <column name="last_name" value="Системы"/>
             <column name="is_active" value="true"/>
-            <column name="role" value="ADMIN"/>
-            <column name="rank" value="10"/>
+            <column name="role" value="HR"/>
+            <column name="rank" value="5"/>
             <column name="experience" value="10000"/>
         </insert>
 
