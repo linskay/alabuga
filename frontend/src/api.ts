@@ -51,13 +51,10 @@ export type UserPurchaseDTO = { id: number; itemName: string; itemDescription: s
 export type UserCompetency = { id: number; name: string; points?: number; level?: number; maxPoints?: number };
 export type UserMission = { id: number; missionId?: number; missionName?: string; status?: string; progress?: number };
 export type MissionDTO = { id: number; name: string; description?: string; difficulty?: string; experienceReward?: number; isActive?: boolean; requiredExperience?: number; requiredRank?: number; type?: string };
+export type CardDTO = { id: number; name: string; seriesName: string; frontImageUrl?: string; backDescription?: string; rarity: string; unlockCondition?: string; unlockRank?: number; isActive?: boolean };
+export type UserCardDTO = { id: number; user: any; card: CardDTO; obtainedAt: string; isNew: boolean };
 
 export const backend = {
-  ranks: {
-    list: () => api.get<RankDTO[]>('/api/ranks'),
-    requirements: () => api.get<any[]>('/api/ranks/requirements'),
-    requirementByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
-  },
   shop: {
     list: () => api.get<ShopItemDTO[]>('/api/shop'),
     available: () => api.get<ShopItemDTO[]>('/api/shop/available'),
@@ -121,10 +118,19 @@ export const backend = {
     delete: (id: number) => api.delete<void>(`/api/missions/${id}`),
   },
   ranks: {
-    list: () => api.get<any[]>('/api/ranks'),
+    list: () => api.get<RankDTO[]>('/api/ranks'),
     byLevel: (level: number) => api.get<any>(`/api/ranks/level/${level}`),
     requirements: () => api.get<any[]>('/api/ranks/requirements'),
     requirementsByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
+  },
+  cards: {
+    available: (userId: number) => api.get<CardDTO[]>(`/api/cards/available/${userId}`),
+    userCards: (userId: number) => api.get<UserCardDTO[]>(`/api/cards/user/${userId}`),
+    userCardsBySeries: (userId: number, seriesName: string) => api.get<UserCardDTO[]>(`/api/cards/user/${userId}/series/${encodeURIComponent(seriesName)}`),
+    checkAwards: (userId: number) => api.post(`/api/cards/check-awards/${userId}`),
+    markViewed: (userId: number, cardId: number) => api.post(`/api/cards/mark-viewed/${userId}/${cardId}`),
+    series: () => api.get<string[]>('/api/cards/series'),
+    cardsBySeries: (seriesName: string) => api.get<CardDTO[]>(`/api/cards/series/${encodeURIComponent(seriesName)}`),
   },
 };
 

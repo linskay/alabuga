@@ -1,0 +1,23 @@
+# ====================================
+# DOCKER COMPOSE ДЛЯ РАЗРАБОТКИ
+# ====================================
+# Запуск: docker-compose up -d
+# Остановка: docker-compose down
+# Остановка с удалением данных: docker-compose down -v
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: alabuga-postgres
+    environment:
+      POSTGRES_DB: alabuga_dev      # База данных для разработки
+      POSTGRES_USER: alabuga        # Пользователь базы данныхпродакшене!)
+      POSTGRES_PASSWORD: password   # Пароль (измените в 
+    ports:
+      - "5432:5432"                 # Порт PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Постоянное хранение данных
+    restart: unless-stopped
+
+volumes:
+  postgres_data:  # Том для хранения данных PostgreSQL

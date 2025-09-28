@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="016-insert-test-users" author="developer">
+        <comment>Вставка тестовых пользователей</comment>
+        
+        <!-- Админ (HR) -->
+        <insert tableName="users">
+            <column name="username" value="admin"/>
+            <column name="email" value="admin@alabuga.tech"/>
+            <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi"/> <!-- password: admin123 -->
+            <column name="first_name" value="Администратор"/>
+            <column name="last_name" value="Системы"/>
+            <column name="is_active" value="true"/>
+            <column name="role" value="ADMIN"/>
+            <column name="rank_level" value="10"/>
+            <column name="experience_points" value="10000"/>
+        </insert>
+        
+        <!-- Организатор -->
+        <insert tableName="users">
+            <column name="username" value="organizer"/>
+            <column name="email" value="organizer@alabuga.tech"/>
+            <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi"/> <!-- password: admin123 -->
+            <column name="first_name" value="Организатор"/>
+            <column name="last_name" value="Мероприятий"/>
+            <column name="is_active" value="true"/>
+            <column name="role" value="ORGANIZER"/>
+            <column name="rank_level" value="6"/>
+            <column name="experience_points" value="3000"/>
+        </insert>
+        
+        <!-- Обычный пользователь -->
+        <insert tableName="users">
+            <column name="username" value="user"/>
+            <column name="email" value="user@alabuga.tech"/>
+            <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi"/> <!-- password: admin123 -->
+            <column name="first_name" value="Пользователь"/>
+            <column name="last_name" value="Тестовый"/>
+            <column name="is_active" value="true"/>
+            <column name="role" value="USER"/>
+            <column name="rank_level" value="0"/>
+            <column name="experience_points" value="0"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

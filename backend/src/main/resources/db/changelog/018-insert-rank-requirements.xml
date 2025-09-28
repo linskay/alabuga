@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="018-insert-rank-requirements" author="developer">
+        <comment>Вставка требований для рангов</comment>
+        
+        <!-- 1 ранг - Навигатор Траекторий (Аналитико-Техническая ветка) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="1"/>
+            <column name="required_experience" value="500"/>
+            <column name="required_mission_name" value="Основы навигации"/>
+            <column name="required_competency_points" value="100"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить миссию по навигации и набрать по 100 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 2 ранга - Аналитико-Техническая ветка (уровни 2, 3, 4) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="2"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Инженерия космических кораблей"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить миссию по инженерии и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="3"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Симуляция полета"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить симуляцию полета и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="4"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Архитектура станции"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить миссию по архитектуре и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 3 ранга - Гуманитарно-Исследовательская ветка (уровни 2, 3, 4) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="2"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Создайте пост о космосе"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется создать пост о космосе и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="3"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Пригласите друга"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется пригласить друга и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="4"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Экстренная посадка"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить экстренную посадку и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 3 ранга - Коммуникационно-Лидерская ветка (уровни 2, 3, 4) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="2"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Знакомство с базой"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется познакомиться с базой и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="3"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Первые шаги в космосе"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется сделать первые шаги в космосе и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="4"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Симуляция полета"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить симуляцию полета и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 5 ранг - Финальный объединяющий ранг (уровень 5) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="5"/>
+            <column name="required_experience" value="1000"/>
+            <column name="required_mission_name" value="Экстренная посадка"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="[&quot;Сила Миссии&quot;, &quot;Импульс Прорыва&quot;, &quot;Канал Связи&quot;, &quot;Модуль Аналитики&quot;, &quot;Пульт Командования&quot;, &quot;Кодекс Звёздного Права&quot;, &quot;Голограммное Мышление&quot;, &quot;Кредитный Поток&quot;, &quot;Курс Аэронавигации&quot;]"/>
+            <column name="description" value="Требуется выполнить экстренную посадку и набрать по 200 очков во всех компетенциях"/>
+            <column name="is_active" value="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

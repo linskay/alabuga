@@ -85,16 +85,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         transition={{ duration: 0.8 }}
         className="relative z-10 w-full flex flex-col"
       >
-        {/* TapGame launcher */}
-        <div className="w-full flex justify-center mt-4 mb-2">
-          <button
-            onClick={() => window.open('/tapgame/index.html', '_blank')}
-            className="px-4 py-2 rounded-md bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/30 border border-cyan-300/50"
-            title="Открыть игру КосмоГусь"
-          >
-            Открыть КосмоГуся
-          </button>
-        </div>
 
         <AnimatePresence mode="wait">
           <motion.div

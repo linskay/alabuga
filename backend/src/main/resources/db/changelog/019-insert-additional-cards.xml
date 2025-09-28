@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="019-insert-additional-cards" author="developer">
+        <comment>Вставка карт для всех рангов</comment>
+        
+        <!-- 1 ранг - Навигатор Траекторий (уровень 1) -->
+        <insert tableName="cards">
+            <column name="name" value="Навигатор Траекторий"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/2.jpg"/>
+            <column name="back_description" value="Специалист по расчету космических траекторий. Мастер навигации в звездных системах"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Навигатор Траекторий"/>
+            <column name="unlock_rank" value="1"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 2 ранга - Аналитико-Техническая ветка (уровни 2, 3, 4) -->
+        <insert tableName="cards">
+            <column name="name" value="Аналитик Орбит"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/3.jpg"/>
+            <column name="back_description" value="Эксперт по анализу орбитальных систем. Знаток гравитационных полей"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Аналитик Орбит"/>
+            <column name="unlock_rank" value="2"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="cards">
+            <column name="name" value="Архитектор Станции"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/4.jpg"/>
+            <column name="back_description" value="Мастер проектирования космических станций. Создатель орбитальных комплексов"/>
+            <column name="rarity" value="RARE"/>
+            <column name="unlock_condition" value="Получение ранга Архитектор Станции"/>
+            <column name="unlock_rank" value="3"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="cards">
+            <column name="name" value="Инженер Систем"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/5.jpg"/>
+            <column name="back_description" value="Специалист по космическим системам. Мастер технических решений"/>
+            <column name="rarity" value="RARE"/>
+            <column name="unlock_condition" value="Получение ранга Инженер Систем"/>
+            <column name="unlock_rank" value="4"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 3 ранга - Гуманитарно-Исследовательская ветка (уровни 2, 3, 4) -->
+        <insert tableName="cards">
+            <column name="name" value="Хронист Галактики"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/6.jpg"/>
+            <column name="back_description" value="Летописец космических событий и истории. Хранитель знаний о галактике"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Хронист Галактики"/>
+            <column name="unlock_rank" value="2"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="cards">
+            <column name="name" value="Исследователь Культур"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/7.jpg"/>
+            <column name="back_description" value="Изучатель инопланетных цивилизаций. Посол между мирами"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Исследователь Культур"/>
+            <column name="unlock_rank" value="3"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="cards">
+            <column name="name" value="Мастер Лектория"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/8.jpg"/>
+            <column name="back_description" value="Преподаватель космических наук. Наставник будущих космонавтов"/>
+            <column name="rarity" value="RARE"/>
+            <column name="unlock_condition" value="Получение ранга Мастер Лектория"/>
+            <column name="unlock_rank" value="4"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 3 ранга - Коммуникационно-Лидерская ветка (уровни 2, 3, 4) -->
+        <insert tableName="cards">
+            <column name="name" value="Связист Звёздного Флота"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/9.jpg"/>
+            <column name="back_description" value="Специалист по межзвездной связи. Мост между звездными системами"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Связист Звёздного Флота"/>
+            <column name="unlock_rank" value="2"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="cards">
+            <column name="name" value="Штурман Экипажа"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/10.jpg"/>
+            <column name="back_description" value="Лидер навигационной команды. Проводник через космические просторы"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Штурман Экипажа"/>
+            <column name="unlock_rank" value="3"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <insert tableName="cards">
+            <column name="name" value="Командир Отряда"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/11.jpg"/>
+            <column name="back_description" value="Командир космического отряда. Лидер звездных операций"/>
+            <column name="rarity" value="RARE"/>
+            <column name="unlock_condition" value="Получение ранга Командир Отряда"/>
+            <column name="unlock_rank" value="4"/>
+            <column name="is_active" value="true"/>
+        </insert>
+        
+        <!-- 5 ранг - Финальный объединяющий ранг (уровень 5) -->
+        <insert tableName="cards">
+            <column name="name" value="Хранитель Станции «Алабуга.TECH»"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/12.jpg"/>
+            <column name="back_description" value="Высший ранг космического специалиста. Хранитель знаний и традиций станции"/>
+            <column name="rarity" value="LEGENDARY"/>
+            <column name="unlock_condition" value="Получение ранга Хранитель Станции"/>
+            <column name="unlock_rank" value="5"/>
+            <column name="is_active" value="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

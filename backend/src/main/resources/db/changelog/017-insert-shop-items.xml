@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="017-insert-shop-items" author="developer">
+        <comment>Вставка товаров для магазина Нексус</comment>
+        
+        <!-- Чертежи -->
+        <insert tableName="shop_items">
+            <column name="name" value="Чертеж Космического Двигателя"/>
+            <column name="description" value="Позволяет построить мощный двигатель для космических кораблей"/>
+            <column name="price" value="500"/>
+            <column name="image_url" value="https://example.com/images/blueprint-engine.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="10"/>
+        </insert>
+        
+        <insert tableName="shop_items">
+            <column name="name" value="Чертеж Навигационной Системы"/>
+            <column name="description" value="Современная система навигации для точного позиционирования в космосе"/>
+            <column name="price" value="300"/>
+            <column name="image_url" value="https://example.com/images/blueprint-navigation.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="15"/>
+        </insert>
+        
+        <insert tableName="shop_items">
+            <column name="name" value="Чертеж Жизнеобеспечения"/>
+            <column name="description" value="Система жизнеобеспечения для длительных космических миссий"/>
+            <column name="price" value="400"/>
+            <column name="image_url" value="https://example.com/images/blueprint-life-support.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="8"/>
+        </insert>
+        
+        <!-- Ресурсы -->
+        <insert tableName="shop_items">
+            <column name="name" value="Энергетические Кристаллы"/>
+            <column name="description" value="Чистые кристаллы энергии для питания космических систем"/>
+            <column name="price" value="100"/>
+            <column name="image_url" value="https://example.com/images/energy-crystals.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="null"/>
+        </insert>
+        
+        <insert tableName="shop_items">
+            <column name="name" value="Металлические Сплавы"/>
+            <column name="description" value="Прочные сплавы для строительства космических кораблей"/>
+            <column name="price" value="150"/>
+            <column name="image_url" value="https://example.com/images/metal-alloys.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="null"/>
+        </insert>
+        
+        <insert tableName="shop_items">
+            <column name="name" value="Квантовые Процессоры"/>
+            <column name="description" value="Высокопроизводительные процессоры для бортовых компьютеров"/>
+            <column name="price" value="250"/>
+            <column name="image_url" value="https://example.com/images/quantum-processors.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="20"/>
+        </insert>
+        
+        <!-- Улучшения -->
+        <insert tableName="shop_items">
+            <column name="name" value="Модуль Защиты"/>
+            <column name="description" value="Улучшенная защита от космических угроз и радиации"/>
+            <column name="price" value="600"/>
+            <column name="image_url" value="https://example.com/images/shield-module.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="5"/>
+        </insert>
+        
+        <insert tableName="shop_items">
+            <column name="name" value="Усилитель Связи"/>
+            <column name="description" value="Мощный усилитель для связи на больших расстояниях"/>
+            <column name="price" value="350"/>
+            <column name="image_url" value="https://example.com/images/communication-booster.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="12"/>
+        </insert>
+        
+        <!-- Артефакты -->
+        <insert tableName="shop_items">
+            <column name="name" value="Космический Артефакт"/>
+            <column name="description" value="Древний артефакт с неизвестными свойствами"/>
+            <column name="price" value="1000"/>
+            <column name="image_url" value="https://example.com/images/space-artifact.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="3"/>
+        </insert>
+        
+        <insert tableName="shop_items">
+            <column name="name" value="Звездная Карта"/>
+            <column name="description" value="Карта с координатами неизведанных миров"/>
+            <column name="price" value="800"/>
+            <column name="image_url" value="https://example.com/images/star-map.jpg"/>
+            <column name="is_active" value="true"/>
+            <column name="stock_quantity" value="7"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

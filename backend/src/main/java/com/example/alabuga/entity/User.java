@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"competencies", "artifacts"})
+@JsonIgnoreProperties({"competencies", "artifacts", "cards"})
 @Schema(description = "Сущность пользователя")
 public class User {
     
@@ -107,4 +107,9 @@ public class User {
     @JsonIgnoreProperties("user")
     @Schema(description = "Артефакты пользователя")
     private List<UserArtifact> artifacts;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("user")
+    @Schema(description = "Карты пользователя")
+    private List<UserCard> cards;
 }

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Создание таблицы карт -->
+    <changeSet id="013-01-create-cards-table" author="system">
+        <createTable tableName="cards">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="series_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="front_image_url" type="VARCHAR(500)"/>
+            <column name="back_description" type="VARCHAR(1000)"/>
+            <column name="rarity" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unlock_condition" type="VARCHAR(500)"/>
+            <column name="unlock_rank" type="INTEGER"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Создание таблицы связей пользователь-карта -->
+    <changeSet id="013-02-create-user-cards-table" author="system">
+        <createTable tableName="user_cards">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="card_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="obtained_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_new" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Добавление внешних ключей -->
+    <changeSet id="013-03-add-foreign-keys" author="system">
+        <addForeignKeyConstraint
+                baseTableName="user_cards"
+                baseColumnNames="user_id"
+                constraintName="fk_user_cards_user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="user_cards"
+                baseColumnNames="card_id"
+                constraintName="fk_user_cards_card_id"
+                referencedTableName="cards"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Добавление уникального индекса для предотвращения дублирования карт у пользователя -->
+    <changeSet id="013-04-add-unique-constraint" author="system">
+        <addUniqueConstraint
+                tableName="user_cards"
+                columnNames="user_id, card_id"
+                constraintName="uk_user_cards_user_card"/>
+    </changeSet>
+
+    <!-- Добавление индексов для оптимизации запросов -->
+    <changeSet id="013-05-add-indexes" author="system">
+        <createIndex tableName="cards" indexName="idx_cards_series_name">
+            <column name="series_name"/>
+        </createIndex>
+        
+        <createIndex tableName="cards" indexName="idx_cards_unlock_rank">
+            <column name="unlock_rank"/>
+        </createIndex>
+        
+        <createIndex tableName="user_cards" indexName="idx_user_cards_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        
+        <createIndex tableName="user_cards" indexName="idx_user_cards_obtained_at">
+            <column name="obtained_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Вставка первой карты "Космо-Кадет" -->
+    <changeSet id="013-06-insert-cosmo-cadet-card" author="system">
+        <insert tableName="cards">
+            <column name="name" value="Космо-Кадет"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/cards/1.jpg"/>
+            <column name="back_description" value="Первый корабль. Первый выход в открытый космос. Помни эти дрожащие от волнения руки на штурвале. Каждый Командор когда-то был Кадетом"/>
+            <column name="rarity" value="COMMON"/>
+            <column name="unlock_condition" value="Получение ранга Космо-Кадет"/>
+            <column name="unlock_rank" value="0"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
