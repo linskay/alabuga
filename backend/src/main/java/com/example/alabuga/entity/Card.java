@@ -3,8 +3,6 @@ package com.example.alabuga.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,10 +42,10 @@ public class Card {
     @Schema(description = "Описание на оборотной стороне", example = "Первый корабль. Первый выход в открытый космос...")
     private String backDescription;
 
-    @Column(name = "rarity", nullable = false)
-    @Enumerated(EnumType.STRING)
-    @Schema(description = "Редкость карты", example = "COMMON")
-    private CardRarity rarity;
+    // @Column(name = "rarity", nullable = false)
+    // @Enumerated(EnumType.STRING)
+    // @Schema(description = "Редкость карты", example = "COMMON")
+    // private CardRarity rarity;
 
     @Column(name = "unlock_condition", length = 500)
     @Schema(description = "Условие разблокировки карты", example = "Получение ранга Космо-Кадет")

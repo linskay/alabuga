@@ -5,16 +5,20 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <include file="001-initial-schema.xml" relativeToChangelogFile="true"/>
-    <include file="003-user-artifacts.xml" relativeToChangelogFile="true"/>
-    <include file="011-create-goose-profile.xml" relativeToChangelogFile="true"/>
-    <include file="012-rename-goose-profile-columns.xml" relativeToChangelogFile="true"/>
-    <include file="013-create-cards-system.xml" relativeToChangelogFile="true"/>
-    <include file="015-insert-production-data.xml" relativeToChangelogFile="true"/>
-    <include file="015-insert-competencies.xml" relativeToChangelogFile="true"/>
-    <include file="016-insert-test-users.xml" relativeToChangelogFile="true"/>
-    <include file="017-insert-shop-items.xml" relativeToChangelogFile="true"/>
-    <include file="018-insert-rank-requirements.xml" relativeToChangelogFile="true"/>
-    <include file="019-insert-additional-cards.xml" relativeToChangelogFile="true"/>
+    <!-- Table Creation Migrations -->
+    <include file="001-create-users-table.xml" relativeToChangelogFile="true"/>
+    <include file="003-create-competencies-table.xml" relativeToChangelogFile="true"/>
+    <include file="003-create-goose-game-profile.xml" relativeToChangelogFile="true"/>
+    <include file="004-create-artifacts-table.xml" relativeToChangelogFile="true"/>
+    <include file="002-create-user-artifacts-table.xml" relativeToChangelogFile="true"/>
+    <include file="005-create-cards-system.xml" relativeToChangelogFile="true"/>
+    <include file="006-create-shop-items-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- Data Insertion Migrations -->
+    <include file="007-insert-competencies-data.xml" relativeToChangelogFile="true"/>
+    <include file="008-insert-production-data.xml" relativeToChangelogFile="true"/>
+    <include file="009-insert-test-users.xml" relativeToChangelogFile="true"/>
+    <include file="010-insert-shop-items.xml" relativeToChangelogFile="true"/>
+    <include file="011-insert-rank-requirements.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

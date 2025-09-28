@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Production Data -->
+    <changeSet id="008-insert-production-data" author="Lins">
+        <comment>Вставка производственных данных для миссий</comment>
+
+        <!-- Миссии для Аналитико-Технической ветки -->
+        <insert tableName="missions">
+            <column name="name" value="Анализ рыночных тенденций"/>
+            <column name="description" value="Провести комплексный анализ рыночных данных и выявить ключевые тенденции развития отрасли"/>
+            <column name="branch_id" value="1"/>
+            <column name="type" value="ANALYTICAL"/>
+            <column name="difficulty" value="MEDIUM"/>
+            <column name="experience_reward" value="150"/>
+            <column name="energy_reward" value="20"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Анализ данных"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="false"/>
+            <column name="artifact_reward_id" value="1"/>
+        </insert>
+
+        <insert tableName="missions">
+            <column name="name" value="Оптимизация алгоритмов"/>
+            <column name="description" value="Разработать и внедрить оптимизированные алгоритмы для повышения производительности системы"/>
+            <column name="branch_id" value="1"/>
+            <column name="type" value="TECHNICAL"/>
+            <column name="difficulty" value="HARD"/>
+            <column name="experience_reward" value="300"/>
+            <column name="energy_reward" value="35"/>
+            <column name="required_rank" value="2"/>
+            <column name="required_experience" value="500"/>
+            <column name="required_competencies" value="Программирование"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="artifact_reward_id" value="2"/>
+        </insert>
+
+        <!-- Миссии для Управленческо-Организационной ветки -->
+        <insert tableName="missions">
+            <column name="name" value="Организация командной работы"/>
+            <column name="description" value="Организовать эффективную работу команды для достижения поставленных целей"/>
+            <column name="branch_id" value="2"/>
+            <column name="type" value="MANAGEMENT"/>
+            <column name="difficulty" value="MEDIUM"/>
+            <column name="experience_reward" value="200"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="200"/>
+            <column name="required_competencies" value="Управление проектами"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="false"/>
+            <column name="artifact_reward_id" value="3"/>
+        </insert>
+
+        <!-- Миссии для Производственно-Технологической ветки -->
+        <insert tableName="missions">
+            <column name="name" value="Техническое обслуживание оборудования"/>
+            <column name="description" value="Выполнить плановое техническое обслуживание производственного оборудования"/>
+            <column name="branch_id" value="3"/>
+            <column name="type" value="MAINTENANCE"/>
+            <column name="difficulty" value="EASY"/>
+            <column name="experience_reward" value="100"/>
+            <column name="energy_reward" value="15"/>
+            <column name="required_rank" value="0"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Техническое обслуживание"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="false"/>
+            <column name="artifact_reward_id" value="4"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

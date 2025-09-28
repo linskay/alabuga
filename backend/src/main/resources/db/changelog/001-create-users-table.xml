@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Core Users Table -->
+    <changeSet id="001-create-users-table" author="Lins">
+        <comment>Создание основной таблицы пользователей с базовыми полями</comment>
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="login" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Rank Requirements Table -->
+    <changeSet id="001-create-rank-requirements-table" author="Lins">
+        <comment>Создание таблицы требований для рангов</comment>
+        <createTable tableName="rank_requirements">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rank_level" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank_name" type="VARCHAR(200)"/>
+            <column name="branch_category" type="VARCHAR(100)"/>
+            <column name="required_experience" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="required_mission_name" type="VARCHAR(200)"/>
+            <column name="required_competency_points" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="competency_names" type="VARCHAR(500)"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Missions Table -->
+    <changeSet id="001-create-missions-table" author="Lins">
+        <comment>Создание таблицы миссий</comment>
+        <createTable tableName="missions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="branch_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="difficulty" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="experience_reward" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="energy_reward" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="required_rank" type="INTEGER"/>
+            <column name="required_experience" type="INTEGER"/>
+            <column name="required_competencies" type="VARCHAR(500)"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requires_moderation" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="artifact_reward_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User Missions Table -->
+    <changeSet id="001-create-user-missions-table" author="Lins">
+        <comment>Создание таблицы пользовательских миссий</comment>
+        <createTable tableName="user_missions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)"/>
+            <column name="progress" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="started_at" type="TIMESTAMP"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+            <column name="notes" type="VARCHAR(500)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- User Fields Extension -->
+    <changeSet id="001-add-user-fields" author="Lins">
+        <comment>Добавление дополнительных полей к таблице пользователей</comment>
+        <addColumn tableName="users">
+            <column name="role" type="VARCHAR(20)" defaultValue="USER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="experience" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="energy" type="INTEGER" defaultValue="100">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Foreign Key Constraints -->
+
+</databaseChangeLog>

@@ -1,6 +1,7 @@
 package com.example.alabuga.dto;
 
 import com.example.alabuga.entity.Card;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,7 +49,7 @@ public class CardDTO {
                 .seriesName(card.getSeriesName())
                 .frontImageUrl(card.getFrontImageUrl())
                 .backDescription(card.getBackDescription())
-                .rarity(card.getRarity().name())
+            //    .rarity(card.getRarity().name())
                 .unlockCondition(card.getUnlockCondition())
                 .unlockRank(card.getUnlockRank())
                 .isActive(card.getIsActive())

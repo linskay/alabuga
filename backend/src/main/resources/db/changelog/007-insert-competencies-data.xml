@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Competencies Data -->
+    <changeSet id="007-insert-competencies-data" author="Lins">
+        <comment>Вставка начальных данных компетенций</comment>
+
+        <!-- Аналитико-Техническая ветка -->
+        <insert tableName="competencies">
+            <column name="name" value="Анализ данных"/>
+            <column name="short_description" value="Умение анализировать большие объемы данных"/>
+            <column name="description" value="Компетенция в области анализа данных включает способность работать с большими объемами информации, выявлять закономерности и делать выводы на основе статистического анализа."/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Программирование"/>
+            <column name="short_description" value="Навыки разработки программного обеспечения"/>
+            <column name="description" value="Компетенция в программировании охватывает знание языков программирования, алгоритмов, структур данных и принципов разработки программного обеспечения."/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Системное мышление"/>
+            <column name="short_description" value="Способность видеть систему в целом"/>
+            <column name="description" value="Системное мышление позволяет понимать взаимосвязи между элементами системы, предвидеть последствия изменений и оптимизировать процессы."/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Управленческо-Организационная ветка -->
+        <insert tableName="competencies">
+            <column name="name" value="Управление проектами"/>
+            <column name="short_description" value="Навыки управления проектами и командами"/>
+            <column name="description" value="Компетенция в управлении проектами включает планирование, организацию, мотивацию и контроль ресурсов для достижения поставленных целей."/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Коммуникация"/>
+            <column name="short_description" value="Эффективное общение и презентация"/>
+            <column name="description" value="Навыки коммуникации включают умение четко излагать мысли, слушать собеседника, вести переговоры и презентовать идеи."/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Производственно-Технологическая ветка -->
+        <insert tableName="competencies">
+            <column name="name" value="Техническое обслуживание"/>
+            <column name="short_description" value="Обеспечение работоспособности оборудования"/>
+            <column name="description" value="Компетенция в техническом обслуживании включает диагностику, ремонт и профилактику технического оборудования и систем."/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <insert tableName="competencies">
+            <column name="name" value="Контроль качества"/>
+            <column name="short_description" value="Обеспечение качества продукции и процессов"/>
+            <column name="description" value="Навыки контроля качества включают разработку стандартов, проведение инспекций и улучшение процессов для обеспечения высокого качества."/>
+            <column name="is_active" value="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_DB: alabuga_dev      # База данных для разработки
       POSTGRES_USER: alabuga        # Пользователь базы данныхпродакшене!)
-      POSTGRES_PASSWORD: password   # Пароль (измените в 
+      POSTGRES_PASSWORD: password   
     ports:
       - "5432:5432"                 # Порт PostgreSQL
     volumes:
