@@ -1,8 +1,11 @@
 # Alabuga Project
 
-Полнофункциональное веб-приложение с Spring Boot backend и React frontend.
+<p align="left">
+  <a href="https://liambx.com/erd/p/linskay.github.io/alabuga/schema.sql" target="_blank">
+    <img src="https://img.shields.io/badge/ERD-Open%20Diagram-6f42c1?style=for-the-badge" alt="Open ERD Diagram" />
+  </a>
+</p>
 
-> ERD диаграмма (автообновляется из Liquibase): [Открыть онлайн](https://linskay.github.io/alabuga/schema.sql#via=liam)
 
 ## 🚀 Быстрый запуск в режиме разработки
 
