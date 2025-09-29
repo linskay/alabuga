@@ -2,6 +2,8 @@
 
 Полнофункциональное веб-приложение с Spring Boot backend и React frontend.
 
+> ERD диаграмма (автообновляется из Liquibase): [Открыть онлайн](https://linskay.github.io/alabuga/schema.sql#via=liam)
+
 ## 🚀 Быстрый запуск в режиме разработки
 
 ### 1. Запуск базы данных PostgreSQL
@@ -90,6 +92,17 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 - **OpenAPI JSON:** http://localhost:8080/api-docs
 
 ## База данных
+
+### ERD (Entity-Relationship Diagram)
+
+- Онлайн просмотр (GitHub Pages): нажмите ссылку сверху: "Открыть онлайн". Отдаётся `schema.sql`, который генерируется CI.
+- Генератор: [Liam ERD](https://github.com/liam-hq/liam)
+
+Локальный запуск (понадобится Node.js):
+
+```bash
+npx @liam-hq/cli erd file://$(pwd)/erd/schema.sql --open
+```
 
 ### H2 Console (только dev профиль)
 - **URL:** http://localhost:8080/h2-console
