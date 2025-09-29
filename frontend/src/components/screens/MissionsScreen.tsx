@@ -4,8 +4,9 @@ import styled, { keyframes } from 'styled-components';
 import MainButton from '../MainButton';
 import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
 import SystemNotification from '../SystemNotification';
+import { handleApiError } from '../../utils/errorHandler';
 
-type StatusId = 'active' | 'available' | 'soon';
+type StatusId = 'active' | 'available' | 'soon' | 'history';
 
 interface MissionItem { id?: number; title: string; description: string; difficulty: string; reward: string; status: StatusId; requiredExperience?: number; requiredRank?: number; type?: string }
 
@@ -133,6 +134,20 @@ const StyledCard = styled.div`
   .title { font-size: 0.95rem; line-height: 1.3; }
   .desc { font-size: 0.8rem; opacity: 0.85; margin-top: 0.2rem; }
   .meta { margin-top: auto; display: flex; gap: 0.5rem; font-size: 0.75rem; opacity: 0.9; }
+  
+  .history-card {
+    opacity: 0.8;
+  }
+  .history-card::before {
+    background: linear-gradient(45deg, #10b981, #059669);
+  }
+  .history-card::after {
+    background: linear-gradient(45deg, #10b981, #059669);
+  }
+  .history-card:hover {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
 `;
 
 const MissionsScreen: React.FC = () => {
@@ -143,9 +158,10 @@ const MissionsScreen: React.FC = () => {
   const [missions, setMissions] = useState<MissionItem[]>([]);
   const [user, setUser] = useState<UserDTO | null>(null);
   const [userMissions, setUserMissions] = useState<UserMission[]>([]);
+  const [completedMissions, setCompletedMissions] = useState<UserMission[]>([]);
   const [toastOpen, setToastOpen] = useState(false);
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState<{ open: boolean; title?: string; message?: string }>({ open: false });
   const [pendingMission, setPendingMission] = useState<MissionItem | null>(null);
 
   useEffect(() => {
@@ -174,7 +190,14 @@ const MissionsScreen: React.FC = () => {
         }));
         setMissions(mapped);
         setUserMissions(myMissions || []);
-      } catch (e) {
+        
+        // Разделяем миссии на активные и выполненные
+        const activeMissions = (myMissions || []).filter(m => m.status !== 'COMPLETED');
+        const completedMissions = (myMissions || []).filter(m => m.status === 'COMPLETED');
+        setUserMissions(activeMissions);
+        setCompletedMissions(completedMissions);
+      } catch (e: any) {
+        console.warn('Не удалось загрузить данные миссий:', e?.message);
         setMissions([]);
       }
     })();
@@ -182,6 +205,21 @@ const MissionsScreen: React.FC = () => {
   }, []);
 
   const filtered = useMemo(() => {
+    if (status === 'history') {
+      // Для истории показываем выполненные миссии как карточки
+      return completedMissions.map(mission => ({
+        id: mission.missionId,
+        title: mission.missionName || 'Неизвестная миссия',
+        description: `Выполнена недавно`,
+        difficulty: '—',
+        reward: `${mission.progress || 0}%`,
+        status: 'history' as StatusId,
+        requiredExperience: 0,
+        requiredRank: 0,
+        type: 'completed',
+      }));
+    }
+
     const userRank = user?.rank ?? 0;
     const userXP = user?.experience ?? 0;
     const canAccess = (m: MissionItem) => {
@@ -196,7 +234,7 @@ const MissionsScreen: React.FC = () => {
       status === 'available' ? (canAccess(m) && !isActiveForUser(m)) :
       !canAccess(m)
     );
-  }, [missions, status, user, userMissions]);
+  }, [missions, status, user, userMissions, completedMissions]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -229,18 +267,40 @@ const MissionsScreen: React.FC = () => {
       }));
       setMissions(mapped);
       setUserMissions(myMissions || []);
+      
+      // Обновляем разделение на активные и выполненные
+      const activeMissions = (myMissions || []).filter(m => m.status !== 'COMPLETED');
+      const completedMissions = (myMissions || []).filter(m => m.status === 'COMPLETED');
+      setUserMissions(activeMissions);
+      setCompletedMissions(completedMissions);
     } catch (e: any) {
-      setNotif({ open: true, title: 'Ошибка', message: e?.message || 'Не удалось взять миссию', variant: 'error' });
+      const errorInfo = handleApiError(e, 'Ошибка', 'Не удалось взять миссию');
+      setNotif({ open: true, ...errorInfo });
     }
   };
 
-  const askConfirm = (mission: MissionItem) => {
+  const askConfirm = async (mission: MissionItem) => {
     setPendingMission(mission);
-    setConfirmOpen(true);
+    // Получаем сообщение подтверждения с бекенда
+    try {
+      const confirmationData = await backend.messages.takeMission(mission.id || 0);
+      setConfirmOpen({ 
+        open: true, 
+        title: confirmationData.title,
+        message: confirmationData.message
+      });
+    } catch (e: any) {
+      console.warn('Не удалось получить сообщение подтверждения:', e?.message);
+      setConfirmOpen({ 
+        open: true, 
+        title: 'Подтверждение',
+        message: `Ты действительно хочешь пройти эту миссию: «${mission.title}»?`
+      });
+    }
   };
 
   const closeConfirm = () => {
-    setConfirmOpen(false);
+    setConfirmOpen({ open: false });
     setPendingMission(null);
   };
 
@@ -252,7 +312,7 @@ const MissionsScreen: React.FC = () => {
   };
 
   return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen relative">
+    <div className="h-full pb-8 relative">
       <DecoOrb>
         <div className="ring r1" />
         <div className="ring r2" />
@@ -276,6 +336,9 @@ const MissionsScreen: React.FC = () => {
         <MainButton onClick={() => changeStatus('soon')} className={status === 'soon' ? '' : 'opacity-70'}>
           Будет позже
         </MainButton>
+        <MainButton onClick={() => changeStatus('history')} className={status === 'history' ? '' : 'opacity-70'}>
+          История
+        </MainButton>
       </motion.div>
 
       {/* Сетка карточек */}
@@ -286,7 +349,7 @@ const MissionsScreen: React.FC = () => {
           {itemsToRender.map((m, idx) => (
             <motion.div key={`${m.title}-${idx}`} variants={itemVariants}>
               <StyledCard>
-                <div className="card" style={{ width: 180 }}>
+                <div className={`card ${status === 'history' ? 'history-card' : ''}`} style={{ width: 180 }}>
                   <span />
                   <div className="content">
                     {m.type && (
@@ -312,6 +375,11 @@ const MissionsScreen: React.FC = () => {
                         Взять миссию
                       </button>
                     )}
+                    {status === 'history' && (
+                      <div className="mt-2 px-3 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs text-center">
+                        ✓ Выполнена
+                      </div>
+                    )}
                   </div>
                 </div>
               </StyledCard>
@@ -321,25 +389,35 @@ const MissionsScreen: React.FC = () => {
       </motion.div>
 
       {/* Пагинация */}
-      <div className="mt-8 flex items-center justify-center gap-4">
-        <MainButton disabled={currentPage === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
-          Назад
+      <div className="mt-8 flex items-center justify-center space-x-4">
+        <MainButton
+          onClick={() => setPage(p => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+        >
+          ← Назад
         </MainButton>
-        <div className="text-white/80 text-sm min-w-[100px] text-center">Стр. {currentPage} / {totalPages}</div>
-        <MainButton disabled={currentPage === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
-          Вперёд
+        <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+          Страница {currentPage} из {totalPages}
+        </span>
+        <MainButton
+          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+        >
+          Вперёд →
         </MainButton>
       </div>
 
       {/* Neon Confirm Modal */}
-      {confirmOpen && (
+      {confirmOpen.open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeConfirm} />
           <div className="relative z-[110] w-[90%] max-w-md rounded-2xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.35)]">
             <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
-            <h3 className="text-xl font-bold text-cyan-300 mb-2">Подтверждение</h3>
+            <h3 className="text-xl font-bold text-cyan-300 mb-2">{confirmOpen.title || 'Подтверждение'}</h3>
             <p className="text-gray-300 text-sm mb-6">
-              Ты действительно хочешь пройти эту миссию{pendingMission?.title ? `: "${pendingMission.title}"` : ''}?
+              {confirmOpen.message || `Ты действительно хочешь пройти эту миссию: «${pendingMission?.title}»?`}
             </p>
             <div className="flex gap-3 justify-end">
               <button onClick={closeConfirm} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10 transition">Отмена</button>

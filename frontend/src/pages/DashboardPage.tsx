@@ -85,6 +85,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         transition={{ duration: 0.8 }}
         className="relative z-10 w-full flex flex-col"
       >
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentScreen}

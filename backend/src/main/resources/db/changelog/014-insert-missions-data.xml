@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Missions Data -->
+    <changeSet id="014-insert-missions-data" author="Lins">
+        <comment>Вставка миссий</comment>
+
+        <!-- Миссия 1: Активировать анкерный маяк (артефакт 1) -->
+        <insert tableName="missions">
+            <column name="name" value="Активировать анкерный маяк"/>
+            <column name="description" value="Внимание, новый член экипажа! Для интеграции в систему корабля и доступа ко всем отсекам требуется активация вашего персонального анкерного маяка. Заполните основные данные в своем профиле. Это позволит другим членам экипажа распознавать вас как союзника и упростит навигацию по секторам платформы."/>
+            <column name="branch_id" value="1"/>
+            <column name="type" value="QUEST"/>
+            <column name="difficulty" value="EASY"/>
+            <column name="experience_reward" value="30"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Канал Связи:10"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="artifact_reward_id" value="1"/>
+            <column name="image_url" value="/images/missions/1.jpg"/>
+        </insert>
+
+        <!-- Миссия 2: Подключиться к каналу дальней связи (артефакт 2) -->
+        <insert tableName="missions">
+            <column name="name" value="Подключиться к каналу дальней связи"/>
+            <column name="description" value="Внимание, на связи Центр Управления! Для передачи пакета актуальных данных требуется ваше присутствие на сеансе дальней связи — онлайн-вебинаре. Подключитесь к указанному каналу, чтобы синхронизировать свои знания с текущими оперативными данными миссии. Приём и усвоение информации обязательны."/>
+            <column name="branch_id" value="2"/>
+            <column name="type" value="QUEST"/>
+            <column name="difficulty" value="EASY"/>
+            <column name="experience_reward" value="30"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Канал Связи:15"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="artifact_reward_id" value="2"/>
+            <column name="image_url" value="/images/missions/2.jpg"/>
+        </insert>
+
+        <!-- Миссия 3: Провести сканирование союзника (без артефакта) -->
+        <insert tableName="missions">
+            <column name="name" value="Провести сканирование союзника"/>
+            <column name="description" value="Для оценки состава экипажа и поиска потенциальных партнеров для будущих операций требуется провести сканирование профиля другого участника платформы. Изучите их данные, интересы и активность. Эта разведка поможет в будущей координации действий."/>
+            <column name="branch_id" value="3"/>
+            <column name="type" value="QUEST"/>
+            <column name="difficulty" value="EASY"/>
+            <column name="experience_reward" value="30"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Модуль Аналитики:10"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="image_url" value="/images/missions/3.jpg"/>
+        </insert>
+
+        <!-- Миссия 4: Принять участие в гравитационном манёвре (без артефакта) -->
+        <insert tableName="missions">
+            <column name="name" value="Принять участие в гравитационном манёвре"/>
+            <column name="description" value="Для синхронизации траекторий всего экипажа требуется ваше участие в гравитационном манёвре вокруг общего объекта интереса. Примите участие в оффлайн-мероприятии, организованном платформой. Это критически важно для корректировки курса и обмена энергией в реальном пространстве-времени."/>
+            <column name="branch_id" value="1"/>
+            <column name="type" value="QUEST"/>
+            <column name="difficulty" value="MEDIUM"/>
+            <column name="experience_reward" value="30"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Пульт Командования:15"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="image_url" value="/images/missions/4.jpg"/>
+        </insert>
+
+        <!-- Миссия 5: Передать сигнал в открытый эфир (артефакт 3) -->
+        <insert tableName="missions">
+            <column name="name" value="Передать сигнал в открытый эфир"/>
+            <column name="description" value="Для расширения нашего сигнала и привлечения новых союзников требуется передача в открытые коммуникационные каналы (ВК, Телеграм). Опубликуйте пост о своем опыте на платформе, используя специальный хэштег миссии. Пусть вся галактика узнает о нашем путешествии!"/>
+            <column name="branch_id" value="2"/>
+            <column name="type" value="QUEST"/>
+            <column name="difficulty" value="EASY"/>
+            <column name="experience_reward" value="30"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="1"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Канал Связи:20"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="artifact_reward_id" value="3"/>
+            <column name="image_url" value="/images/missions/5.jpg"/>
+        </insert>
+
+        <!-- Миссия 6: Получить одобрение анкерного маяка (без артефакта) -->
+        <insert tableName="missions">
+            <column name="name" value="Получить одобрение анкерного маяка"/>
+            <column name="description" value="Ваш анкерный маяк (профиль) активирован! Теперь требуется подтверждение его стабильной работы от других членов экипажа. Получите свою первую отметку одобрения (лайк) на странице вашего профиля. Это сигнал, что ваш сигнал чист и вас приняли в сети."/>
+            <column name="branch_id" value="3"/>
+            <column name="type" value="QUEST"/>
+            <column name="difficulty" value="EASY"/>
+            <column name="experience_reward" value="30"/>
+            <column name="energy_reward" value="25"/>
+            <column name="required_rank" value="2"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_competencies" value="Сила Миссии:25"/>
+            <column name="is_active" value="true"/>
+            <column name="requires_moderation" value="true"/>
+            <column name="image_url" value="/images/missions/6.jpg"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

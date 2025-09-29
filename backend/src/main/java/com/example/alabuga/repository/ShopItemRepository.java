@@ -18,4 +18,6 @@ public interface ShopItemRepository extends JpaRepository<ShopItem, Long> {
     @Query("SELECT si FROM ShopItem si WHERE si.isActive = true AND (si.stockQuantity IS NULL OR si.stockQuantity > 0)")
     List<ShopItem> findAvailableItems();
     
+    boolean existsByNameIgnoreCase(String name);
+    
 }

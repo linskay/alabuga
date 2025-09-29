@@ -1,31 +1,17 @@
 package com.example.alabuga.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.alabuga.dto.RankDTO;
-import com.example.alabuga.dto.RankRequirementsCreateDTO;
-import com.example.alabuga.dto.RankRequirementsDTO;
-import com.example.alabuga.dto.RankRequirementsUpdateDTO;
-import com.example.alabuga.dto.UserDTO;
+import com.example.alabuga.dto.*;
 import com.example.alabuga.entity.Rank.RankBranch;
 import com.example.alabuga.mapper.UserMapper;
 import com.example.alabuga.service.RankService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/ranks")
