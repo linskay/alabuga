@@ -151,7 +151,7 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
           transition={{ duration: 0.8, delay: 0.4 }}
           className="flex justify-center"
         >
-          <div className="w-full max-w-7xl">
+          <div className="w-full max-w-screen-lg">
             {children}
           </div>
         </motion.div>
