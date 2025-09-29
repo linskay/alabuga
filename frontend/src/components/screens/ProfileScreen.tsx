@@ -178,8 +178,8 @@ const ProfileScreen: React.FC = () => {
         />
       </motion.div>
 
-      {/* Profile Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Profile Content (bounded like ЦУП) */}
+      <div className="mx-auto w-full max-w-screen-lg grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Astronaut Card */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}

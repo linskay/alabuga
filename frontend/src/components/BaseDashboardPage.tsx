@@ -85,7 +85,7 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
 
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-cosmic" style={{ cursor: 'default' }}>
+    <div className="relative w-full min-h-screen bg-gradient-cosmic flex flex-col" style={{ cursor: 'default' }}>
       {/* Loader */}
       <AnimatePresence>
         {showLoader && (
@@ -130,7 +130,7 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full flex flex-col"
+        className="relative z-10 w-full flex flex-col flex-1"
       >
         {/* Stones Menu */}
         <motion.div
