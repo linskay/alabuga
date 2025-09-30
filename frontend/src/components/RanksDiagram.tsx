@@ -243,7 +243,7 @@ const RanksDiagram: React.FC = () => {
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 bg-transparent">
           {filteredRanks.map((rank, index) => (
-            <RankCard key={rank.id} rank={rank} isSelected={selectedRank === rank.id} onClick={() => setSelectedRank(rank.id)} delay={index} />
+            <RankCard key={rank.id || `rank-${index}`} rank={rank} isSelected={selectedRank === rank.id} onClick={() => setSelectedRank(rank.id)} delay={index} />
           ))}
         </div>
               

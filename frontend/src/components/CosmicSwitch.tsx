@@ -9,9 +9,9 @@ const CosmicSwitch: React.FC<CosmicSwitchProps> = ({ checked, onChange }) => {
   return (
     <div className="cosmic-switch-wrapper">
       <label className="cosmic-toggle">
-        <input
-          className="toggle"
-          type="checkbox"
+        <input 
+          className="toggle" 
+          type="checkbox" 
           checked={!!checked}
           onChange={e => onChange?.(e.target.checked)}
         />
@@ -25,12 +25,12 @@ const CosmicSwitch: React.FC<CosmicSwitchProps> = ({ checked, onChange }) => {
             <div className="ring" />
           </div>
           <div className="particles">
-            <div className="particle" style={{ ['--angle' as any]: '30deg' }} />
-            <div className="particle" style={{ ['--angle' as any]: '60deg' }} />
-            <div className="particle" style={{ ['--angle' as any]: '90deg' }} />
-            <div className="particle" style={{ ['--angle' as any]: '120deg' }} />
-            <div className="particle" style={{ ['--angle' as any]: '150deg' }} />
-            <div className="particle" style={{ ['--angle' as any]: '180deg' }} />
+            <div style={{ ['--angle' as any]: '30deg' }} className="particle" />
+            <div style={{ ['--angle' as any]: '60deg' }} className="particle" />
+            <div style={{ ['--angle' as any]: '90deg' }} className="particle" />
+            <div style={{ ['--angle' as any]: '120deg' }} className="particle" />
+            <div style={{ ['--angle' as any]: '150deg' }} className="particle" />
+            <div style={{ ['--angle' as any]: '180deg' }} className="particle" />
           </div>
         </div>
       </label>

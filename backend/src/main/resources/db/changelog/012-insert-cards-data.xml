@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Initial Cards Data -->
+    <changeSet id="012-insert-cards-data" author="Lins">
+        <comment>Вставка начальных данных карт</comment>
+
+        <!-- Уровень 1: Космо-Кадет -->
+        <insert tableName="cards">
+            <column name="name" value="Космо-Кадет"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/card/1.jpg"/>
+            <column name="back_description" value="Первый корабль. Первый выход в открытый космос. Помни эти дрожащие от волнения руки на штурвале. Каждый Командор когда-то был Кадетом."/>
+            <column name="unlock_condition" value="Начальный ранг"/>
+            <column name="unlock_rank" value="1"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Уровень 2: Специалист Ветки -->
+        <insert tableName="cards">
+            <column name="name" value="Специалист Ветки"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/card/2.jpg"/>
+            <column name="back_description" value="Найден свой путь. Этот модуль — символ мастерства и выбора. Ты больше не новичок, а vital part корабля под названием 'Флот'."/>
+            <column name="unlock_condition" value="Достижение ранга Специалист Ветки"/>
+            <column name="unlock_rank" value="2"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Уровень 3: Мастер Ветки -->
+        <insert tableName="cards">
+            <column name="name" value="Мастер Ветки"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/card/3.jpg"/>
+            <column name="back_description" value="Ты не просто использует станции. Ты их создаёшь. Этот артефакт — чертёж твоего величия, воплощённый в титане и свете."/>
+            <column name="unlock_condition" value="Достижение ранга Мастер Ветки"/>
+            <column name="unlock_rank" value="3"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Уровень 4: Командир -->
+        <insert tableName="cards">
+            <column name="name" value="Командир"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/card/4.jpg"/>
+            <column name="back_description" value="Принятие командования. Ответственность за экипаж и миссию лежит теперь на твоих плечах. Но с этой карты на тебя смотрит лидер, готовый к этому."/>
+            <column name="unlock_condition" value="Достижение ранга Командир"/>
+            <column name="unlock_rank" value="4"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Уровень 5: Хранитель Станции -->
+        <insert tableName="cards">
+            <column name="name" value="Хранитель Станции"/>
+            <column name="series_name" value="Восхождение по иерархии Флота"/>
+            <column name="front_image_url" value="/images/card/5.jpg"/>
+            <column name="back_description" value="Высшая мудрость — понимать, что всё взаимосвязано. Этот Кристалл Хранителя содержит не данные, а душу Флота. Ты стал его стержнем."/>
+            <column name="unlock_condition" value="Достижение ранга Хранитель Станции"/>
+            <column name="unlock_rank" value="5"/>
+            <column name="is_active" value="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

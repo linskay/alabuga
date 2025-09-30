@@ -1,0 +1,99 @@
+name: ERD generation and publish
+
+on:
+  push:
+    paths:
+      - 'backend/src/main/resources/db/**'
+      - '.github/workflows/erd.yml'
+      - 'pom.xml'
+    branches:
+      - main
+      - backend
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: alabuga
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: alabuga
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 && exit 0
+            sleep 2
+          done
+          echo "Postgres did not become ready in time" >&2
+          exit 1
+
+      - name: Run Liquibase migrations
+        env:
+          URL: jdbc:postgresql://localhost:5432/alabuga
+          USERNAME: alabuga
+          PASSWORD: password
+        run: |
+          mvn -q --batch-mode org.liquibase:liquibase-maven-plugin:update \
+            -Dliquibase.url="$URL" \
+            -Dliquibase.username="$USERNAME" \
+            -Dliquibase.password="$PASSWORD" \
+            -Dliquibase.changeLogFile=backend/src/main/resources/db/changelog/db.changelog-master.xml
+
+      - name: Dump schema
+        run: |
+          mkdir -p erd
+          pg_dump --schema-only --no-owner --no-privileges \
+            --host localhost --port 5432 \
+            --username alabuga --dbname alabuga \
+            > erd/schema.sql
+        env:
+          PGPASSWORD: password
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: erd
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+
