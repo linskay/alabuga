@@ -10,6 +10,7 @@ import ShinyText from '../ShinyText';
 import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
 import AdventCalendar, { AdventCalendarData } from '../AdventCalendar';
+import NeonEventCard from '../NeonEventCard';
 
 const AdventCalendarPreview: React.FC<{ days: number; items: Record<number, any>; centerTitle: string }>= ({ days, items, centerTitle }) => {
   const cells = Array.from({ length: days }).map((_, i) => ({
@@ -1530,11 +1531,14 @@ const AdminScreen: React.FC = () => {
               {[{id:'cadet',name:'Космо-Кадет',level:1},{id:'nav',name:'Навигатор Траекторий',level:2},{id:'analyst',name:'Аналитик Орбит',level:3},{id:'architect',name:'Архитектор Станции',level:4},{id:'keeper',name:'Хранитель Станции',level:5},
                 {id:'chronicler',name:'Хронист Галактики',level:2},{id:'culturalist',name:'Исследователь Культур',level:3},{id:'lecturer',name:'Мастер Лектория',level:4},
                 {id:'communicator',name:'Связист Звёздного Флота',level:2},{id:'crew-nav',name:'Штурман Экипажа',level:3},{id:'commander',name:'Командир Отряда',level:4}].map(r => (
-                <button key={r.id} onClick={() => { setRanksModal({ open: true, rankId: r.id }); setRankForm(v=>({ ...v, name: r.name, afterLevel: Math.max(1, r.level-1) })); }}
-                  className="border border-white/15 bg-slate-900/60 rounded-lg p-3 text-left hover:border-cyan-400/40 transition">
-                  <div className="text-white/90 text-sm font-medium">{r.name}</div>
-                  <div className="text-white/50 text-xs">Уровень {r.level}</div>
-                </button>
+                <div key={r.id} onClick={() => { setRanksModal({ open: true, rankId: r.id }); setRankForm(v=>({ ...v, name: r.name, afterLevel: Math.max(1, r.level-1) })); }} className="cursor-pointer">
+                  <NeonEventCard title={r.name}>
+                    <div className="w-full flex items-center justify-between">
+                      <span className="text-white/70 text-xs">Уровень {r.level}</span>
+                      <button onClick={(e)=>{ e.stopPropagation(); setRanksModal({ open: true, rankId: r.id }); setRankForm(v=>({ ...v, name: r.name, afterLevel: Math.max(1, r.level-1) })); }} className="px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Открыть</button>
+                    </div>
+                  </NeonEventCard>
+                </div>
               ))}
             </div>
 
@@ -1581,74 +1585,38 @@ const AdminScreen: React.FC = () => {
             <div className="text-white"><ShinyText text="ИНСТРУМЕНТЫ ИВЕНТОВ" className="text-2xl font-bold" /></div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Countdown */}
-              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
-                <div className="text-white font-semibold">Счётчик обратного отсчёта</div>
-                <div className="text-white/70 text-sm mt-1">При наведении показывайте, сколько времени осталось до события/конца акции. Простой способ создать эффект срочности.</div>
-                <div className="flex items-center gap-3 mt-3">
-                  <NeonSwitch checked={countdownForm.enabled} onChange={(v:boolean)=>setCountdownForm(s=>({ ...s, enabled: v }))} />
-                  <span className="text-white/70 text-sm">Включен</span>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={()=>setCountdownModal({ open:true })} className="px-3 py-2 rounded-md border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/10">Настроить</button>
-                </div>
-              </div>
+            <NeonEventCard title="Счётчик" subtitle="Обратный отсчёт" description="Покажите, сколько осталось до события или конца акции. Эффект срочности и вовлечения.">
+              <NeonSwitch checked={countdownForm.enabled} onChange={(v:boolean)=>setCountdownForm(s=>({ ...s, enabled: v }))} />
+              <button onClick={()=>setCountdownModal({ open:true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
 
-              {/* Test constructor */}
-              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
-                <div className="text-white font-semibold">Конструктор теста</div>
-                <div className="text-white/70 text-sm mt-1">Используйте тест для изучения характера, мотивации и ценностей. Результаты помогут адаптировать сценарии под каждого.</div>
-                <div className="flex items-center gap-3 mt-3">
-                  <NeonSwitch checked={testShowOnMain} onChange={setTestShowOnMain} />
-                  <span className="text-white/70 text-sm">Показывать на главной</span>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={()=>setTestOpen({ open: true })} className="px-3 py-2 rounded-md border border-purple-400/40 text-purple-200 hover:bg-purple-500/10">Создать</button>
-                </div>
-              </div>
+            <NeonEventCard title="Тесты" subtitle="Конструктор" description="Создавайте тесты по характеру, мотивации и ценностям. Используйте результаты для персонализации.">
+              <NeonSwitch checked={testShowOnMain} onChange={setTestShowOnMain} />
+              <button onClick={()=>setTestOpen({ open: true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
 
-              {/* Advent Calendar */}
-              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
-                <div className="text-white font-semibold">Адвент‑календарь</div>
-                <div className="text-white/70 text-sm mt-1">Ежедневный челлендж: задания, подарки или советы на каждый день. Создаёт вовлечённость и эффект «жду, что дальше».</div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={()=>setAdventOpen({ open: true })} className="px-3 py-2 rounded-md border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10">Создать</button>
-                </div>
-              </div>
+            <NeonEventCard title="Адвент‑календарь" subtitle="Конструктор" description="Ежедневные задания/подарки/советы. Формируйте привычку и поддерживайте интерес.">
+              <button onClick={()=>setAdventOpen({ open: true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
 
-              {/* Competition Map */}
-              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
-                <div className="text-white font-semibold">Карта соревнования</div>
-                <div className="text-white/70 text-sm mt-1">Индивидуальные или командные соревнования. Удержание, азарт и вовлечение в одной механике геймификации.</div>
-                <div className="flex gap-2 mt-3">
-                <button onClick={()=>setCompOpen({ open:true })} className="px-3 py-2 rounded-md border border-blue-400/40 text-blue-200 hover:bg-blue-500/10">Создать</button>
-                </div>
-              </div>
+            <NeonEventCard title="Карта соревнования" subtitle="Конструктор" description="Маршрут из этапов с целями и наградами. Индивидуальные или командные сценарии.">
+              <button onClick={()=>setCompOpen({ open:true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
 
-              {/* Lottery */}
-              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
-                <div className="text-white font-semibold">Лотерея</div>
-                <div className="text-white/70 text-sm mt-1">Раздавайте билеты, проводите розыгрыши — привлекайте внимание и повышайте активность.</div>
-                <div className="flex gap-2 mt-3">
-                <button onClick={()=>{ setLotteryOpen({ open:true }); setLotteryStep(1); }} className="px-3 py-2 rounded-md border border-yellow-400/40 text-yellow-200 hover:bg-yellow-500/10">Создать</button>
-                </div>
-              </div>
+            <NeonEventCard title="Лотерея" subtitle="Конструктор" description="Раздавайте билеты, настраивайте призы и визуал. Проводите розыгрыши для вовлечения.">
+              <button onClick={()=>{ setLotteryOpen({ open:true }); setLotteryStep(1); }} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
 
-              {/* Wheel of Fortune */}
-              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
-                <div className="text-white font-semibold">Колесо фортуны</div>
-                <div className="text-white/70 text-sm mt-1">Добавьте элемент неожиданности: розыгрыши бонусов, мотивация — пользователь крутит колесо и получает случайный приз.</div>
-                <div className="flex gap-2 mt-3">
-                <button onClick={()=>setWheelOpen({ open:true })} className="px-3 py-2 rounded-md border border-pink-400/40 text-pink-200 hover:bg-pink-500/10">Создать</button>
-                </div>
-              </div>
+            <NeonEventCard title="Колесо фортуны" subtitle="Конструктор" description="Редактируйте сектора, настраивайте веса и тестируйте вращение.">
+              <button onClick={()=>setWheelOpen({ open:true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
             </div>
 
             {/* Countdown Modal */}
             {countdownModal?.open && (
               <div className="fixed inset-0 z-[300] flex items-center justify-center">
                 <div className="absolute inset-0 bg-black/70" onClick={()=>setCountdownModal(null)} />
-                <div className="relative z-[310] w-[92%] max-w-xl bg-slate-900/90 border border-cyan-400/30 rounded-2xl p-5">
+                <div className="relative z-[310] w-[92%] max-w-xl rounded-2xl p-5" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(34,211,238,0.12))', boxShadow: '0 0 40px rgba(34,211,238,0.25), inset 0 0 20px rgba(34,211,238,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
                   <div className="text-white"><ShinyText text="СЧЁТЧИК ОБРАТНОГО ОТСЧЁТА" className="text-xl font-bold" /></div>
                   <div className="grid grid-cols-1 gap-3 mt-3">
                     <label className="text-sm text-white/80">Заголовок
@@ -1663,7 +1631,7 @@ const AdminScreen: React.FC = () => {
                   </div>
                   <div className="flex justify-end gap-2 mt-5">
                     <button onClick={()=>setCountdownModal(null)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Отмена</button>
-                    <button onClick={()=>{ /* TODO: save and propagate */ setCountdownModal(null); }} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30">Сохранить</button>
+                    <button onClick={()=>{ /* TODO: save and propagate */ setCountdownModal(null); }} className="px-4 py-2 rounded-md bg-white text-slate-900 font-semibold">Сохранить</button>
                   </div>
                 </div>
               </div>
@@ -1673,8 +1641,8 @@ const AdminScreen: React.FC = () => {
           {lotteryOpen.open && (
             <div className="fixed inset-0 z-[300] flex items-center justify-center">
               <div className="absolute inset-0 bg-black/70" onClick={()=>setLotteryOpen({ open:false })} />
-              <div className="relative z-[310] w-[96%] max-w-6xl bg-slate-900/95 border border-white/15 rounded-2xl p-4 md:p-5 max-h-[88vh] overflow-hidden flex flex-col">
-                <h2 className="text-white text-xl font-bold">Конструктор лотереи</h2>
+              <div className="relative z-[310] w-[96%] max-w-6xl rounded-2xl p-4 md:p-5 max-h-[88vh] overflow-hidden flex flex-col" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(167,139,250,0.12))', boxShadow: '0 0 60px rgba(167,139,250,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <div className="text-white"><ShinyText text="КОНСТРУКТОР ЛОТЕРЕИ" className="text-xl font-bold" /></div>
                 {/* no extra decorations, keep constructor neutral */}
 
                 {/* Steps header with titles */}
@@ -1838,7 +1806,7 @@ const AdminScreen: React.FC = () => {
             <div className="fixed inset-0 z-[300] flex items-center justify-center">
               <div className="absolute inset-0 bg-black/80" onClick={()=>setCompOpen({ open:false })} />
               <div className="relative z-[310] w-[96%] max-w-7xl rounded-2xl p-5" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.15))', boxShadow: '0 0 60px rgba(99,102,241,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                <h2 className="text-white text-xl font-bold mb-3">Карта соревнования — конструктор</h2>
+                <div className="text-white mb-3"><ShinyText text="КОНСТРУКТОР КАРТЫ СОРЕВНОВАНИЯ" className="text-xl font-bold" /></div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[80vh] overflow-hidden">
                   {/* Left: settings */}
                   <div className="overflow-auto pr-1 space-y-3">
@@ -1946,7 +1914,7 @@ const AdminScreen: React.FC = () => {
             <div className="fixed inset-0 z-[300] flex items-center justify-center">
               <div className="absolute inset-0 bg-black/80" onClick={()=>setWheelOpen({ open:false })} />
               <div className="relative z-[310] w-[96%] max-w-6xl rounded-2xl p-4 md:p-6" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.15))', boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                <h2 className="text-white text-xl font-bold mb-3">Колесо Фортуны — конструктор</h2>
+                <div className="text-white mb-3"><ShinyText text="КОНСТРУКТОР КОЛЕСА ФОРТУНЫ" className="text-xl font-bold" /></div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[80vh] overflow-hidden">
                   {/* Left: sectors list and editor */}
                   <div className="overflow-auto pr-1">
@@ -2028,14 +1996,17 @@ const AdminScreen: React.FC = () => {
         )}
       </motion.div>
 
-      {/* Pyramid Loader Component */}
+      {/* Decorative Pyramid - bottom-right, subtle, non-interactive */}
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
-        className="mt-12 flex justify-end"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ duration: 0.8, delay: 1.0 }}
+        className="fixed right-6 bottom-20 pointer-events-none z-0"
+        style={{ filter: 'drop-shadow(0 0 18px rgba(99,102,241,0.35))' }}
       >
-        <PyramidLoader />
+        <div style={{ opacity: 0.8 }}>
+          <PyramidLoader />
+        </div>
       </motion.div>
 
       <SystemNotification
@@ -2830,8 +2801,8 @@ const AdminScreen: React.FC = () => {
       {adventOpen.open && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70" onClick={()=>setAdventOpen({ open:false })} />
-          <div className="relative z-[310] w-[95%] max-w-5xl bg-slate-900/95 border border-white/15 rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col">
-            <h2 className="text-white text-xl font-bold">Конструктор адвент‑календаря</h2>
+          <div className="relative z-[310] w-[95%] max-w-5xl rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.12))', boxShadow: '0 0 50px rgba(59,130,246,0.25), inset 0 0 24px rgba(34,211,238,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            <div className="text-white"><ShinyText text="КОНСТРУКТОР АДВЕНТ‑КАЛЕНДАРЯ" className="text-xl font-bold" /></div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4 flex-1 overflow-hidden">
               {/* Editor */}
               <div className="space-y-3 overflow-auto pr-1">
@@ -2894,8 +2865,8 @@ const AdminScreen: React.FC = () => {
       {testOpen.open && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70" onClick={()=>setTestOpen({ open:false })} />
-              <div className="relative z-[310] w-[95%] max-w-6xl bg-slate-900/95 border border-white/15 rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col">
-                <h2 className="text-white text-xl font-bold">Конструктор тестов</h2>
+          <div className="relative z-[310] w-[95%] max-w-6xl rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(167,139,250,0.12))', boxShadow: '0 0 50px rgba(167,139,250,0.25), inset 0 0 24px rgba(34,211,238,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            <div className="text-white"><ShinyText text="КОНСТРУКТОР ТЕСТОВ" className="text-xl font-bold" /></div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4 flex-1 overflow-hidden">
               {/* Editor */}
               <div className="space-y-3 overflow-auto pr-1">
@@ -2950,28 +2921,28 @@ const AdminScreen: React.FC = () => {
                 </div>
               </div>
 
-                  {/* List Preview (compact, non-interactive) */}
-                  <div className="border border-white/10 rounded-lg p-3 bg-slate-900/60 overflow-auto max-h-[60vh]">
-                    <div className="text-white/80 text-sm mb-3">Предпросмотр</div>
-                    <div className="space-y-2">
-                      {testData.questions.length === 0 && (
-                        <div className="text-white/50 text-sm">Нет вопросов</div>
-                      )}
-                      {testData.questions.map((q)=> (
-                        <div key={q.id} className="flex items-center gap-3 p-2 rounded-md border border-white/10 bg-slate-800/60">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-white text-xs font-semibold">{q.id}</div>
-                          {q.image && <img src={q.image} alt="img" className="w-10 h-10 rounded object-cover border border-white/10" />}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-white/90 text-sm truncate">{q.text || 'Без названия'}</div>
-                            <div className="text-white/60 text-xs">Ответов: {q.answers.length}</div>
-                          </div>
-                          <span className="px-2 py-1 rounded-full text-[10px] font-medium border border-white/15 text-white/80">
-                            {q.kind}
-                          </span>
-                        </div>
-                      ))}
+              {/* List Preview (compact, non-interactive) */}
+              <div className="border border-white/10 rounded-lg p-3 bg-slate-900/60 overflow-auto max-h-[60vh]">
+                <div className="text-white/80 text-sm mb-3">Предпросмотр</div>
+                <div className="space-y-2">
+                  {testData.questions.length === 0 && (
+                    <div className="text-white/50 text-sm">Нет вопросов</div>
+                  )}
+                  {testData.questions.map((q)=> (
+                    <div key={q.id} className="flex items-center gap-3 p-2 rounded-md border border-white/10 bg-slate-800/60">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-white text-xs font-semibold">{q.id}</div>
+                      {q.image && <img src={q.image} alt="img" className="w-10 h-10 rounded object-cover border border-white/10" />}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white/90 text-sm truncate">{q.text || 'Без названия'}</div>
+                        <div className="text-white/60 text-xs">Ответов: {q.answers.length}</div>
+                      </div>
+                      <span className="px-2 py-1 rounded-full text-[10px] font-medium border border-white/15 text-white/80">
+                        {q.kind}
+                      </span>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
