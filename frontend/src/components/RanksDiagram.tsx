@@ -105,17 +105,17 @@ interface RankData {
 const COLORS_TOP = ['#00FFFF', '#FF00FF', '#FFFF00', '#00FF00'];
 
 const STATIC_RANKS: RankData[] = [
-  { id: 'cadet', name: 'Космо-Кадет', description: 'Общий старт для всех космических специалистов', icon: Zap, branch: 'tech', level: 0, color: '#64748b', glowColor: '#64748b', requirements: ['Базовые знания космических технологий'] },
-  { id: 'navigator', name: 'Навигатор Траекторий', description: 'Специалист по расчету космических траекторий', icon: Satellite, branch: 'tech', level: 1, color: '#0ea5e9', glowColor: '#0ea5e9', requirements: ['Математический анализ', 'Орбитальная механика'] },
-  { id: 'analyst', name: 'Аналитик Орбит', description: 'Эксперт по анализу орбитальных систем', icon: Radar, branch: 'tech', level: 2, color: '#3b82f6', glowColor: '#3b82f6', requirements: ['Продвинутая аналитика', 'Системное мышление'] },
-  { id: 'architect', name: 'Архитектор Станции', description: 'Мастер проектирования космических станций', icon: Building, branch: 'tech', level: 3, color: '#1d4ed8', glowColor: '#1d4ed8', requirements: ['Инженерное проектирование', 'Структурный анализ'] },
-  { id: 'chronicler', name: 'Хронист Галактики', description: 'Летописец космических событий и истории', icon: BookOpen, branch: 'research', level: 1, color: '#8b5cf6', glowColor: '#8b5cf6', requirements: ['Исследовательские навыки', 'Документирование'] },
-  { id: 'culturalist', name: 'Исследователь Культур', description: 'Изучатель инопланетных цивилизаций', icon: Users, branch: 'research', level: 2, color: '#a855f7', glowColor: '#a855f7', requirements: ['Ксенобиология', 'Культурная антропология'] },
-  { id: 'lecturer', name: 'Мастер Лектория', description: 'Преподаватель космических наук', icon: GraduationCap, branch: 'research', level: 3, color: '#9333ea', glowColor: '#9333ea', requirements: ['Педагогические навыки', 'Экспертиза в области'] },
-  { id: 'communicator', name: 'Связист Звёздного Флота', description: 'Специалист по межзвездной связи', icon: Radio, branch: 'leadership', level: 1, color: '#06b6d4', glowColor: '#06b6d4', requirements: ['Коммуникационные технологии', 'Протоколы связи'] },
-  { id: 'navigator-leader', name: 'Штурман Экипажа', description: 'Лидер навигационной команды', icon: Navigation, branch: 'leadership', level: 2, color: '#0891b2', glowColor: '#0891b2', requirements: ['Лидерские качества', 'Навигационная экспертиза'] },
-  { id: 'commander', name: 'Командир Отряда', description: 'Командир космического отряда', icon: Shield, branch: 'leadership', level: 3, color: '#0e7490', glowColor: '#0e7490', requirements: ['Стратегическое мышление', 'Управление командой'] },
-  { id: 'keeper', name: 'Хранитель Станции «Алабуга.TECH»', description: 'Высший ранг космического специалиста', icon: Crown, branch: 'final', level: 4, color: '#fbbf24', glowColor: '#fbbf24', requirements: ['Мастерство во всех областях', 'Исключительное лидерство'] }
+  { id: 'cadet', name: 'Космо-Кадет', description: 'Общий старт для всех космических специалистов', icon: Zap, branch: 'final', level: 1, color: '#64748b', glowColor: '#64748b', requirements: ['Базовые знания космических технологий'] },
+  { id: 'navigator', name: 'Навигатор Траекторий', description: 'Специалист по расчету космических траекторий', icon: Satellite, branch: 'tech', level: 2, color: '#3b82f6', glowColor: '#3b82f6', requirements: ['Математический анализ', 'Орбитальная механика'] },
+  { id: 'analyst', name: 'Аналитик Орбит', description: 'Эксперт по анализу орбитальных систем', icon: Radar, branch: 'tech', level: 3, color: '#3b82f6', glowColor: '#3b82f6', requirements: ['Продвинутая аналитика', 'Системное мышление'] },
+  { id: 'architect', name: 'Архитектор Станции', description: 'Мастер проектирования космических станций', icon: Building, branch: 'tech', level: 4, color: '#1d4ed8', glowColor: '#1d4ed8', requirements: ['Инженерное проектирование', 'Структурный анализ'] },
+  { id: 'chronicler', name: 'Хронист Галактики', description: 'Летописец космических событий и истории', icon: BookOpen, branch: 'research', level: 2, color: '#8b5cf6', glowColor: '#8b5cf6', requirements: ['Исследовательские навыки', 'Документирование'] },
+  { id: 'culturalist', name: 'Исследователь Культур', description: 'Изучатель инопланетных цивилизаций', icon: Users, branch: 'research', level: 3, color: '#a855f7', glowColor: '#a855f7', requirements: ['Ксенобиология', 'Культурная антропология'] },
+  { id: 'lecturer', name: 'Мастер Лектория', description: 'Преподаватель космических наук', icon: GraduationCap, branch: 'research', level: 4, color: '#9333ea', glowColor: '#9333ea', requirements: ['Педагогические навыки', 'Экспертиза в области'] },
+  { id: 'communicator', name: 'Связист Звёздного Флота', description: 'Специалист по межзвездной связи', icon: Radio, branch: 'leadership', level: 2, color: '#06b6d4', glowColor: '#06b6d4', requirements: ['Коммуникационные технологии', 'Протоколы связи'] },
+  { id: 'navigator-leader', name: 'Штурман Экипажа', description: 'Лидер навигационной команды', icon: Navigation, branch: 'leadership', level: 3, color: '#0891b2', glowColor: '#0891b2', requirements: ['Лидерские качества', 'Навигационная экспертиза'] },
+  { id: 'commander', name: 'Командир Отряда', description: 'Командир космического отряда', icon: Shield, branch: 'leadership', level: 4, color: '#0e7490', glowColor: '#0e7490', requirements: ['Стратегическое мышление', 'Управление командой'] },
+  { id: 'keeper', name: 'Хранитель Станции «Алабуга.TECH»', description: 'Высший ранг космического специалиста', icon: Crown, branch: 'final', level: 5, color: '#fbbf24', glowColor: '#fbbf24', requirements: ['Мастерство во всех областях', 'Исключительное лидерство'] }
 ];
 
 const RankCard: React.FC<{ rank: RankData; isSelected: boolean; onClick: () => void; delay: number }>= ({ rank, isSelected, onClick, delay }) => {
@@ -143,8 +143,8 @@ const RankCard: React.FC<{ rank: RankData; isSelected: boolean; onClick: () => v
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white mb-1">{rank.name}</h3>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${rank.color}30`, color: rank.color }}>
-              {rank.branch === 'tech' ? 'Техническая' : rank.branch === 'research' ? 'Исследовательская' : rank.branch === 'leadership' ? 'Лидерская' : 'Финальная'}
+            <span className="px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ backgroundColor: `${rank.color}30`, color: rank.color }}>
+              {rank.branch === 'tech' ? 'Кольцо Посланцев' : rank.branch === 'research' ? 'Академия Звёздного Флота' : rank.branch === 'leadership' ? 'Пояс Испытаний' : 'Док Лунной Базы'}
             </span>
             <span className="text-gray-400 text-sm">Уровень {rank.level}</span>
       </div>
@@ -175,7 +175,7 @@ const RankCard: React.FC<{ rank: RankData; isSelected: boolean; onClick: () => v
 
 const RanksDiagram: React.FC = () => {
   const [selectedRank, setSelectedRank] = useState<string>('cadet');
-  const [currentBranch, setCurrentBranch] = useState<'all' | 'tech' | 'research' | 'leadership' | 'final'>('all');
+  const [currentBranch, setCurrentBranch] = useState<'all' | 'dock' | 'tech' | 'research' | 'leadership'>('all');
   const [ranks, setRanks] = useState<RankData[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const color = useMotionValue(COLORS_TOP[0]);
@@ -187,7 +187,11 @@ const RanksDiagram: React.FC = () => {
   }, [color, textControls]);
 
   const backgroundImage = useMotionTemplate`radial-gradient(125% 125% at 50% 0%, #020617 50%, ${color})`;
-  const filteredRanks = (ranks ?? STATIC_RANKS).filter(r => currentBranch === 'all' ? true : r.branch === currentBranch);
+  const filteredRanks = (ranks ?? STATIC_RANKS).filter(r => {
+    if (currentBranch === 'all') return true;
+    if (currentBranch === 'dock') return r.level === 1 || r.level === 5;
+    return r.branch === currentBranch;
+  });
   const selectedRankData = (ranks ?? STATIC_RANKS).find(r => r.id === selectedRank);
 
   useEffect(() => {
@@ -214,24 +218,25 @@ const RanksDiagram: React.FC = () => {
     return () => { mounted = false; };
   }, []);
 
+  // Order and names per product wording
   const branchFilters = [
+    { id: 'dock', name: 'Док Лунной Базы', icon: Crown },
+    { id: 'tech', name: 'Кольцо Посланцев', icon: Satellite },
+    { id: 'research', name: 'Академия Звёздного Флота', icon: BookOpen },
+    { id: 'leadership', name: 'Пояс Испытаний', icon: Shield },
     { id: 'all', name: 'Все ранги', icon: Zap },
-    { id: 'tech', name: 'Техническая', icon: Satellite },
-    { id: 'research', name: 'Исследовательская', icon: BookOpen },
-    { id: 'leadership', name: 'Лидерская', icon: Shield },
-    { id: 'final', name: 'Финальная', icon: Crown },
   ];
 
   return (
     <motion.section className="relative min-h-screen overflow-hidden px-4 py-12 text-gray-200 bg-transparent">
       <div className="relative z-10 max-w-7xl mx-auto">
 
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-wrap justify-center gap-4 mb-12">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-wrap justify-center gap-2 mb-8 px-2">
           {branchFilters.map((filter) => {
             const FilterIcon = filter.icon;
             return (
-              <motion.button key={filter.id} onClick={() => setCurrentBranch(filter.id as any)} className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 ${currentBranch === filter.id ? 'border-cyan-400 bg-cyan-400/20 text-cyan-400' : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <FilterIcon className="w-4 h-4" />
+              <motion.button key={filter.id} onClick={() => setCurrentBranch(filter.id as any)} className={`flex items-center gap-1.5 px-3 md:px-4 py-2.5 rounded-full border-2 text-sm transition-all duration-300 ${currentBranch === filter.id ? 'border-cyan-400 bg-cyan-400/20 text-cyan-400' : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <FilterIcon className="w-4 h-4 shrink-0" />
                 {filter.name}
               </motion.button>
             );
@@ -276,8 +281,8 @@ const RanksDiagram: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300">Ветка развития:</span>
-                      <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: `${selectedRankData.color}30`, color: selectedRankData.color }}>
-                        {selectedRankData.branch === 'tech' ? 'Аналитико-Техническая' : selectedRankData.branch === 'research' ? 'Гуманитарно-Исследовательская' : selectedRankData.branch === 'leadership' ? 'Коммуникационно-Лидерская' : 'Финальная'}
+                      <span className="px-3 py-1.5 rounded-full text-sm font-medium" style={{ backgroundColor: `${selectedRankData.color}30`, color: selectedRankData.color }}>
+                        {selectedRankData.branch === 'tech' ? 'Кольцо Посланцев' : selectedRankData.branch === 'research' ? 'Академия Звёздного Флота' : selectedRankData.branch === 'leadership' ? 'Пояс Испытаний' : 'Док Лунной Базы'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
