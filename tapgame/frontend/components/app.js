@@ -1,4 +1,7 @@
 // Game constants
+const COLORS = ['#8a8ffe', '#5f63f2', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96f2d7'];
+const PARTICLE_COUNT = 10;
+
 const LEVELS = [
     { score: 0, title: 'Курсант', image: '../assets/Goose.png' },
     { score: 100, title: 'Лейтенант Гусь', image: '../assets/Goose2.png' },
@@ -189,19 +192,48 @@ function updateProgressBar() {
 function levelUp() {
     const currentLevel = LEVELS[gameState.level];
     showAchievement(`Уровень ${gameState.level + 1} разблокирован!`, currentLevel.title);
+    
+    // Play level up sound
     if (levelUpSound) {
         levelUpSound.currentTime = 0;
         levelUpSound.play().catch(e => console.log('Audio play failed:', e));
     }
+    
+    // Update goose image
     if ($circle) {
         $circle.setAttribute('src', currentLevel.image);
+        
+        // Add level up animation
+        $circle.style.animation = 'bounce 0.5s ease-in-out';
+        setTimeout(() => {
+            $circle.style.animation = '';
+        }, 500);
     }
+    
+    // Add level up achievement
     const achievementId = `level_${gameState.level}`;
     if (!hasAchievement(achievementId)) {
         addAchievement(achievementId);
     }
-
-    // Обновляем прогресс-бар после повышения уровня
+    
+    // Create level up particles
+    if ($circle) {
+        const rect = $circle.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        
+        // Create more particles for level up
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                createParticle(
+                    x + (Math.random() - 0.5) * 50,
+                    y + (Math.random() - 0.5) * 50
+                );
+            }, i * 50);
+        }
+    }
+    
+    // Update progress bar
     updateProgressBar();
 }
 
@@ -254,48 +286,119 @@ function render() {
     updateProgressBar();
 }
 
+function createParticles(x, y, count = 5) {
+    for (let i = 0; i < count; i++) {
+        createParticle(x, y);
+    }
+}
+
+function createParticle(x, y) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    
+    // Random size between 3 and 8 pixels
+    const size = Math.random() * 5 + 3;
+    
+    // Random color from our palette
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    
+    // Set particle styles
+    Object.assign(particle.style, {
+        width: `${size}px`,
+        height: `${size}px`,
+        background: color,
+        left: `${x}px`,
+        top: `${y}px`,
+        transform: `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`,
+        animationDuration: `${Math.random() * 0.5 + 0.5}s`,
+        opacity: Math.random() * 0.5 + 0.5
+    });
+    
+    // Add to DOM
+    document.body.appendChild(particle);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        particle.remove();
+    }, 1000);
+}
+
+function createClickEffect(x, y) {
+    const effect = document.createElement('div');
+    effect.className = 'click-effect';
+    
+    Object.assign(effect.style, {
+        left: `${x}px`,
+        top: `${y}px`
+    });
+    
+    document.body.appendChild(effect);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        effect.remove();
+    }, 500);
+}
+
+function animateGoose() {
+    if ($circle) {
+        $circle.classList.add('goose-click');
+        
+        // Remove the class after animation completes
+        setTimeout(() => {
+            $circle.classList.remove('goose-click');
+        }, 300);
+    }
+}
+
 function handleClick(event) {
+    // Prevent default to avoid any unwanted behavior
+    event.preventDefault();
+    
+    // Get click position
+    const x = event.clientX;
+    const y = event.clientY;
+    
+    // Create visual effects
+    createClickEffect(x, y);
+    createParticles(x, y, PARTICLE_COUNT);
+    animateGoose();
+    
+    // Play click sound
     if (clickSound) {
         clickSound.currentTime = 0;
         clickSound.play().catch(e => console.log('Audio play failed:', e));
     }
-    const rect = $circle.getBoundingClientRect();
-    let clientX = event.clientX;
-    let clientY = event.clientY;
-    if (clientX == null || clientY == null) {
-        if (event.touches && event.touches[0]) {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
-        } else if (event.changedTouches && event.changedTouches[0]) {
-            clientX = event.changedTouches[0].clientX;
-            clientY = event.changedTouches[0].clientY;
-        }
-    }
-    const offsetX = clientX - rect.left - rect.width / 2;
-    const offsetY = clientY - rect.top - rect.height / 2;
-    const DEG = 20;
+    
+    // Add score
+    addScore(1);
+    
+    // Create +1 text effect
+    createPlusOne(x, y);
+}
 
-    $circle.style.setProperty('--tiltX', `${(offsetY / rect.height) * DEG}deg`);
-    $circle.style.setProperty('--tiltY', `${(offsetX / rect.width) * -DEG}deg`);
-
-    setTimeout(() => {
-        $circle.style.setProperty('--tiltX', '0deg');
-        $circle.style.setProperty('--tiltY', '0deg');
-    }, 200);
-
+function createPlusOne(x, y) {
     const plusOne = document.createElement('div');
-    plusOne.classList.add('plus-one');
+    plusOne.className = 'plus-one';
     plusOne.textContent = '+1';
-    plusOne.style.left = `${(clientX ?? rect.left + rect.width/2) - rect.left}px`;
-    plusOne.style.top = `${(clientY ?? rect.top + rect.height/2) - rect.top}px`;
-
-    $circle.parentNode.appendChild(plusOne);
-
+    
+    // Random position around the click
+    const offsetX = (Math.random() - 0.5) * 50;
+    const offsetY = (Math.random() - 0.5) * 50;
+    
+    Object.assign(plusOne.style, {
+        left: `${x + offsetX}px`,
+        top: `${y + offsetY}px`,
+        fontSize: `${Math.random() * 10 + 16}px`,
+        opacity: 0.8 + Math.random() * 0.2
+    });
+    
+    document.body.appendChild(plusOne);
+    
+    // Remove after animation completes
     setTimeout(() => {
         plusOne.remove();
     }, 1500);
-
-    addScore(1);
 }
 
 function setupEventListeners() {
