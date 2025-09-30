@@ -9,10 +9,35 @@ import SystemNotification from '../SystemNotification';
 import ShinyText from '../ShinyText';
 import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
+import AdventCalendar, { AdventCalendarData } from '../AdventCalendar';
+
+const AdventCalendarPreview: React.FC<{ days: number; items: Record<number, any>; centerTitle: string }>= ({ days, items, centerTitle }) => {
+  const cells = Array.from({ length: days }).map((_, i) => ({
+    id: i + 1,
+    opened: !!items[i + 1]?.opened,
+  }));
+  return (
+    <div className="space-y-3">
+      <div className="text-white/80 text-center text-sm">{centerTitle || 'Адвент‑Галактика'}</div>
+      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+        {cells.map(c => (
+          <div key={c.id} className={`relative rounded-lg p-3 border flex items-center justify-center select-none ${c.opened ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-white/10 bg-slate-800/60'}`}>
+            {/* simple cosmo icon */}
+            <svg viewBox="0 0 24 24" className="w-5 h-5 absolute top-1 left-1" fill="none" stroke={c.opened ? '#34d399' : '#94a3b8'} strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M2 12c4-3 16-3 20 0M2 12c4 3 16 3 20 0" />
+            </svg>
+            <span className={`font-semibold ${c.opened ? 'text-emerald-300' : 'text-white/80'}`}>{c.id}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const AdminScreen: React.FC = () => {
   const { refreshUserData } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts'>('crew');
+  const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts' | 'ranks' | 'events'>('crew');
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
   // Универсальная функция для обработки ошибок
@@ -35,7 +60,9 @@ const AdminScreen: React.FC = () => {
     { id: 'missions' as const, name: 'ЗАДАНИЯ', color: 'from-orange-400 to-red-500' },
     { id: 'analytics' as const, name: 'АНАЛИТИКА', color: 'from-purple-400 to-violet-500' },
     { id: 'shop' as const, name: 'МАГАЗИН', color: 'from-green-400 to-emerald-500' },
-    { id: 'artifacts' as const, name: 'АРТЕФАКТЫ', color: 'from-sky-400 to-indigo-500' }
+    { id: 'artifacts' as const, name: 'АРТЕФАКТЫ', color: 'from-sky-400 to-indigo-500' },
+    { id: 'ranks' as const, name: 'РАНГИ', color: 'from-cyan-400 to-blue-500' },
+    { id: 'events' as const, name: 'ИВЕНТЫ', color: 'from-fuchsia-400 to-pink-500' }
   ];
 
   const [users, setUsers] = useState<any[]>([]);
@@ -58,6 +85,96 @@ const AdminScreen: React.FC = () => {
   const [artifactSearch, setArtifactSearch] = useState<string>('');
   const [artifactSortKey, setArtifactSortKey] = useState<'name' | 'rarity' | 'createdAt' | 'isActive'>('name');
   const [artifactSortAsc, setArtifactSortAsc] = useState<boolean>(true);
+  const [ranksModal, setRanksModal] = useState<{ open: boolean; rankId?: string } | null>(null);
+  const [rankForm, setRankForm] = useState<{ afterLevel: number; name: string; requiredExperience: number; competencies: Record<string, number> }>({ afterLevel: 1, name: '', requiredExperience: 0, competencies: {
+    'Сила Миссии': 0,
+    'Импульс Прорыва': 0,
+    'Канал Связи': 0,
+    'Модуль Аналитики': 0,
+    'Пульт Командования': 0,
+    'Кодекс Звёздного Права': 0,
+    'Голограммное Мышление': 0,
+    'Кредитный Поток': 0,
+    'Курс Аэронавигации': 0,
+  } });
+
+  // Events tools state
+  const [countdownModal, setCountdownModal] = useState<{ open: boolean } | null>(null);
+  const [countdownForm, setCountdownForm] = useState<{ title: string; deadline: string; showOnMain: boolean; enabled: boolean }>({ title: '', deadline: '', showOnMain: true, enabled: true });
+  const [testShowOnMain, setTestShowOnMain] = useState<boolean>(false);
+  const [adventOpen, setAdventOpen] = useState<{ open: boolean }>({ open: false });
+  const [adventData, setAdventData] = useState<{ days: number; theme: 'motivation'|'rewards'|'tips'|'custom'; centerTitle: string; items: Record<number, { phrase?: string; reward?: string; tip?: string; task?: string; opened?: boolean }>}>({ days: 12, theme: 'motivation', centerTitle: 'Адвент‑Галактика', items: {} });
+  // Test constructor state
+  const [testOpen, setTestOpen] = useState<{ open: boolean }>({ open: false });
+  type TestQuestion = { id: number; image?: string; text: string; kind: 'Характер' | 'Мотивация' | 'Ценности'; answers: { label: string; scores: { Характер: number; Мотивация: number; Ценности: number } }[] };
+  const [testData, setTestData] = useState<{ title: string; description: string; questions: TestQuestion[] }>({ title: 'Космический профиль', description: 'Определи свой путь: характер, мотивация, ценности', questions: [
+    { id: 1, text: 'Что ведёт тебя в полёте?', kind: 'Мотивация', answers: [
+      { label: 'Жажда открытия', scores: { Характер: 0, Мотивация: 2, Ценности: 0 } },
+      { label: 'Командный долг', scores: { Характер: 1, Мотивация: 0, Ценности: 1 } }
+    ] },
+  ] });
+  // Lottery constructor state
+  const [lotteryOpen, setLotteryOpen] = useState<{ open: boolean }>({ open: false });
+  const [lotteryStep, setLotteryStep] = useState<number>(1);
+  const [lotteryData, setLotteryData] = useState<{
+    title: string;
+    description: string;
+    drawAt: string;
+    tickets: { count: number; mode: 'auto' | 'manual'; ids: string[]; rare: boolean };
+    prizes: { id: number; name: string; description?: string; qty: number; type: 'reward'|'artifact'|'ticket' }[];
+    visual: { shape: 'square'|'card'|'capsule'; glow: 'blue'|'violet'|'teal'|'pink'; background: 'stars'|'galaxy'|'portal' };
+  }>({
+    title: '',
+    description: '',
+    drawAt: '',
+    tickets: { count: 100, mode: 'auto', ids: [], rare: false },
+    prizes: [ { id: 1, name: 'Бонус опыта', qty: 10, type: 'reward' } ],
+    visual: { shape: 'card', glow: 'violet', background: 'stars' }
+  });
+
+  // Wheel of Fortune state
+  const [wheelOpen, setWheelOpen] = useState<{ open: boolean }>({ open: false });
+  type WheelSector = { id: number; name: string; description?: string; type: 'points'|'gift'|'promo'|'empty'; qty: number; weight: number; color: string; icon?: string };
+  const [wheelData, setWheelData] = useState<{ sectors: WheelSector[] }>({
+    sectors: [
+      { id: 1, name: '50 очков', type: 'points', qty: 1, weight: 3, color: '#22d3ee' },
+      { id: 2, name: 'Промокод', type: 'promo', qty: 1, weight: 2, color: '#a78bfa' },
+      { id: 3, name: 'Пусто', type: 'empty', qty: 0, weight: 1, color: '#334155' },
+    ]
+  });
+  const [wheelSpin, setWheelSpin] = useState<{ spinning: boolean; angle: number; result?: WheelSector }>(
+    { spinning: false, angle: 0 }
+  );
+
+  const spinWheel = () => {
+    const total = wheelData.sectors.reduce((s, x) => s + Math.max(0, x.weight), 0) || 1;
+    let r = Math.random() * total; let chosen = wheelData.sectors[0];
+    for (const s of wheelData.sectors) { r -= Math.max(0, s.weight); if (r <= 0) { chosen = s; break; } }
+    const idx = wheelData.sectors.findIndex(s => s.id === chosen.id);
+    const slice = 360 / Math.max(1, wheelData.sectors.length);
+    const target = 360 * 5 + (slice * idx) + slice / 2; // 5 оборотов + позиция сектора
+    setWheelSpin({ spinning: true, angle: target, result: chosen });
+    setTimeout(() => setWheelSpin(s => ({ ...s, spinning: false })), 4000);
+  };
+
+  // Competition Map state
+  const [compOpen, setCompOpen] = useState<{ open: boolean }>({ open: false });
+  type Stage = { id: number; name: string; goal?: string; reward?: string; icon?: string; active?: boolean };
+  const [compData, setCompData] = useState<{
+    title: string;
+    type: 'individual' | 'team';
+    dateStart: string;
+    dateEnd: string;
+    slogan?: string;
+    stages: Stage[];
+    participants: string[];
+    teams: { name: string; avatar?: string; members: string[] }[];
+  }>({
+    title: '', type: 'individual', dateStart: '', dateEnd: '', slogan: '',
+    stages: [ { id: 1, name: 'Старт', goal: 'Пройти тест', reward: '10 баллов', active: true } ],
+    participants: [],
+    teams: []
+  });
   // Загрузка пользователей из бэкенда
   useEffect(() => {
     (async () => {
@@ -1406,6 +1523,509 @@ const AdminScreen: React.FC = () => {
         {activeTab === 'analytics' && renderAnalyticsTab()}
         {activeTab === 'shop' && renderShopTab && renderShopTab()}
         {activeTab === 'artifacts' && renderArtifactsTab()}
+        {activeTab === 'ranks' && (
+          <div className="mt-6 space-y-4">
+            <div className="text-white"><ShinyText text="УПРАВЛЕНИЕ РАНГАМИ" className="text-2xl font-bold" /></div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {[{id:'cadet',name:'Космо-Кадет',level:1},{id:'nav',name:'Навигатор Траекторий',level:2},{id:'analyst',name:'Аналитик Орбит',level:3},{id:'architect',name:'Архитектор Станции',level:4},{id:'keeper',name:'Хранитель Станции',level:5},
+                {id:'chronicler',name:'Хронист Галактики',level:2},{id:'culturalist',name:'Исследователь Культур',level:3},{id:'lecturer',name:'Мастер Лектория',level:4},
+                {id:'communicator',name:'Связист Звёздного Флота',level:2},{id:'crew-nav',name:'Штурман Экипажа',level:3},{id:'commander',name:'Командир Отряда',level:4}].map(r => (
+                <button key={r.id} onClick={() => { setRanksModal({ open: true, rankId: r.id }); setRankForm(v=>({ ...v, name: r.name, afterLevel: Math.max(1, r.level-1) })); }}
+                  className="border border-white/15 bg-slate-900/60 rounded-lg p-3 text-left hover:border-cyan-400/40 transition">
+                  <div className="text-white/90 text-sm font-medium">{r.name}</div>
+                  <div className="text-white/50 text-xs">Уровень {r.level}</div>
+                </button>
+              ))}
+            </div>
+
+            {ranksModal?.open && (
+              <div className="fixed inset-0 z-[300] flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/70" onClick={() => setRanksModal(null)} />
+                <div className="relative z-[310] w-[92%] max-w-2xl bg-slate-900/90 border border-cyan-400/30 rounded-2xl p-5">
+                  <div className="text-white"><ShinyText text="НАСТРОЙКИ РАНГА" className="text-xl font-bold" /></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <label className="text-sm text-white/80">Доступен после ранга
+                      <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={rankForm.afterLevel} onChange={e=>setRankForm(v=>({ ...v, afterLevel: Number(e.target.value) }))}>
+                        {[1,2,3,4].map(n=> <option key={n} value={n} className="bg-slate-800">{n}</option>)}
+                      </select>
+                    </label>
+                    <label className="text-sm text-white/80">Название ранга
+                      <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={rankForm.name} onChange={e=>setRankForm(v=>({ ...v, name: e.target.value }))} />
+                    </label>
+                    <label className="text-sm text-white/80">Требуемый опыт
+                      <input type="number" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={rankForm.requiredExperience} onChange={e=>setRankForm(v=>({ ...v, requiredExperience: Math.max(0, Number(e.target.value)) }))} />
+                    </label>
+                  </div>
+                  <div className="mt-4">
+                    <div className="text-white/90 text-sm mb-2">Требования по компетенциям</div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      {Object.keys(rankForm.competencies).map((k)=> (
+                        <label key={k} className="text-xs text-white/80">{k}
+                          <input type="number" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={rankForm.competencies[k]} onChange={e=>setRankForm(v=>({ ...v, competencies: { ...v.competencies, [k]: Math.max(0, Number(e.target.value)) } }))} />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5">
+                    <button onClick={()=>setRanksModal(null)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Отмена</button>
+                    <button onClick={()=>{ /* TODO: backend save */ setRanksModal(null); }} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30">Сохранить</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'events' && (
+          <div className="mt-6 space-y-5">
+            <div className="text-white"><ShinyText text="ИНСТРУМЕНТЫ ИВЕНТОВ" className="text-2xl font-bold" /></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Countdown */}
+              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
+                <div className="text-white font-semibold">Счётчик обратного отсчёта</div>
+                <div className="text-white/70 text-sm mt-1">При наведении показывайте, сколько времени осталось до события/конца акции. Простой способ создать эффект срочности.</div>
+                <div className="flex items-center gap-3 mt-3">
+                  <NeonSwitch checked={countdownForm.enabled} onChange={(v:boolean)=>setCountdownForm(s=>({ ...s, enabled: v }))} />
+                  <span className="text-white/70 text-sm">Включен</span>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={()=>setCountdownModal({ open:true })} className="px-3 py-2 rounded-md border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/10">Настроить</button>
+                </div>
+              </div>
+
+              {/* Test constructor */}
+              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
+                <div className="text-white font-semibold">Конструктор теста</div>
+                <div className="text-white/70 text-sm mt-1">Используйте тест для изучения характера, мотивации и ценностей. Результаты помогут адаптировать сценарии под каждого.</div>
+                <div className="flex items-center gap-3 mt-3">
+                  <NeonSwitch checked={testShowOnMain} onChange={setTestShowOnMain} />
+                  <span className="text-white/70 text-sm">Показывать на главной</span>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={()=>setTestOpen({ open: true })} className="px-3 py-2 rounded-md border border-purple-400/40 text-purple-200 hover:bg-purple-500/10">Создать</button>
+                </div>
+              </div>
+
+              {/* Advent Calendar */}
+              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
+                <div className="text-white font-semibold">Адвент‑календарь</div>
+                <div className="text-white/70 text-sm mt-1">Ежедневный челлендж: задания, подарки или советы на каждый день. Создаёт вовлечённость и эффект «жду, что дальше».</div>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={()=>setAdventOpen({ open: true })} className="px-3 py-2 rounded-md border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10">Создать</button>
+                </div>
+              </div>
+
+              {/* Competition Map */}
+              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
+                <div className="text-white font-semibold">Карта соревнования</div>
+                <div className="text-white/70 text-sm mt-1">Индивидуальные или командные соревнования. Удержание, азарт и вовлечение в одной механике геймификации.</div>
+                <div className="flex gap-2 mt-3">
+                <button onClick={()=>setCompOpen({ open:true })} className="px-3 py-2 rounded-md border border-blue-400/40 text-blue-200 hover:bg-blue-500/10">Создать</button>
+                </div>
+              </div>
+
+              {/* Lottery */}
+              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
+                <div className="text-white font-semibold">Лотерея</div>
+                <div className="text-white/70 text-sm mt-1">Раздавайте билеты, проводите розыгрыши — привлекайте внимание и повышайте активность.</div>
+                <div className="flex gap-2 mt-3">
+                <button onClick={()=>{ setLotteryOpen({ open:true }); setLotteryStep(1); }} className="px-3 py-2 rounded-md border border-yellow-400/40 text-yellow-200 hover:bg-yellow-500/10">Создать</button>
+                </div>
+              </div>
+
+              {/* Wheel of Fortune */}
+              <div className="border border-white/15 rounded-xl p-4 bg-slate-900/60">
+                <div className="text-white font-semibold">Колесо фортуны</div>
+                <div className="text-white/70 text-sm mt-1">Добавьте элемент неожиданности: розыгрыши бонусов, мотивация — пользователь крутит колесо и получает случайный приз.</div>
+                <div className="flex gap-2 mt-3">
+                <button onClick={()=>setWheelOpen({ open:true })} className="px-3 py-2 rounded-md border border-pink-400/40 text-pink-200 hover:bg-pink-500/10">Создать</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Countdown Modal */}
+            {countdownModal?.open && (
+              <div className="fixed inset-0 z-[300] flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/70" onClick={()=>setCountdownModal(null)} />
+                <div className="relative z-[310] w-[92%] max-w-xl bg-slate-900/90 border border-cyan-400/30 rounded-2xl p-5">
+                  <div className="text-white"><ShinyText text="СЧЁТЧИК ОБРАТНОГО ОТСЧЁТА" className="text-xl font-bold" /></div>
+                  <div className="grid grid-cols-1 gap-3 mt-3">
+                    <label className="text-sm text-white/80">Заголовок
+                      <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={countdownForm.title} onChange={e=>setCountdownForm(s=>({ ...s, title: e.target.value }))} />
+                    </label>
+                    <label className="text-sm text-white/80">Дата и время окончания
+                      <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={countdownForm.deadline} onChange={e=>setCountdownForm(s=>({ ...s, deadline: e.target.value }))} />
+                    </label>
+                    <label className="text-sm text-white/80 flex items-center gap-3">Показывать на главной (в профиле всплывающим блоком)
+                      <NeonSwitch checked={countdownForm.showOnMain} onChange={(v:boolean)=>setCountdownForm(s=>({ ...s, showOnMain: v }))} />
+                    </label>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5">
+                    <button onClick={()=>setCountdownModal(null)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Отмена</button>
+                    <button onClick={()=>{ /* TODO: save and propagate */ setCountdownModal(null); }} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30">Сохранить</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {/* Lottery Constructor Modal */}
+          {lotteryOpen.open && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/70" onClick={()=>setLotteryOpen({ open:false })} />
+              <div className="relative z-[310] w-[96%] max-w-6xl bg-slate-900/95 border border-white/15 rounded-2xl p-4 md:p-5 max-h-[88vh] overflow-hidden flex flex-col">
+                <h2 className="text-white text-xl font-bold">Конструктор лотереи</h2>
+                {/* no extra decorations, keep constructor neutral */}
+
+                {/* Steps header with titles */}
+                <div className="flex items-center gap-2 mt-3 text-white/80 text-xs flex-wrap">
+                  {[
+                    { n:1, t:'Основное' },
+                    { n:2, t:'Билеты' },
+                    { n:3, t:'Призы' },
+                    { n:4, t:'Визуал' },
+                    { n:5, t:'Подтверждение' },
+                  ].map(s=> (
+                    <div key={s.n} className={`px-2 py-1 rounded-full border ${lotteryStep===s.n? 'border-yellow-400 text-yellow-300':'border-white/15 text-white/60'}`}>Шаг {s.n}: {s.t}</div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex-1 overflow-auto pr-1">
+                    {lotteryStep===1 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="md:col-span-2 text-white/80 text-sm">
+                          <div className="mb-1">Что нужно заполнить:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>✨ Название лотереи</li>
+                            <li>Краткое описание (что разыгрывается)</li>
+                            <li>🗓 Дата и время розыгрыша</li>
+                          </ul>
+                        </div>
+                        <label className="text-sm text-white/80">Название лотереи ✨
+                          <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.title} onChange={e=>setLotteryData(s=>({ ...s, title: e.target.value }))} />
+                        </label>
+                        <label className="text-sm text-white/80">Дата и время розыгрыша
+                          <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.drawAt} onChange={e=>setLotteryData(s=>({ ...s, drawAt: e.target.value }))} />
+                        </label>
+                        <label className="text-sm text-white/80 md:col-span-2">Краткое описание
+                          <textarea rows={3} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.description} onChange={e=>setLotteryData(s=>({ ...s, description: e.target.value }))} />
+                        </label>
+                      </div>
+                    )}
+
+                    {lotteryStep===2 && (
+                      <div className="space-y-3">
+                        <div className="text-white/80 text-sm">
+                          <div className="mb-1">Настройте билеты:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>🎟 Количество билетов</li>
+                            <li>Режим: Автоматическая генерация или ручная загрузка списка ID</li>
+                            <li>🌟 Опция «Редкий билет» с особым свечением</li>
+                          </ul>
+                        </div>
+                        <label className="text-sm text-white/80">Количество билетов 🎟
+                          <input type="number" min={1} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white max-w-xs" value={lotteryData.tickets.count} onChange={e=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, count: Math.max(1, Number(e.target.value)) } }))} />
+                        </label>
+                        <div className="flex items-center gap-3 text-white/80 text-sm">
+                          <span>Режим:</span>
+                          <button onClick={()=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, mode: 'auto' } }))} className={`px-3 py-1 rounded border ${lotteryData.tickets.mode==='auto'?'border-yellow-400 text-yellow-300':'border-white/15 text-white/70'}`}>Авто‑генерация</button>
+                          <button onClick={()=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, mode: 'manual' } }))} className={`px-3 py-1 rounded border ${lotteryData.tickets.mode==='manual'?'border-yellow-400 text-yellow-300':'border-white/15 text-white/70'}`}>Ручная загрузка</button>
+                        </div>
+                        {lotteryData.tickets.mode==='manual' && (
+                          <textarea rows={4} placeholder="ticket-001, ticket-002, ..." className="w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.tickets.ids.join(', ')} onChange={e=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, ids: e.target.value.split(',').map(x=>x.trim()).filter(Boolean) } }))} />
+                        )}
+                        <label className="flex items-center gap-2 text-white/80 text-sm">
+                          <input type="checkbox" checked={lotteryData.tickets.rare} onChange={e=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, rare: e.target.checked } }))} />
+                          Опция «Редкий билет» с особым свечением 🌟
+                        </label>
+                      </div>
+                    )}
+
+                    {lotteryStep===3 && (
+                      <div className="space-y-3">
+                        <div className="text-white/80 text-sm">
+                          <div className="mb-1">Добавьте призы:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>Название, описание, количество</li>
+                            <li>Тип: 🎁 награда, 💎 артефакт, 🎫 дополнительный билет</li>
+                          </ul>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="text-white/80 text-sm">Призы</div>
+                          <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setLotteryData(s=>({ ...s, prizes: [...s.prizes, { id: (s.prizes.at(-1)?.id||0)+1, name: '', qty: 1, type: 'reward' }] }))}>Добавить приз</button>
+                        </div>
+                        <div className="space-y-2 max-h-[50vh] overflow-auto">
+                          {lotteryData.prizes.map((p,pi)=> (
+                            <div key={p.id} className="grid grid-cols-1 md:grid-cols-5 gap-2 border border-white/10 rounded p-2 bg-slate-900/60">
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={p.name} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], name: e.target.value }; return { ...s, prizes: arr }; })} />
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Описание" value={p.description||''} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], description: e.target.value }; return { ...s, prizes: arr }; })} />
+                              <input type="number" min={1} className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Кол-во" value={p.qty} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], qty: Math.max(1, Number(e.target.value)) }; return { ...s, prizes: arr }; })} />
+                              <select className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={p.type} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], type: e.target.value as any }; return { ...s, prizes: arr }; })}>
+                                <option className="bg-slate-800" value="reward">🎁 Награда</option>
+                                <option className="bg-slate-800" value="artifact">💎 Артефакт</option>
+                                <option className="bg-slate-800" value="ticket">🎫 Доп. билет</option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {lotteryStep===4 && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="md:col-span-3 text-white/80 text-sm">
+                          <div className="mb-1">Оформление:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>Форма билета (квадрат/карточка/капсула)</li>
+                            <li>Цвет неонового свечения (синий, фиолетовый, бирюзовый, розовый)</li>
+                            <li>Фон сцены (звёзды, галактика, портал)</li>
+                          </ul>
+                        </div>
+                        <label className="text-sm text-white/80">Стиль билета
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.visual.shape} onChange={e=>setLotteryData(s=>({ ...s, visual: { ...s.visual, shape: e.target.value as any } }))}>
+                            <option className="bg-slate-800" value="square">Квадрат</option>
+                            <option className="bg-slate-800" value="card">Карточка</option>
+                            <option className="bg-slate-800" value="capsule">Капсула</option>
+                          </select>
+                        </label>
+                        <label className="text-sm text-white/80">Цвет свечения
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.visual.glow} onChange={e=>setLotteryData(s=>({ ...s, visual: { ...s.visual, glow: e.target.value as any } }))}>
+                            <option className="bg-slate-800" value="blue">Синий</option>
+                            <option className="bg-slate-800" value="violet">Фиолетовый</option>
+                            <option className="bg-slate-800" value="teal">Бирюзовый</option>
+                            <option className="bg-slate-800" value="pink">Розовый</option>
+                          </select>
+                        </label>
+                        <label className="text-sm text-white/80">Фон сцены
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.visual.background} onChange={e=>setLotteryData(s=>({ ...s, visual: { ...s.visual, background: e.target.value as any } }))}>
+                            <option className="bg-slate-800" value="stars">Звёзды</option>
+                            <option className="bg-slate-800" value="galaxy">Галактика</option>
+                            <option className="bg-slate-800" value="portal">Портал</option>
+                          </select>
+                        </label>
+                      </div>
+                    )}
+
+                    {lotteryStep===5 && (
+                      <div className="space-y-2 text-white/80 text-sm">
+                        <div><span className="text-white/60">Название:</span> {lotteryData.title||'—'}</div>
+                        <div><span className="text-white/60">Дата розыгрыша:</span> {lotteryData.drawAt||'—'}</div>
+                        <div><span className="text-white/60">Билетов:</span> {lotteryData.tickets.mode==='auto'? lotteryData.tickets.count : lotteryData.tickets.ids.length}</div>
+                        <div><span className="text-white/60">Призы:</span> {lotteryData.prizes.map(p=>p.name||'без имени').join(', ')}</div>
+                      </div>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-white/10">
+                  <div className="flex items-center gap-2">
+                    <button disabled={lotteryStep<=1} onClick={()=>setLotteryStep(s=>Math.max(1,s-1))} className={`px-3 py-1.5 rounded border ${lotteryStep<=1? 'border-white/10 text-white/30':'border-white/20 text-white/80 hover:bg-white/10'}`}>Назад</button>
+                    <button disabled={lotteryStep>=5} onClick={()=>setLotteryStep(s=>Math.min(5,s+1))} className={`px-3 py-1.5 rounded border ${lotteryStep>=5? 'border-white/10 text-white/30':'border-white/20 text-white/80 hover:bg-white/10'}`}>Далее</button>
+                    <span className="text-white/50 text-xs">Шаг {lotteryStep} из 5</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={()=>setLotteryOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+                    {lotteryStep===5 && (
+                      <button onClick={()=>{ /* TODO: launch */ setLotteryOpen({ open:false }); }} className="px-4 py-2 rounded-md bg-yellow-500/20 border border-yellow-400/40 text-yellow-200 hover:bg-yellow-500/30">Запустить лотерею 🚀</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Competition Map Modal (neon cosmic) */}
+          {compOpen.open && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/80" onClick={()=>setCompOpen({ open:false })} />
+              <div className="relative z-[310] w-[96%] max-w-7xl rounded-2xl p-5" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.15))', boxShadow: '0 0 60px rgba(99,102,241,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <h2 className="text-white text-xl font-bold mb-3">Карта соревнования — конструктор</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[80vh] overflow-hidden">
+                  {/* Left: settings */}
+                  <div className="overflow-auto pr-1 space-y-3">
+                    <label className="text-sm text-white/80">Название соревнования
+                      <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.title} onChange={e=>setCompData(s=>({ ...s, title: e.target.value }))} />
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <label className="text-sm text-white/80">Тип
+                        <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.type} onChange={e=>setCompData(s=>({ ...s, type: e.target.value as any }))}>
+                          <option className="bg-slate-800" value="individual">Индивидуальное</option>
+                          <option className="bg-slate-800" value="team">Командное</option>
+                        </select>
+                      </label>
+                      <label className="text-sm text-white/80">Слоган
+                        <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.slogan} onChange={e=>setCompData(s=>({ ...s, slogan: e.target.value }))} />
+                      </label>
+                      <label className="text-sm text-white/80">Дата начала
+                        <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.dateStart} onChange={e=>setCompData(s=>({ ...s, dateStart: e.target.value }))} />
+                      </label>
+                      <label className="text-sm text-white/80">Дата окончания
+                        <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.dateEnd} onChange={e=>setCompData(s=>({ ...s, dateEnd: e.target.value }))} />
+                      </label>
+                    </div>
+
+                    {/* Stages */}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-white/80 text-sm">Этапы</div>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setCompData(s=>({ ...s, stages: [...s.stages, { id: (s.stages.at(-1)?.id||0)+1, name: '', goal: '', reward: '' }] }))}>Добавить этап</button>
+                    </div>
+                    <div className="space-y-2">
+                      {compData.stages.map((st, si)=> (
+                        <div key={st.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-2 rounded border border-white/15 bg-slate-900/70">
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={st.name} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], name: e.target.value }; return { ...s, stages:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Цель" value={st.goal||''} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], goal: e.target.value }; return { ...s, stages:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Награда" value={st.reward||''} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], reward: e.target.value }; return { ...s, stages:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Иконка URL" value={st.icon||''} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], icon: e.target.value }; return { ...s, stages:a }; })} />
+                          <div className="flex items-center gap-2">
+                            <button className="px-2 py-1 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ if (si===0) return; setCompData(s=>{ const a=[...s.stages]; const [m]=a.splice(si,1); a.splice(si-1,0,m); return { ...s, stages:a }; }); }}>▲</button>
+                            <button className="px-2 py-1 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ setCompData(s=>{ const a=[...s.stages]; const [m]=a.splice(si,1); a.splice(Math.min(a.length, si+1),0,m); return { ...s, stages:a }; }); }}>▼</button>
+                            <button className="text-red-300 border border-red-400/40 rounded px-2 py-1 hover:bg-red-500/10" onClick={()=>setCompData(s=>({ ...s, stages: s.stages.filter(x=>x.id!==st.id) }))}>Удалить</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Participants/Teams */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                      <label className="text-sm text-white/80">Участники (через запятую)
+                        <textarea rows={3} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.participants.join(', ')} onChange={e=>setCompData(s=>({ ...s, participants: e.target.value.split(',').map(x=>x.trim()).filter(Boolean) }))} />
+                      </label>
+                      <div>
+                        <div className="flex items-center justify-between text-white/80 text-sm mb-2">
+                          <span>Команды</span>
+                          <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setCompData(s=>({ ...s, teams: [...s.teams, { name: 'Команда', members: [] }] }))}>Добавить команду</button>
+                        </div>
+                        <div className="space-y-2 max-h-[24vh] overflow-auto">
+                          {compData.teams.map((tm, ti)=> (
+                            <div key={ti} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-2 rounded border border-white/15 bg-slate-900/70">
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={tm.name} onChange={e=>setCompData(s=>{ const a=[...s.teams]; a[ti]={ ...a[ti], name: e.target.value }; return { ...s, teams:a }; })} />
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Аватар URL" value={tm.avatar||''} onChange={e=>setCompData(s=>{ const a=[...s.teams]; a[ti]={ ...a[ti], avatar: e.target.value }; return { ...s, teams:a }; })} />
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Участники (через запятую)" value={tm.members.join(', ')} onChange={e=>setCompData(s=>{ const a=[...s.teams]; a[ti]={ ...a[ti], members: e.target.value.split(',').map(x=>x.trim()).filter(Boolean) }; return { ...s, teams:a }; })} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ const json = JSON.stringify(compData, null, 2); navigator.clipboard.writeText(json); }}>Экспорт (JSON)</button>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ const input = prompt('Вставьте JSON конфигурации:'); if (!input) return; try { const obj = JSON.parse(input); setCompData(obj); } catch {} }}>Импорт (JSON)</button>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10">Предпросмотр для пользователя</button>
+                    </div>
+                  </div>
+
+                  {/* Right: simple list preview map */}
+                  <div className="border border-white/15 rounded-xl p-4 bg-slate-900/70 overflow-auto">
+                    <div className="text-white/80 text-sm mb-2">Превью карты (упрощённое)</div>
+                    <div className="space-y-2">
+                      {compData.stages.map((st, i)=> (
+                        <div key={st.id} className="flex items-center gap-3">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold`} style={{ background: st.active? '#a78bfa':'#1f2937', color: '#fff', boxShadow: st.active? '0 0 10px rgba(167,139,250,0.7)':'none' }}>{i+1}</div>
+                          <div className="flex-1">
+                            <div className="text-white/90 text-sm">{st.name || `Этап ${i+1}`}</div>
+                            <div className="text-white/60 text-xs">{st.goal || 'Цель не задана'} • {st.reward || 'Награда не задана'}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {compData.stages.length === 0 && (
+                        <div className="text-white/50 text-sm">Этапы не добавлены</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+                  <button onClick={()=>setCompOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+                  <button onClick={()=>{/* TODO: save */ setCompOpen({ open:false });}} className="px-4 py-2 rounded-md bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 hover:bg-indigo-500/30">Сохранить</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wheel of Fortune Modal (neon cosmic) */}
+          {wheelOpen.open && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/80" onClick={()=>setWheelOpen({ open:false })} />
+              <div className="relative z-[310] w-[96%] max-w-6xl rounded-2xl p-4 md:p-6" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.15))', boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <h2 className="text-white text-xl font-bold mb-3">Колесо Фортуны — конструктор</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[80vh] overflow-hidden">
+                  {/* Left: sectors list and editor */}
+                  <div className="overflow-auto pr-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-white/80 text-sm">Сектора</div>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setWheelData(s=>({ ...s, sectors: [...s.sectors, { id: (s.sectors.at(-1)?.id||0)+1, name: '', type: 'points', qty: 1, weight: 1, color: '#22d3ee' }] }))}>Добавить сектор</button>
+                    </div>
+                    <div className="space-y-2">
+                      {wheelData.sectors.map((sec, si)=> (
+                        <div key={sec.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-2 rounded border border-white/15 bg-slate-900/70">
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={sec.name} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], name: e.target.value }; return { ...s, sectors:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Описание" value={sec.description||''} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], description: e.target.value }; return { ...s, sectors:a }; })} />
+                          <select className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={sec.type} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], type: e.target.value as any }; return { ...s, sectors:a }; })}>
+                            <option className="bg-slate-800" value="points">Баллы</option>
+                            <option className="bg-slate-800" value="gift">Подарок</option>
+                            <option className="bg-slate-800" value="promo">Промокод</option>
+                            <option className="bg-slate-800" value="empty">Пусто</option>
+                          </select>
+                          <input type="number" min={0} className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Кол-во" value={sec.qty} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], qty: Math.max(0, Number(e.target.value)) }; return { ...s, sectors:a }; })} />
+                          <input type="number" min={0} className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Вес" value={sec.weight} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], weight: Math.max(0, Number(e.target.value)) }; return { ...s, sectors:a }; })} />
+                          <div className="flex items-center gap-2">
+                            <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white w-full" placeholder="#HEX цвет" value={sec.color} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], color: e.target.value }; return { ...s, sectors:a }; })} />
+                            <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white w-full" placeholder="Иконка URL" value={sec.icon||''} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], icon: e.target.value }; return { ...s, sectors:a }; })} />
+                            <button className="text-red-300 border border-red-400/40 rounded px-2 py-1 hover:bg-red-500/10" onClick={()=>setWheelData(s=>({ ...s, sectors: s.sectors.filter(x=>x.id!==sec.id) }))}>Удалить</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{
+                        const json = JSON.stringify(wheelData, null, 2);
+                        navigator.clipboard.writeText(json);
+                      }}>Экспорт (JSON)</button>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{
+                        const input = prompt('Вставьте JSON конфигурации:');
+                        if (!input) return; try { const obj = JSON.parse(input); setWheelData(obj); } catch {}
+                      }}>Импорт (JSON)</button>
+                    </div>
+                  </div>
+
+                  {/* Right: wheel preview */}
+                  <div className="border border-white/15 rounded-xl p-4 bg-slate-900/70 overflow-auto">
+                    <div className="text-white/80 text-sm mb-2">Превью колеса</div>
+                    <div className="flex items-center justify-center">
+                      <div className="relative" style={{ width: 300, height: 300 }}>
+                        <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(167,139,250,0.4), inset 0 0 20px rgba(34,211,238,0.25)' }} />
+                        <svg viewBox="0 0 100 100" className="w-full h-full rounded-full" style={{ transform: `rotate(${wheelSpin.angle}deg)`, transition: wheelSpin.spinning ? 'transform 4s cubic-bezier(0.19, 1, 0.22, 1)' : 'none', background: 'radial-gradient(circle at 50% 50%, rgba(2,6,23,0.8), rgba(2,6,23,0.95))' }}>
+                          {wheelData.sectors.map((s, i) => {
+                            const total = wheelData.sectors.length;
+                            const a0 = (i / total) * 2 * Math.PI; const a1 = ((i+1) / total) * 2 * Math.PI;
+                            const x0 = 50 + 50 * Math.cos(a0), y0 = 50 + 50 * Math.sin(a0);
+                            const x1 = 50 + 50 * Math.cos(a1), y1 = 50 + 50 * Math.sin(a1);
+                            const d = `M50,50 L${x0},${y0} A50,50 0 0,1 ${x1},${y1} z`;
+                            return <path key={s.id} d={d} fill={s.color} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />;
+                          })}
+                        </svg>
+                        {/* pointer */}
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0" style={{ borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '14px solid #fff' }} />
+                      </div>
+                    </div>
+                    <div className="flex justify-center mt-3">
+                      <button onClick={spinWheel} className="px-4 py-2 rounded-md border border-pink-400/40 text-pink-200 hover:bg-pink-500/10">Тестировать розыгрыш</button>
+                    </div>
+                    {wheelSpin.result && !wheelSpin.spinning && (
+                      <div className="text-center text-white/90 mt-2">Выпало: {wheelSpin.result.name}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+                  <button onClick={()=>setWheelOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+                  <button onClick={()=>{/* TODO: save local */ setWheelOpen({ open:false });}} className="px-4 py-2 rounded-md bg-fuchsia-500/20 border border-fuchsia-400/40 text-fuchsia-200 hover:bg-fuchsia-500/30">Сохранить настройки</button>
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
+        )}
       </motion.div>
 
       {/* Pyramid Loader Component */}
@@ -2205,9 +2825,164 @@ const AdminScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Advent Constructor Modal */}
+      {adventOpen.open && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={()=>setAdventOpen({ open:false })} />
+          <div className="relative z-[310] w-[95%] max-w-5xl bg-slate-900/95 border border-white/15 rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col">
+            <h2 className="text-white text-xl font-bold">Конструктор адвент‑календаря</h2>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4 flex-1 overflow-hidden">
+              {/* Editor */}
+              <div className="space-y-3 overflow-auto pr-1">
+                <label className="text-sm text-white/80">Название в центре
+                  <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={adventData.centerTitle} onChange={e=>setAdventData(s=>({ ...s, centerTitle: e.target.value }))} />
+                </label>
+                <label className="text-sm text-white/80">Количество дней (ячейки‑планеты)
+                  <input type="number" min={1} max={64} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={adventData.days} onChange={e=>setAdventData(s=>({ ...s, days: Math.max(1, Math.min(64, Number(e.target.value))) }))} />
+                </label>
+                <label className="text-sm text-white/80">Тема оформления
+                  <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={adventData.theme} onChange={e=>setAdventData(s=>({ ...s, theme: e.target.value as any }))}>
+                    <option className="bg-slate-800" value="motivation">Мотивация</option>
+                    <option className="bg-slate-800" value="rewards">Игровые награды</option>
+                    <option className="bg-slate-800" value="tips">Космические советы</option>
+                    <option className="bg-slate-800" value="custom">Своя тема</option>
+                  </select>
+                </label>
+
+                <div className="mt-3 border border-white/10 rounded-lg p-3 max-h-[50vh] overflow-auto">
+                  <div className="text-white/80 text-sm mb-2">Содержимое дней</div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {Array.from({ length: adventData.days }).map((_, idx)=>{
+                      const id = idx+1; const item = adventData.items[id] || {};
+                      return (
+                        <div key={id} className="rounded-md border border-white/10 p-2">
+                          <div className="text-white/80 text-sm mb-1">День {id}</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input placeholder="📜 Фраза" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.phrase||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], phrase: e.target.value } }}))} />
+                            <input placeholder="🎁 Награда" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.reward||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], reward: e.target.value } }}))} />
+                            <input placeholder="🛰 Совет" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.tip||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], tip: e.target.value } }}))} />
+                            <input placeholder="🔧 Задание" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.task||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], task: e.target.value } }}))} />
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-white/60">
+                            <label className="flex items-center gap-2"><input type="checkbox" checked={!!item.opened} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], opened: e.target.checked } }}))} /> Уже открыт</label>
+                            <button className="ml-auto px-2 py-1 rounded border border-red-400/40 text-red-300 hover:bg-red-500/10" onClick={()=>setAdventData(s=>{ const n={...s}; delete n.items[id]; return n; })}>Очистить</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="border border-white/10 rounded-lg p-3 bg-slate-900/60 overflow-auto max-h-[60vh]">
+                <div className="text-white/80 text-sm mb-2">Предпросмотр</div>
+                <AdventCalendarPreview days={adventData.days} items={adventData.items} centerTitle={adventData.centerTitle} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+              <button onClick={()=>setAdventOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+              <button onClick={()=>{ /* TODO: persist via backend */ setAdventOpen({ open:false }); }} className="px-4 py-2 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Constructor Modal */}
+      {testOpen.open && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={()=>setTestOpen({ open:false })} />
+              <div className="relative z-[310] w-[95%] max-w-6xl bg-slate-900/95 border border-white/15 rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col">
+                <h2 className="text-white text-xl font-bold">Конструктор тестов</h2>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4 flex-1 overflow-hidden">
+              {/* Editor */}
+              <div className="space-y-3 overflow-auto pr-1">
+                <label className="text-sm text-white/80">Название теста
+                  <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={testData.title} onChange={e=>setTestData(s=>({ ...s, title: e.target.value }))} />
+                </label>
+                <label className="text-sm text-white/80">Описание
+                  <textarea rows={3} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={testData.description} onChange={e=>setTestData(s=>({ ...s, description: e.target.value }))} />
+                </label>
+
+                <div className="flex justify-between items-center mt-2">
+                  <div className="text-white/80 text-sm">Вопросы</div>
+                  <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setTestData(s=>({ ...s, questions: [...s.questions, { id: (s.questions.at(-1)?.id||0)+1, text: '', kind: 'Характер', answers: [] }] }))}>Добавить вопрос</button>
+                </div>
+
+                <div className="space-y-3 max-h-[50vh] overflow-auto">
+                  {testData.questions.map((q, qi)=> (
+                    <div key={q.id} className="rounded-lg border border-white/10 p-3 bg-slate-900/60">
+                      <div className="flex items-center justify-between">
+                        <div className="text-white/80 text-sm">Вопрос {q.id}</div>
+                        <button className="text-red-300 border border-red-400/40 rounded px-2 py-1 hover:bg-red-500/10" onClick={()=>setTestData(s=>({ ...s, questions: s.questions.filter(x=>x.id!==q.id) }))}>Удалить</button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                        <label className="text-xs text-white/80">Текст вопроса
+                          <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={q.text} onChange={e=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], text: e.target.value }; return { ...s, questions:a };})} />
+                        </label>
+                        <label className="text-xs text-white/80">Тип
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={q.kind} onChange={e=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], kind: e.target.value as any }; return { ...s, questions:a };})}>
+                            {(['Характер','Мотивация','Ценности'] as const).map(k=> <option key={k} value={k} className="bg-slate-800">{k}</option>)}
+                          </select>
+                        </label>
+                        <label className="text-xs text-white/80">Изображение (URL)
+                          <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="https://..." value={q.image||''} onChange={e=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], image: e.target.value }; return { ...s, questions:a };})} />
+                        </label>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-white/80 text-xs">Варианты ответов</div>
+                        <button className="px-2 py-1 rounded border border-white/20 text-white/80 hover:bg-white/10 text-xs" onClick={()=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], answers: [...a[qi].answers, { label: '', scores:{ Характер:0, Мотивация:0, Ценности:0 } }] }; return { ...s, questions:a };})}>Добавить ответ</button>
+                      </div>
+                      <div className="space-y-2 mt-2">
+                        {q.answers.map((ans, ai)=> (
+                          <div key={ai} className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                            <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Текст ответа" value={ans.label} onChange={e=>setTestData(s=>{ const a=[...s.questions]; const qa={ ...a[qi] }; const arr=[...qa.answers]; arr[ai]={ ...arr[ai], label: e.target.value }; qa.answers=arr; a[qi]=qa; return { ...s, questions:a };})} />
+                            {(['Характер','Мотивация','Ценности'] as const).map(cat => (
+                              <input key={cat} type="number" className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder={cat} value={ans.scores[cat]} onChange={e=>setTestData(s=>{ const a=[...s.questions]; const qa={ ...a[qi] }; const arr=[...qa.answers]; arr[ai]={ ...arr[ai], scores: { ...arr[ai].scores, [cat]: Number(e.target.value) } }; qa.answers=arr; a[qi]=qa; return { ...s, questions:a };})} />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+                  {/* List Preview (compact, non-interactive) */}
+                  <div className="border border-white/10 rounded-lg p-3 bg-slate-900/60 overflow-auto max-h-[60vh]">
+                    <div className="text-white/80 text-sm mb-3">Предпросмотр</div>
+                    <div className="space-y-2">
+                      {testData.questions.length === 0 && (
+                        <div className="text-white/50 text-sm">Нет вопросов</div>
+                      )}
+                      {testData.questions.map((q)=> (
+                        <div key={q.id} className="flex items-center gap-3 p-2 rounded-md border border-white/10 bg-slate-800/60">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-white text-xs font-semibold">{q.id}</div>
+                          {q.image && <img src={q.image} alt="img" className="w-10 h-10 rounded object-cover border border-white/10" />}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-white/90 text-sm truncate">{q.text || 'Без названия'}</div>
+                            <div className="text-white/60 text-xs">Ответов: {q.answers.length}</div>
+                          </div>
+                          <span className="px-2 py-1 rounded-full text-[10px] font-medium border border-white/15 text-white/80">
+                            {q.kind}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+              <button onClick={()=>setTestOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+              <button onClick={()=>{ /* TODO persist */ setTestOpen({ open:false }); }} className="px-4 py-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-200 hover:bg-purple-500/30">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default AdminScreen;
- 
+export default AdminScreen; 
