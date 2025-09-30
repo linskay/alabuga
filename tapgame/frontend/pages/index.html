@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>КосмоГусь: Алабу-га-га</title>
-    <link rel="stylesheet" href="../components/styles.css">
+    <base href="/">
+    <link rel="stylesheet" href="/frontend/components/styles.css">
 </head>
 <body>
     <div class="game">
         <div class="header">
             <div class="header-top">
                 <div class="score-container">
-                    <img class="coin-icon" src="../assets/coin.png" alt="монеты">
+                    <img class="coin-icon" src="/frontend/assets/coin.png" alt="монеты">
                     <span class="score" id="score">0</span>
                 </div>
                 <div class="level-container">
@@ -30,7 +31,7 @@
 
         <div class="game-area">
             <div class="circle">
-                <img id="circle" class="goose-img" src="../assets/Goose.png" alt="КосмоГусь">
+                <img id="circle" class="goose-img" src="/frontend/assets/Goose.png" alt="КосмоГусь">
             </div>
         </div>
 
@@ -44,15 +45,15 @@
     </div>
 
     <audio id="clickSound" preload="auto">
-        <source src="../assets/sounds/click.mp3" type="audio/mpeg">
+        <source src="/frontend/assets/sounds/click.mp3" type="audio/mpeg">
     </audio>
     <audio id="levelUpSound" preload="auto">
-        <source src="../assets/sounds/level-up.mp3" type="audio/mpeg">
+        <source src="/frontend/assets/sounds/level-up.mp3" type="audio/mpeg">
     </audio>
     <audio id="achievementSound" preload="auto">
-        <source src="../assets/sounds/achievement.mp3" type="audio/mpeg">
+        <source src="/frontend/assets/sounds/achievement.mp3" type="audio/mpeg">
     </audio>
 
-    <script src="../components/app.js" defer></script>
+    <script src="/frontend/components/app.js" defer></script>
 </body>
 </html>
