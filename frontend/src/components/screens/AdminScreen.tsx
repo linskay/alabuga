@@ -1216,80 +1216,52 @@ const AdminScreen: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
             >
-              <CardTsup width="100%" height="250px">
-                <div className="p-6 h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="text-3xl">🛍️</div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-bold text-lg truncate" title={item.name}>{item.name}</h4>
-                        <div className="text-2xl font-bold text-green-400 flex items-center gap-1">
-                          {item.price} <Energon size={20} />
-                        </div>
-                      </div>
+              <NeonEventCard title={item.name} stickyFooter={false}>
+                <div className="w-full flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white/80 text-sm">
+                      <span>Цена:</span>
+                      <span className="text-white font-semibold">{item.price}</span>
+                      <Energon size={18} />
                     </div>
-                    
-                    <div className="space-y-2 text-sm text-gray-300">
-                      <div className="flex justify-between">
-                        <span>Продаж:</span>
-                        <span className="text-white">{item.sales}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Статус:</span>
-                        <NeonSwitch 
-                          checked={item.status === 'active'} 
-                          onChange={async (v: boolean) => {
-                            try {
-                              const updated = await backend.shop.update(item.id, { available: v });
-                              setShopItems(prev => prev.map(s => s.id === item.id ? { ...s, status: v ? 'active' : 'inactive' } : s));
-                            } catch (e: any) {
-                              setNotif({ open: true, title: 'Ошибка обновления статуса', message: getErrorMessage(e), variant: 'error' });
-                            }
-                          }} 
-                        />
-                      </div>
+                    <div className={`px-2 py-1 rounded text-[10px] font-medium ${item.status==='active'?'border border-green-400/40 text-green-300 bg-green-500/10':'border border-white/20 text-white/70 bg-white/5'}`}>{item.status==='active'?'АКТИВЕН':'НЕАКТИВЕН'}</div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-white/70 text-xs">Продаж: <span className="text-white">{item.sales}</span></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/70 text-xs">Статус</span>
+                      <NeonSwitch
+                        checked={item.status === 'active'}
+                        onChange={async (v: boolean) => {
+                          try {
+                            const updated = await backend.shop.update(item.id, { available: v });
+                            setShopItems(prev => prev.map(s => s.id === item.id ? { ...s, status: v ? 'active' : 'inactive' } : s));
+                          } catch (e: any) {
+                            setNotif({ open: true, title: 'Ошибка обновления статуса', message: getErrorMessage(e), variant: 'error' });
+                          }
+                        }}
+                      />
                     </div>
                   </div>
-                  
-                  <div className="mt-4 space-y-3">
-                    <div className={`px-3 py-1 rounded text-xs text-center ${
-                      item.status === 'active' ? 'bg-green-500/30 text-green-300' : 'bg-gray-500/30 text-gray-400'
-                    }`}>
-                      {item.status === 'active' ? 'АКТИВЕН' : 'НЕАКТИВЕН'}
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-1 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
-                        onClick={() => {
-                          setEditProductOpen(item);
-                          setEditProduct({ name: item.name, price: item.price, available: item.status === 'active', description: (item as any).description || '', imageUrl: (item as any).imageUrl || '' });
-                        }}
-                      >
-                        Редактировать
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-1 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
-                        onClick={() => setNotif({ open: true, title: 'Статистика', message: 'Функция в разработке', variant: 'info' })}
-                      >
-                        Статистика
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-1 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-xs hover:bg-red-500/30 transition-all duration-300"
-                        onClick={() => handleDeleteProduct(item.id)}
-                      >
-                        Удалить
-                      </motion.button>
-                    </div>
+                  <div className="flex items-center justify-end gap-2">
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => { setEditProductOpen(item); setEditProduct({ name: item.name, price: item.price, available: item.status==='active', description: (item as any).description || '', imageUrl: (item as any).imageUrl || '' }); }}>
+                      Редактировать
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => setNotif({ open: true, title: 'Статистика', message: 'Функция в разработке', variant: 'info' })}>
+                      Статистика
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-red-500/10 text-red-200 ring-1 ring-red-400/40 hover:bg-red-500/20 text-xs"
+                      onClick={() => handleDeleteProduct(item.id)}>
+                      Удалить
+                    </motion.button>
                   </div>
                 </div>
-              </CardTsup>
+              </NeonEventCard>
             </motion.div>
           ))}
         </div>
@@ -1392,64 +1364,38 @@ const AdminScreen: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
             >
-              <CardTsup width="100%" height="220px">
-                <div className="p-6 h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="text-3xl">🔮</div>
-                      <div>
-                        <h4 className="text-white font-bold text-lg">{item.name}</h4>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-gray-300">
-                      <div className="flex items-center gap-3">
-                        <span>Активен:</span>
-                        <NeonSwitch checked={!!item.isActive} onChange={async (v: boolean) => {
-                          try {
-                            const updated = await backend.artifacts.update(item.id, { isActive: v });
-                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.isActive } : a));
-                          } catch (e: any) {
-                            setNotif({ open: true, title: 'Ошибка статуса артефакта', message: getErrorMessage(e), variant: 'error' });
-                          }
-                        }} />
-                      </div>
-                    </div>
+              <NeonEventCard title={item.name} subtitle={item.rarity ? `Редкость: ${item.rarity}` : 'Артефакт'} stickyFooter={false}>
+                <div className="w-full flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-white/80 text-xs">
+                    <span>Активен</span>
+                    <NeonSwitch checked={!!item.isActive} onChange={async (v: boolean) => {
+                      try {
+                        const updated = await backend.artifacts.update(item.id, { isActive: v });
+                        setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.isActive } : a));
+                      } catch (e: any) {
+                        setNotif({ open: true, title: 'Ошибка статуса артефакта', message: getErrorMessage(e), variant: 'error' });
+                      }
+                    }} />
                   </div>
-                  
-                  <div className="mt-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
-                        onClick={() => {
-                          setEditArtifactOpen(item);
-                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.isActive });
-                        }}
-                      >
-                        Редактировать
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
-                        onClick={() => setAssignArtifactOpen(item)}
-                      >
-                        Назначить
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="col-span-2 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded text-red-200 text-xs hover:bg-red-500/40 transition-all duration-300 font-medium"
-                        onClick={() => openDeleteArtifactConfirm(item)}
-                      >
-                        Деактивировать
-                      </motion.button>
-                    </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => { setEditArtifactOpen(item); setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.isActive }); }}>
+                      Редактировать
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => setAssignArtifactOpen(item)}>
+                      Назначить
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-red-500/10 text-red-200 ring-1 ring-red-400/40 hover:bg-red-500/20 text-xs"
+                      onClick={() => openDeleteArtifactConfirm(item)}>
+                      Удалить
+                    </motion.button>
                   </div>
                 </div>
-              </CardTsup>
+              </NeonEventCard>
             </motion.div>
           ))}
         </div>

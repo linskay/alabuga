@@ -86,6 +86,18 @@ const ProfileScreen: React.FC = () => {
   const [nextRankReq, setNextRankReq] = useState<any | null>(null);
   const [equippedArtifacts, setEquippedArtifacts] = useState<any[]>([]);
   const [currentRank, setCurrentRank] = useState<any | null>(null);
+  const getRankNameFromResponse = (rankResp: any, level: number): string | null => {
+    if (!rankResp) return null;
+    if (typeof rankResp === 'string') return rankResp;
+    if (Array.isArray(rankResp)) {
+      const match = rankResp.find((r: any) => (r?.level ?? r?.rankLevel) === level);
+      return (match?.name as string) || null;
+    }
+    if (typeof rankResp === 'object') {
+      return (rankResp.name as string) || null;
+    }
+    return null;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -99,42 +111,59 @@ const ProfileScreen: React.FC = () => {
         }
 
         // Проверяем валидность сессии
+        let effectiveUser: UserDTO | null = null;
         try {
           const validationResponse = await backend.auth.validate(login);
           if (!validationResponse.valid) {
             setError('Сессия истекла. Пожалуйста, войдите заново.');
             return;
           }
-          setUser(validationResponse.user);
+          effectiveUser = validationResponse.user as UserDTO;
+          setUser(effectiveUser);
         } catch (validationError) {
           // Если валидация не удалась, пробуем получить пользователя напрямую
           const u = await backend.users.byLogin(login);
           if (!mounted) return;
-          setUser(u);
+          effectiveUser = u as UserDTO;
+          setUser(effectiveUser);
         }
 
-        if (!mounted || !user) return;
+        if (!mounted || !effectiveUser) return;
         
         try {
           const [comp, missions, artifacts, rank] = await Promise.all([
-            backend.users.competencies(user.id),
-            backend.users.missions(user.id),
-            backend.users.artifacts(user.id),
-            backend.ranks.byLevel(user.rank ?? 0)
+            backend.users.competencies(effectiveUser.id),
+            backend.users.missions(effectiveUser.id),
+            backend.users.artifacts(effectiveUser.id),
+            backend.ranks.byLevel(effectiveUser.rank ?? 0)
           ]);
           if (!mounted) return;
           setCompetencies(comp || []);
           setUserMissions(missions || []);
-          setCurrentRank(rank || null);
+          let resolvedRank: any = rank || null;
+          if (!resolvedRank || !resolvedRank.name) {
+            try {
+              const all = await backend.ranks.list();
+              const level = effectiveUser.rank ?? 0;
+              const match = (all || []).find((r: any) => (r?.level ?? r?.rankLevel) === level);
+              if (match) {
+                resolvedRank = match;
+              }
+            } catch {}
+          }
+          setCurrentRank(resolvedRank);
           
           // Фильтруем только экипированные артефакты
           const equipped = (artifacts || []).filter((a: any) => a.isEquipped);
           setEquippedArtifacts(equipped);
         } catch {}
         try {
-          const req = await backend.ranks.requirementsByLevel((user.rank ?? 0) + 1);
+          const allReqs = await backend.ranks.requirements();
           if (!mounted) return;
-          setNextRankReq(req || null);
+          const targetLevel = (effectiveUser.rank ?? 0) + 1;
+          const normalizeLevel = (r: any) => (r?.rank_level ?? r?.rankLevel ?? r?.level);
+          const candidates = (allReqs || []).filter((r: any) => normalizeLevel(r) === targetLevel);
+          setNextRankReq(candidates?.[0] || null);
         } catch {}
       } catch (e: any) {
         console.warn('Не удалось загрузить профиль:', e?.message);
@@ -285,7 +314,13 @@ const ProfileScreen: React.FC = () => {
                     <RankIcon size={22} />
                     Текущий ранг
                   </span>
-                  <span className="text-cyan-400 font-bold">{currentRank?.name || getRankName(user?.rank ?? 0)}</span>
+                  <span className="text-cyan-400 font-bold">{
+                    (() => {
+                      const level = user?.rank ?? 0;
+                      const byResp = getRankNameFromResponse(currentRank, level);
+                      return byResp || (currentRank?.name as string) || `Ранг ${level}`;
+                    })()
+                  }</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
