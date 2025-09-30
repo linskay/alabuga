@@ -57,4 +57,7 @@ public class MissionDTO {
 
     @Schema(description = "ID артефакта в качестве награды", example = "1")
     private Long artifactRewardId;
+
+    @Schema(description = "URL изображения миссии", example = "https://example.com/images/mission1.jpg")
+    private String imageUrl;
 }

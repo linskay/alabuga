@@ -13,9 +13,13 @@ import CosmicProgressBar from '../CosmicProgressBar';
 import { useNotifications } from '../../hooks/useNotifications';
 import { NeonGradientCard } from '../NeonGradientCard';
 import ShinyText from '../ShinyText';
+import { useAppContext } from '../../contexts/AppContext';
 import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
+import MissionIcon from '../MissionIcon';
+import ExperienceIcon from '../ExperienceIcon';
 import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
+import { handleApiError } from '../../utils/errorHandler';
 
 const DEFAULT_COMPETENCIES: { name: string; max: number }[] = [
   { name: 'Сила Миссии', max: 500 },
@@ -54,45 +58,93 @@ const ProfileScreen: React.FC = () => {
     togglePanel,
     closePanel
   } = useNotifications();
+  
+  const { refreshUserData } = useAppContext();
+
+  const getRankName = (rankLevel: number) => {
+    const rankNames: { [key: number]: string } = {
+      0: 'Космо-Кадет',
+      1: 'Навигатор Траекторий',
+      2: 'Аналитик Орбит', 
+      3: 'Архитектор Станции',
+      4: 'Хронист Галактики',
+      5: 'Исследователь Культур',
+      6: 'Мастер Лектория',
+      7: 'Связист Звёздного Флота',
+      8: 'Штурман Экипажа',
+      9: 'Командир Отряда',
+      10: 'Хранитель Станции «Алабуга.TECH»'
+    };
+    return rankNames[rankLevel] || `Ранг ${rankLevel}`;
+  };
 
   const [user, setUser] = useState<UserDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [competencies, setCompetencies] = useState<UserCompetency[]>([]);
   const [userMissions, setUserMissions] = useState<UserMission[]>([]);
   const [nextRankReq, setNextRankReq] = useState<any | null>(null);
+  const [equippedArtifacts, setEquippedArtifacts] = useState<any[]>([]);
+  const [currentRank, setCurrentRank] = useState<any | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        // Временный способ получить текущий логин: берём из localStorage или fallback
-        const login = localStorage.getItem('currentLogin') || 'commander';
-        const u = await backend.users.byLogin(login);
-        if (!mounted) return;
-        setUser(u);
+        // Получаем текущий логин из localStorage
+        const login = localStorage.getItem('currentLogin');
+        if (!login) {
+          setError('Пользователь не авторизован');
+          return;
+        }
+
+        // Проверяем валидность сессии
         try {
-          const [comp, missions] = await Promise.all([
-            backend.users.competencies(u.id),
-            backend.users.missions(u.id),
+          const validationResponse = await backend.auth.validate(login);
+          if (!validationResponse.valid) {
+            setError('Сессия истекла. Пожалуйста, войдите заново.');
+            return;
+          }
+          setUser(validationResponse.user);
+        } catch (validationError) {
+          // Если валидация не удалась, пробуем получить пользователя напрямую
+          const u = await backend.users.byLogin(login);
+          if (!mounted) return;
+          setUser(u);
+        }
+
+        if (!mounted || !user) return;
+        
+        try {
+          const [comp, missions, artifacts, rank] = await Promise.all([
+            backend.users.competencies(user.id),
+            backend.users.missions(user.id),
+            backend.users.artifacts(user.id),
+            backend.ranks.byLevel(user.rank ?? 0)
           ]);
           if (!mounted) return;
           setCompetencies(comp || []);
           setUserMissions(missions || []);
+          setCurrentRank(rank || null);
+          
+          // Фильтруем только экипированные артефакты
+          const equipped = (artifacts || []).filter((a: any) => a.isEquipped);
+          setEquippedArtifacts(equipped);
         } catch {}
         try {
-          const req = await backend.ranks.requirementByLevel((u.rank ?? 0) + 1);
+          const req = await backend.ranks.requirementsByLevel((user.rank ?? 0) + 1);
           if (!mounted) return;
           setNextRankReq(req || null);
         } catch {}
       } catch (e: any) {
+        console.warn('Не удалось загрузить профиль:', e?.message);
         setError(e?.message || 'Не удалось загрузить профиль');
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [refreshUserData]);
 
   return (
-    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden z-10">
+    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden overflow-y-auto z-10">
       {/* PyramidLoader2 Component - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
@@ -140,7 +192,7 @@ const ProfileScreen: React.FC = () => {
           )}
           <AstronautCard 
             login={user?.login || 'КОМАНДИР НЕКСУС'} 
-            rank={user?.rank ?? 42} 
+            rank={currentRank?.level ?? user?.rank ?? 0} 
             experience={user?.experience ?? 15420} 
           />
           
@@ -219,19 +271,25 @@ const ProfileScreen: React.FC = () => {
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Миссии (выполнено)</span>
+                  <span className="text-gray-300 flex items-center gap-2">
+                    <MissionIcon size={18} color="#51e4dc" />
+                    Миссии (выполнено)
+                  </span>
                   <span className="text-cyan-400 font-bold text-xl">{userMissions.filter(m => (m.status || '').toLowerCase() === 'completed').length}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Текущий ранг</span>
-                  <span className="text-cyan-400 font-bold">{user?.rank ?? 0}</span>
+                  <span className="text-cyan-400 font-bold">{currentRank?.name || getRankName(user?.rank ?? 0)}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Опыт</span>
+                  <span className="text-gray-300 flex items-center gap-2">
+                    <ExperienceIcon size={34} />
+                    Опыт
+                  </span>
                   <span className="text-cyan-400 font-bold">{user?.experience ?? 0}</span>
                 </div>
               </NeonGradientCard>
@@ -299,9 +357,39 @@ const ProfileScreen: React.FC = () => {
             </div>
           </NeonGradientCard>
 
-          
-
-          
+          {/* Избранные артефакты */}
+          <NeonGradientCard className="p-8">
+            <div className="mb-6 flex items-center">
+              <ShinyText text="ИЗБРАННЫЕ АРТЕФАКТЫ" className="text-2xl font-bold" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {equippedArtifacts.length === 0 ? (
+                <div className="col-span-full text-center text-gray-400 py-8">
+                  <div className="text-lg mb-2">Нет экипированных артефактов</div>
+                  <div className="text-sm">Перейдите в раздел "Корабль" для экипировки артефактов</div>
+                </div>
+              ) : (
+                equippedArtifacts.map((artifact, index) => (
+                  <motion.div
+                    key={artifact.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                    className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-400/20 hover:border-blue-400/40 transition-all duration-300"
+                  >
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">A</span>
+                      </div>
+                      <div className="text-white font-medium mb-1">{artifact.name}</div>
+                      <div className="text-gray-400 text-sm mb-2">{artifact.rarity}</div>
+                      <div className="text-green-400 text-xs">Экипирован</div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </NeonGradientCard>
         </motion.div>
       </div>
 

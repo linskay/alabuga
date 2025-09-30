@@ -29,6 +29,7 @@ import com.example.alabuga.exception.DuplicateResourceException;
 import com.example.alabuga.exception.ResourceNotFoundException;
 import com.example.alabuga.mapper.ArtifactMapper;
 import com.example.alabuga.mapper.CompetencyMapper;
+import com.example.alabuga.mapper.UserArtifactMapper;
 import com.example.alabuga.mapper.UserMapper;
 import com.example.alabuga.repository.ArtifactRepository;
 import com.example.alabuga.repository.CompetencyRepository;
@@ -37,6 +38,7 @@ import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserCompetencyRepository;
 import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
+import com.example.alabuga.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,6 +58,7 @@ public class UserService {
     private final CompetencyMapper competencyMapper;
     private final ArtifactMapper artifactMapper;
     private final NotificationService notificationService;
+    private final UserArtifactMapper userArtifactMapper;
     
   
     public List<UserDTO> getAllUsers() {
@@ -106,6 +109,8 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", id));
         
+        Integer oldRank = user.getRank();
+        
         // Проверяем уникальность логина и email (если они изменились)
         if (userUpdateDTO.getLogin() != null && !user.getLogin().equals(userUpdateDTO.getLogin()) && 
             userRepository.existsByLogin(userUpdateDTO.getLogin())) {
@@ -120,6 +125,14 @@ public class UserService {
         userMapper.updateEntity(user, userUpdateDTO);
         
         User savedUser = userRepository.save(user);
+        
+        // Создаем уведомление о повышении ранга, если ранг изменился
+        if (userUpdateDTO.getRank() != null && !userUpdateDTO.getRank().equals(oldRank)) {
+            Rank oldRankObj = Rank.fromLevel(oldRank);
+            Rank newRankObj = Rank.fromLevel(userUpdateDTO.getRank());
+            notificationService.createRankPromotionNotification(savedUser, oldRankObj, newRankObj);
+        }
+        
         return userMapper.toDTO(savedUser);
     }
     
@@ -228,8 +241,7 @@ public class UserService {
         
         Competency competency = competencyRepository.findById(competencyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Компетенция", competencyId));
-        
-        // Проверяем, есть ли уже такая компетенция у пользователя
+
         Optional<UserCompetency> existingCompetency = userCompetencyRepository.findByUserIdAndCompetencyId(userId, competencyId);
         if (existingCompetency.isPresent()) {
             throw new DuplicateResourceException("У пользователя уже есть компетенция " + competency.getName());
@@ -267,7 +279,7 @@ public class UserService {
     
     public List<UserArtifactDTO> getUserArtifacts(Long userId) {
         List<UserArtifact> userArtifacts = userArtifactRepository.findByUserId(userId);
-        return artifactMapper.toUserArtifactDTOList(userArtifacts);
+        return userArtifactMapper.toDTOList(userArtifacts);
     }
     
     @Transactional
@@ -278,39 +290,57 @@ public class UserService {
         Artifact artifact = artifactRepository.findById(artifactId)
                 .orElseThrow(() -> new ResourceNotFoundException("Артефакт", artifactId));
         
+        // Проверяем, есть ли уже у пользователя этот артефакт
+        if (userArtifactRepository.existsByUserIdAndArtifactId(userId, artifactId)) {
+            throw new BusinessLogicException("У пользователя уже есть этот артефакт");
+        }
+        
         UserArtifact userArtifact = UserArtifact.builder()
                 .user(user)
                 .artifact(artifact)
-                .acquiredAt(LocalDateTime.now())
                 .isEquipped(false)
                 .build();
         
-        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
-        return artifactMapper.toDTO(savedUserArtifact);
+        UserArtifact saved = userArtifactRepository.save(userArtifact);
+        return userArtifactMapper.toDTO(saved);
     }
     
     @Transactional
     public UserArtifactDTO equipArtifact(Long userId, Long artifactId) {
-        UserArtifact userArtifact = userArtifactRepository.findByUserId(userId).stream()
-                .filter(ua -> ua.getArtifact().getId().equals(artifactId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт у пользователя"));
-        
-        userArtifact.setIsEquipped(true);
-        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
-        return artifactMapper.toDTO(savedUserArtifact);
+        try {
+            UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId);
+            if (userArtifact == null) {
+                throw new BusinessLogicException("У пользователя нет этого артефакта");
+            }
+            
+            // Проверяем лимит экипированных артефактов
+            long equippedCount = userArtifactRepository.countEquippedArtifactsByUserId(userId);
+            if (!userArtifact.getIsEquipped() && equippedCount >= 3) {
+                throw new BusinessLogicException("Можно экипировать максимум 3 артефакта");
+            }
+            
+            userArtifact.setIsEquipped(!userArtifact.getIsEquipped());
+            UserArtifact saved = userArtifactRepository.save(userArtifact);
+            return userArtifactMapper.toDTO(saved);
+        } catch (BusinessLogicException e) {
+            // Re-throw business logic exceptions as they are already properly handled
+            throw e;
+        } catch (Exception e) {
+            // Wrap unexpected exceptions in BusinessLogicException for proper handling
+            throw new BusinessLogicException("Произошла ошибка при экипировке артефакта: " + e.getMessage());
+        }
     }
     
     @Transactional
     public UserArtifactDTO unequipArtifact(Long userId, Long artifactId) {
-        UserArtifact userArtifact = userArtifactRepository.findByUserId(userId).stream()
-                .filter(ua -> ua.getArtifact().getId().equals(artifactId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт у пользователя"));
+        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId);
+        if (userArtifact == null) {
+            throw new BusinessLogicException("У пользователя нет этого артефакта");
+        }
         
         userArtifact.setIsEquipped(false);
-        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
-        return artifactMapper.toDTO(savedUserArtifact);
+        UserArtifact saved = userArtifactRepository.save(userArtifact);
+        return userArtifactMapper.toDTO(saved);
     }
     
     // ========== COMPETENCY TRACKING METHODS ==========
@@ -388,6 +418,24 @@ public class UserService {
         
         UserMission savedUserMission = userMissionRepository.save(userMission);
         return mapToUserMissionDTO(savedUserMission);
+    }
+    
+    @Transactional
+    public void removeMissionFromUser(Long userId, Long missionId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("Пользователь", userId);
+        }
+        
+        if (!missionRepository.existsById(missionId)) {
+            throw new ResourceNotFoundException("Миссия", missionId);
+        }
+        
+        Optional<UserMission> userMissionOpt = userMissionRepository.findByUserIdAndMissionId(userId, missionId);
+        if (userMissionOpt.isEmpty()) {
+            throw new BusinessLogicException("У пользователя нет этой миссии");
+        }
+        
+        userMissionRepository.delete(userMissionOpt.get());
     }
     
     private UserMissionDTO mapToUserMissionDTO(UserMission userMission) {

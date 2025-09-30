@@ -1,28 +1,16 @@
 package com.example.alabuga.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.alabuga.dto.PurchaseDTO;
-import com.example.alabuga.dto.ShopItemCreateDTO;
-import com.example.alabuga.dto.ShopItemDTO;
-import com.example.alabuga.dto.ShopItemUpdateDTO;
+import com.example.alabuga.dto.*;
 import com.example.alabuga.service.ShopService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/shop")
@@ -64,7 +52,7 @@ public class ShopController {
 
     @PostMapping
     @Operation(summary = "Создать товар (только для админов)")
-    public ResponseEntity<ShopItemDTO> createShopItem(@RequestBody ShopItemCreateDTO shopItemCreateDTO) {
+    public ResponseEntity<ShopItemDTO> createShopItem(@Valid @RequestBody ShopItemCreateDTO shopItemCreateDTO) {
         ShopItemDTO shopItem = shopService.createShopItem(shopItemCreateDTO);
         return ResponseEntity.ok(shopItem);
     }
@@ -73,7 +61,7 @@ public class ShopController {
     @Operation(summary = "Обновить товар (только для админов)")
     public ResponseEntity<ShopItemDTO> updateShopItem(
             @Parameter(description = "ID товара") @PathVariable Long id,
-            @RequestBody ShopItemUpdateDTO shopItemUpdateDTO) {
+            @Valid @RequestBody ShopItemUpdateDTO shopItemUpdateDTO) {
         ShopItemDTO shopItem = shopService.updateShopItem(id, shopItemUpdateDTO);
         return ResponseEntity.ok(shopItem);
     }
@@ -102,4 +90,13 @@ public class ShopController {
         PurchaseDTO purchase = shopService.purchaseItem(userId, shopItemId);
         return ResponseEntity.ok(purchase);
     }
+
+    @GetMapping("/purchases/{userId}")
+    @Operation(summary = "Получить историю покупок пользователя")
+    public ResponseEntity<List<UserPurchaseDTO>> getUserPurchaseHistory(
+            @Parameter(description = "ID пользователя") @PathVariable Long userId) {
+        List<UserPurchaseDTO> purchases = shopService.getUserPurchaseHistory(userId);
+        return ResponseEntity.ok(purchases);
+    }
+
 }
