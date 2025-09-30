@@ -19,7 +19,7 @@ import Energon from '../Energon';
 import MissionIcon from '../MissionIcon';
 import ExperienceIcon from '../ExperienceIcon';
 import RankIcon from '../RankIcon';
-import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
+import { backend, UserDTO, UserCompetency, UserMission, API_BASE_URL } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 
 const DEFAULT_COMPETENCIES: { name: string; max: number }[] = [
@@ -61,6 +61,17 @@ const ProfileScreen: React.FC = () => {
   } = useNotifications();
   
   const { refreshUserData } = useAppContext();
+
+  const resolveArtifactImageUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+    if (url.startsWith('/images/artefacts/')) return url;
+    if (url.startsWith('images/artefacts/')) return `/${url}`;
+    if (url.startsWith('/images/artifacts/')) return url;
+    if (url.startsWith('images/')) return `/${url}`;
+    if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
+    return `/${url}`;
+  };
 
   const getRankName = (rankLevel: number) => {
     const rankNames: { [key: number]: string } = {
@@ -174,7 +185,7 @@ const ProfileScreen: React.FC = () => {
   }, [refreshUserData]);
 
   return (
-    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden overflow-y-auto z-10">
+    <div className="relative w-full pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden z-10">
       {/* PyramidLoader2 Component - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
@@ -430,12 +441,32 @@ const ProfileScreen: React.FC = () => {
                     className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-400/20 hover:border-blue-400/40 transition-all duration-300"
                   >
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">A</span>
+                      <div className="w-24 h-24 mx-auto mb-3 rounded-xl overflow-hidden bg-gradient-to-br from-blue-400/20 to-purple-500/20 flex items-center justify-center">
+                        {(() => {
+                          const imageUrl = artifact.imageUrl || artifact.image_url;
+                          if (imageUrl) {
+                            return (
+                              <img
+                                src={resolveArtifactImageUrl(imageUrl)}
+                                alt={artifact.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '12px' }}
+                                onError={(e) => { 
+                                  const img = e.currentTarget as HTMLImageElement;
+                                  img.style.display = 'none';
+                                  // Показываем заглушку при ошибке
+                                  const parent = img.parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = '<span class="text-white/60 font-bold text-lg">A</span>';
+                                  }
+                                }}
+                              />
+                            );
+                          }
+                          return <span className="text-white/60 font-bold text-lg">A</span>;
+                        })()}
                       </div>
                       <div className="text-white font-medium mb-1">{artifact.name}</div>
                       <div className="text-gray-400 text-sm mb-2">{artifact.rarity}</div>
-                      <div className="text-green-400 text-xs">Экипирован</div>
                     </div>
                   </motion.div>
                 ))

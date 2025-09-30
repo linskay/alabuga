@@ -13,7 +13,7 @@ const StyledFlip = styled.div`
   .container:hover > .card { cursor: pointer; transform: rotateY(180deg) rotateZ(180deg); }
   .front, .back { height: 100%; width: 100%; border-radius: 2rem; position: absolute; backface-visibility: hidden; color: #e6f7ff; display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 16px; box-shadow: 0 0 14px 2px rgba(0, 174, 239, 0.35); background: linear-gradient(-135deg, #0a1b2a, #016a8a); }
   .back { transform: rotateY(180deg) rotateZ(180deg); }
-  .front-heading, .back-heading { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+  .front-heading, .back-heading { font-size: 14px; font-weight: 700; letter-spacing: .5px; }
 `;
 
 const StyledGlow = styled.div`
@@ -31,7 +31,7 @@ const ShipScreen: React.FC = () => {
   const [userCards, setUserCards] = useState<UserCardDTO[]>([]);
   const [availableCards, setAvailableCards] = useState<CardDTO[]>([]);
   const [artefacts, setArtefacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
-  const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean; imageUrl?: string }[]>([]);
+  const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean; imageUrl?: string; image_url?: string }[]>([]);
   const [equippedArtifacts, setEquippedArtifacts] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +42,10 @@ const ShipScreen: React.FC = () => {
     // Normalize singular 'card' to plural 'cards' to match public folder structure
     if (url.startsWith('/images/card/')) return url.replace('/images/card/', '/images/cards/');
     if (url.startsWith('images/card/')) return `/${url.replace('images/card/', 'images/cards/')}`;
-    // Normalize 'artefacts' to 'artifacts' to match public folder structure
-    if (url.startsWith('/images/artefacts/')) return url.replace('/images/artefacts/', '/images/artifacts/');
-    if (url.startsWith('images/artefacts/')) return `/${url.replace('images/artefacts/', 'images/artifacts/')}`;
-    if (url.startsWith('/images/artifacts/')) return url; // public static
+    // Ensure artefact assets load from public folder
+    if (url.startsWith('/images/artefacts/')) return url; // public static (British spelling)
+    if (url.startsWith('images/artefacts/')) return `/${url}`; // ensure leading slash
+    if (url.startsWith('/images/artifacts/')) return url; // support alt spelling if present
     if (url.startsWith('/images/cards/')) return url; // public static
     if (url.startsWith('/')) return `${API_BASE_URL}${url}`; // backend static
     if (url.startsWith('images/')) return `/${url}`; // ensure leading slash for public
@@ -288,7 +288,7 @@ const ShipScreen: React.FC = () => {
             <StyledFlip key={userCard.id} onClick={() => handleCardClick(userCard)}>
               <div className="container">
                 <div className="card">
-                  <div className="front" style={{ textAlign: 'center' }}>
+                  <div className="front" style={{ textAlign: 'center', padding: '8px' }}>
                     {(() => {
                       const initial = resolveImageUrl(userCard.card.frontImageUrl) || `/images/cards/${userCard.card.id}.jpg`;
                       if (!initial) {
@@ -339,19 +339,21 @@ const ShipScreen: React.FC = () => {
                           alt={userCard.card.name}
                           style={{
                             width: '100%',
-                            height: '200px',
-                            objectFit: 'cover',
-                            borderRadius: '8px',
-                            marginBottom: '8px',
-                            opacity: 0.85
+                            height: '220px',
+                            objectFit: 'contain',
+                            borderRadius: '16px',
+                            marginBottom: '4px',
+                            opacity: 0.85,
+                            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)'
                           }}
                         />
                       );
                     })()}
-                    <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
+                    <div style={{ marginTop: 'auto', paddingTop: '4px' }}>
                       <p className="front-heading">{userCard.card.name}</p>
-                      <p>{userCard.card.seriesName}</p>
-                      {userCard.isNew && <p style={{color: '#00ff00', fontSize: '12px'}}>НОВАЯ!</p>}
+                      <p style={{fontSize: '11px'}}>{userCard.card.seriesName}</p>
+                      {userCard.isNew && <p style={{color: '#00ff00', fontSize: '10px'}}>НОВАЯ!</p>}
                     </div>
                   </div>
                   <div className="back">
@@ -402,16 +404,17 @@ const ShipScreen: React.FC = () => {
               artePageItems.map((a) => (
                 <div key={a.id} className="relative">
                   <StyledGlow>
-                    <div className="card" title={a.name || `Артефакт #${a.id}`}>
-                      {a.imageUrl && (
+                    <div className="card" title={a.name || `Артефакт #${a.id}`}> 
+                      {/* inner padding area so image not glued to edges */}
+                      <div style={{ position: 'absolute', inset: '10px', borderRadius: '20px', overflow: 'hidden', zIndex: 2 }}>
+                      {(a.imageUrl || a.image_url) && (
                         <img 
-                          src={resolveImageUrl(a.imageUrl)} 
+                          src={resolveImageUrl(a.imageUrl || a.image_url)} 
                           alt={a.name || `Артефакт #${a.id}`}
                           style={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
-                            borderRadius: '28px',
                             opacity: 0.9
                           }}
                           onError={(e) => {
@@ -421,6 +424,7 @@ const ShipScreen: React.FC = () => {
                           }}
                         />
                       )}
+                      </div>
                     </div>
                   </StyledGlow>
                   <div className="mt-2 text-center">
