@@ -8,12 +8,12 @@ import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
 
 const StyledFlip = styled.div`
-  .container { width: 240px; height: 294px; perspective: 900px; }
+  .container { width: 200px; height: 250px; perspective: 900px; }
   .card { height: 100%; width: 100%; position: relative; transition: transform 1200ms; transform-style: preserve-3d; border-radius: 2rem; }
   .container:hover > .card { cursor: pointer; transform: rotateY(180deg) rotateZ(180deg); }
   .front, .back { height: 100%; width: 100%; border-radius: 2rem; position: absolute; backface-visibility: hidden; color: #e6f7ff; display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 16px; box-shadow: 0 0 14px 2px rgba(0, 174, 239, 0.35); background: linear-gradient(-135deg, #0a1b2a, #016a8a); }
   .back { transform: rotateY(180deg) rotateZ(180deg); }
-  .front-heading, .back-heading { font-size: 14px; font-weight: 700; letter-spacing: .5px; }
+  .front-heading, .back-heading { font-size: 12px; font-weight: 700; letter-spacing: .5px; }
 `;
 
 const StyledGlow = styled.div`
@@ -339,13 +339,11 @@ const ShipScreen: React.FC = () => {
                           alt={userCard.card.name}
                           style={{
                             width: '100%',
-                            height: '220px',
+                            height: '180px',
                             objectFit: 'contain',
                             borderRadius: '16px',
                             marginBottom: '4px',
-                            opacity: 0.85,
-                            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)',
-                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)'
+                            opacity: 0.85
                           }}
                         />
                       );
@@ -405,17 +403,19 @@ const ShipScreen: React.FC = () => {
                 <div key={a.id} className="relative">
                   <StyledGlow>
                     <div className="card" title={a.name || `Артефакт #${a.id}`}> 
-                      {/* inner padding area so image not glued to edges */}
-                      <div style={{ position: 'absolute', inset: '10px', borderRadius: '20px', overflow: 'hidden', zIndex: 2 }}>
                       {(a.imageUrl || a.image_url) && (
                         <img 
                           src={resolveImageUrl(a.imageUrl || a.image_url)} 
                           alt={a.name || `Артефакт #${a.id}`}
                           style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            opacity: 0.9
+                            position: 'absolute',
+                            inset: '10px',
+                            width: 'calc(100% - 20px)',
+                            height: 'calc(100% - 20px)',
+                            objectFit: 'contain',
+                            borderRadius: '20px',
+                            opacity: 0.9,
+                            zIndex: 2
                           }}
                           onError={(e) => {
                             const img = e.currentTarget as HTMLImageElement;
@@ -424,7 +424,6 @@ const ShipScreen: React.FC = () => {
                           }}
                         />
                       )}
-                      </div>
                     </div>
                   </StyledGlow>
                   <div className="mt-2 text-center">
