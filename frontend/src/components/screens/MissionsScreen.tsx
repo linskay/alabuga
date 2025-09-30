@@ -5,6 +5,7 @@ import MainButton from '../MainButton';
 import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
 import SystemNotification from '../SystemNotification';
 import { handleApiError } from '../../utils/errorHandler';
+import ShinyText from '../ShinyText';
 
 type StatusId = 'active' | 'available' | 'soon' | 'history';
 
@@ -163,6 +164,7 @@ const MissionsScreen: React.FC = () => {
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
   const [confirmOpen, setConfirmOpen] = useState<{ open: boolean; title?: string; message?: string }>({ open: false });
   const [pendingMission, setPendingMission] = useState<MissionItem | null>(null);
+  const [expandedMission, setExpandedMission] = useState<MissionItem | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -311,6 +313,33 @@ const MissionsScreen: React.FC = () => {
     closeConfirm();
   };
 
+  const getMissionImage = (mission: MissionItem) => {
+    // Возвращаем изображение в зависимости от типа миссии
+    switch (mission.type) {
+      case 'QUEST':
+        return '/images/missions/quest.jpg';
+      case 'CHALLENGE':
+        return '/images/missions/challenge.jpg';
+      case 'TEST':
+        return '/images/missions/test.jpg';
+      default:
+        return '/images/missions/default.jpg';
+    }
+  };
+
+  const getMissionCategory = (mission: MissionItem) => {
+    switch (mission.type) {
+      case 'QUEST':
+        return 'Квесты';
+      case 'CHALLENGE':
+        return 'Рекрутинг';
+      case 'TEST':
+        return 'Лекторий';
+      default:
+        return 'Симулятор';
+    }
+  };
+
   return (
     <div className="h-full pb-8 relative">
       <DecoOrb>
@@ -318,7 +347,11 @@ const MissionsScreen: React.FC = () => {
         <div className="ring r2" />
         <div className="ring r3" />
       </DecoOrb>
-      {/* Кнопки главных вкладок удалены */}
+
+      {/* Заголовок */}
+      <div className="text-center mb-8">
+        <ShinyText text="МИССИИ" className="text-3xl font-bold" speed={6} />
+      </div>
 
       {/* Под-вкладки статуса */}
       <motion.div
@@ -362,24 +395,44 @@ const MissionsScreen: React.FC = () => {
                       </div>
                     )}
                     <div className="title">{m.title}</div>
-                    <div className="desc">{m.description}</div>
                     <div className="meta">
                       <div>Сложн.: {m.difficulty}</div>
                       <div>Награда: {m.reward}</div>
                     </div>
-                    {status === 'available' && (
+                    <div className="flex justify-between items-center mt-2">
+                      {status === 'available' && (
+                        <button
+                          onClick={() => askConfirm(m)}
+                          className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded text-cyan-300 text-xs hover:bg-cyan-500/30 transition-all duration-300"
+                        >
+                          Взять миссию
+                        </button>
+                      )}
+                      {status === 'history' && (
+                        <div className="px-3 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs text-center">
+                          ✓ Выполнена
+                        </div>
+                      )}
                       <button
-                        onClick={() => askConfirm(m)}
-                        className="mt-2 px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded text-cyan-300 text-xs hover:bg-cyan-500/30 transition-all duration-300"
+                        onClick={() => setExpandedMission(m)}
+                        className="h-8 w-8 flex items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/30 transition-all duration-300"
                       >
-                        Взять миссию
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14" />
+                          <path d="M12 5v14" />
+                        </svg>
                       </button>
-                    )}
-                    {status === 'history' && (
-                      <div className="mt-2 px-3 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs text-center">
-                        ✓ Выполнена
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </StyledCard>
@@ -436,6 +489,118 @@ const MissionsScreen: React.FC = () => {
         actionLabel={status !== 'active' ? 'Открыть Активные' : undefined}
         onAction={status !== 'active' ? () => setStatus('active') : undefined}
       />
+
+      {/* Модальное окно с деталями миссии */}
+      {expandedMission && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4"
+          onClick={() => setExpandedMission(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 max-w-2xl w-full max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Изображение миссии */}
+            <div className="relative h-48 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
+              <img
+                src={getMissionImage(expandedMission)}
+                alt={expandedMission.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const img = e.currentTarget as HTMLImageElement;
+                  img.style.display = 'none';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
+              <button
+                onClick={() => setExpandedMission(null)}
+                className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-slate-800/80 border border-slate-600 text-white hover:bg-slate-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Контент миссии */}
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-cyan-400 text-sm font-medium mb-1">{getMissionCategory(expandedMission)}</p>
+                <h3 className="text-2xl font-bold text-white">{expandedMission.title}</h3>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-white mb-2">Описание</h4>
+                <p className="text-slate-300">{expandedMission.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Сложность</h5>
+                  <p className="text-slate-300">{expandedMission.difficulty}</p>
+                </div>
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Награда</h5>
+                  <p className="text-slate-300">{expandedMission.reward}</p>
+                </div>
+              </div>
+
+              {expandedMission.requiredExperience && (
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Требуемый опыт</h5>
+                  <p className="text-slate-300">{expandedMission.requiredExperience} XP</p>
+                </div>
+              )}
+
+              {expandedMission.requiredRank && (
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Требуемый ранг</h5>
+                  <p className="text-slate-300">{expandedMission.requiredRank}</p>
+                </div>
+              )}
+
+              {status === 'available' && (
+                <div className="pt-4">
+                  <button
+                    onClick={() => {
+                      askConfirm(expandedMission);
+                      setExpandedMission(null);
+                    }}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium rounded-lg transition-all duration-300"
+                  >
+                    Взять миссию
+                  </button>
+                </div>
+              )}
+
+              {status === 'history' && (
+                <div className="pt-4">
+                  <div className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-medium rounded-lg text-center">
+                    ✓ Выполнена
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };
