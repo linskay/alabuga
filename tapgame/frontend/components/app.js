@@ -38,6 +38,8 @@ let gameState = {
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 const $level = document.querySelector('#level');
+const $progressBar = document.querySelector('#progressBar');
+const $progressText = document.querySelector('#progressText');
 const $achievementToast = document.querySelector('#achievement-toast');
 const $achievementText = $achievementToast ? $achievementToast.querySelector('.achievement-text') : null;
 
@@ -130,6 +132,7 @@ function addScore(points = 1) {
         gameState.level = newLevel;
         levelUp();
     }
+    updateProgressBar();
     checkAchievements();
     saveGame();
     render();
@@ -147,6 +150,42 @@ function getCurrentLevel() {
     return level;
 }
 
+function getNextLevelScore() {
+    const nextLevel = Math.min(gameState.level + 1, LEVELS.length - 1);
+    return LEVELS[nextLevel].score;
+}
+
+function updateProgressBar() {
+    if (!$progressBar || !$progressText) return;
+
+    const currentLevel = gameState.level;
+    const currentScore = gameState.score;
+    const currentLevelScore = LEVELS[currentLevel].score;
+    const nextLevelScore = currentLevel < LEVELS.length - 1 ? LEVELS[currentLevel + 1].score : currentLevelScore;
+
+    // Если это максимальный уровень, показываем 100%
+    if (currentLevel >= LEVELS.length - 1) {
+        $progressBar.style.width = '100%';
+        $progressText.textContent = 'MAX';
+        return;
+    }
+
+    const progress = (currentScore - currentLevelScore) / (nextLevelScore - currentLevelScore) * 100;
+    const roundedProgress = Math.min(100, Math.max(0, Math.round(progress * 10) / 10));
+
+    $progressBar.style.width = `${roundedProgress}%`;
+    $progressText.textContent = `${currentScore - currentLevelScore}/${nextLevelScore - currentLevelScore}`;
+
+    // Меняем цвет в зависимости от заполненности
+    if (roundedProgress > 70) {
+        $progressBar.style.background = 'linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%)';
+    } else if (roundedProgress > 30) {
+        $progressBar.style.background = 'linear-gradient(90deg, #FFC107 0%, #FF9800 100%)';
+    } else {
+        $progressBar.style.background = 'linear-gradient(90deg, #8a8ffe 0%, #5f63f2 100%)';
+    }
+}
+
 function levelUp() {
     const currentLevel = LEVELS[gameState.level];
     showAchievement(`Уровень ${gameState.level + 1} разблокирован!`, currentLevel.title);
@@ -161,6 +200,9 @@ function levelUp() {
     if (!hasAchievement(achievementId)) {
         addAchievement(achievementId);
     }
+
+    // Обновляем прогресс-бар после повышения уровня
+    updateProgressBar();
 }
 
 function checkAchievements() {
@@ -203,12 +245,13 @@ function showAchievement(title, description) {
 }
 
 function render() {
-    if ($score) $score.textContent = gameState.score;
+    if ($score) $score.textContent = gameState.score.toLocaleString();
     if ($level) $level.textContent = gameState.level + 1;
     if ($circle) {
         const idx = Math.min(Math.floor(gameState.score / 30), GOOSE_IMAGES.length - 1);
         $circle.setAttribute('src', GOOSE_IMAGES[idx]);
     }
+    updateProgressBar();
 }
 
 function handleClick(event) {
