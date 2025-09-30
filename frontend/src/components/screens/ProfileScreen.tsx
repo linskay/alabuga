@@ -18,6 +18,7 @@ import ActivityCard from '../ActivityCard';
 import Energon from '../Energon';
 import MissionIcon from '../MissionIcon';
 import ExperienceIcon from '../ExperienceIcon';
+import RankIcon from '../RankIcon';
 import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 
@@ -280,7 +281,10 @@ const ProfileScreen: React.FC = () => {
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Текущий ранг</span>
+                  <span className="text-gray-300 flex items-center gap-2">
+                    <RankIcon size={22} />
+                    Текущий ранг
+                  </span>
                   <span className="text-cyan-400 font-bold">{currentRank?.name || getRankName(user?.rank ?? 0)}</span>
                 </div>
               </NeonGradientCard>
@@ -309,15 +313,16 @@ const ProfileScreen: React.FC = () => {
                   })()}
                 </span>
               </div>
-              <div className="w-full bg-gray-800/50 rounded-full h-3 border border-gray-600/30">
-                <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 h-3 rounded-full shadow-lg shadow-cyan-500/30" style={{ width: (() => {
-                  const need = nextRankReq?.requiredExperience ?? null;
-                  if (!need || !user) return '0%';
-                  const have = user.experience ?? 0;
-                  const pct = Math.min(100, Math.max(0, Math.round((have / need) * 100)));
-                  return `${pct}%`;
-                })() }}></div>
-              </div>
+              <CosmicProgressBar
+                value={(() => { const n = nextRankReq?.requiredExperience ?? null; if (!n || !user) return 0; return user.experience ?? 0; })()}
+                maxValue={(() => { const n = nextRankReq?.requiredExperience ?? null; return n || 1; })()}
+                size="sm"
+                label=""
+                color="from-cyan-400 to-purple-500"
+                animated={true}
+                showValue={false}
+                className="w-full"
+              />
             </div>
           </NeonGradientCard>
 
@@ -331,6 +336,18 @@ const ProfileScreen: React.FC = () => {
                 const found = competencies.find(c => (c.name || '').toLowerCase() === base.name.toLowerCase());
                 const value = (found?.points ?? found?.level ?? 0) as number;
                 const maxValue = (found?.maxPoints ?? base.max) as number;
+                const tooltipMap: Record<string,string> = {
+                  'Сила Миссии': 'Вера в дело',
+                  'Импульс Прорыва': 'Стремление к большему',
+                  'Канал Связи': 'Общение',
+                  'Модуль Аналитики': 'Аналитика',
+                  'Пульт Командования': 'Командование',
+                  'Кодекс Звёздного Права': 'Юриспруденция',
+                  'Голограммное Мышление': 'Трёхмерное мышление',
+                  'Кредитный Поток': 'Базовая экономика',
+                  'Курс Аэронавигации': 'Основы аэронавигации'
+                };
+                const tooltipLabel = tooltipMap[base.name] || base.name;
                 return (
                 <motion.div
                   key={base.name}
@@ -340,7 +357,7 @@ const ProfileScreen: React.FC = () => {
                   className="w-full"
                   style={{ minWidth: '200px' }}
                 >
-                  <CosmicTooltip tooltip={base.name}>
+                  <CosmicTooltip tooltip={tooltipLabel}>
                     <CosmicProgressBar
                       value={value}
                       maxValue={maxValue}
