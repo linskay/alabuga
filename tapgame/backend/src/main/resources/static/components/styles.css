@@ -105,96 +105,107 @@ body {
 }
 
 /* Анимации */
-@keyframes bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
 /* Уведомления о достижениях */
-.achievement-toast {
+  .achievement-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 15px 25px;
+      border-radius: 50px;
+      display: flex;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s ease;
+  }
+
+  .achievement-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+  }
+  .plus-one {
+      position: absolute;
+      font-family: 'Arial', sans-serif;
+      text-shadow: 0 0 10px rgba(234, 182, 64, 0.8);
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(180deg, #e8c547 0%, #4feb07 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      pointer-events: none;
+      user-select: none;
+      animation: move-up 1.5s forwards;
+      z-index: 10;
+  }
+
+  @keyframes move-up {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+  }
+
+  /* --- Закрепленная шапка --- */
+.header {
     position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 15px 25px;
-    border-radius: 50px;
+    top: 0; left: 0; right: 0;
     display: flex;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    transition: all 0.3s ease;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: rgba(28, 31, 36, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 100;
 }
 
-.achievement-toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
+/* --- SPA контейнер и экраны --- */
+.container { width: 100%; max-width: 720px; padding: 90px 16px 84px; box-sizing: border-box; margin: 0 auto; }
+.screen { display: none; }
+.screen.active { display: block; }
 
-.achievement-emoji {
-    font-size: 1.8rem;
-    margin-right: 15px;
-}
-
-.achievement-content {
+/* --- Нижнее меню --- */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
     display: flex;
-    flex-direction: column;
+    justify-content: space-around;
+    padding: 10px; background: rgba(28,31,36,0.9);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 200;
 }
+.nav-btn { color: #fff; background: transparent; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+.nav-btn.active { background: rgba(138,143,254,0.2); }
 
-.achievement-title {
-    font-weight: bold;
-    margin-bottom: 3px;
-}
+/* --- Аудио справа вверху --- */
+.audio-controls { display: flex; gap: 8px; }
+.audio-controls button { background: rgba(255,255,255,0.1); color: #fff; border: none; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; }
 
-/* Эффекты при клике */
-.particle {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    background: #fff;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10;
-    animation: float-up 1s ease-out forwards;
-}
+/* --- Таблица рейтинга --- */
+.rating-table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden; }
+.rating-table th, .rating-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.rating-table th { text-align: left; opacity: 0.8; }
 
-@keyframes float-up {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
-}
+/* --- Профиль: разделение пополам --- */
+.profile-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .profile-split { grid-template-columns: 1fr; } }
+.booster-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.booster-title { font-weight: 700; margin-bottom: 8px; }
+.booster-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn, .tap-mul { background: #8a8ffe; color: #0f1120; border: none; padding: 8px 12px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+.tap-mul.active { background: #e8c547; }
+.muted { opacity: 0.7; font-size: 12px; margin-top: 6px; }
+.badge { background: rgba(255,255,255,0.12); padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+.missions-list { list-style: none; padding: 0; margin: 0; }
+.missions-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
 
-.click-effect {
-    position: fixed;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 5;
-    animation: ripple 0.5s ease-out;
-}
-
-@keyframes ripple {
-    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-}
-
-.plus-one {
-    position: fixed;
-    color: #fff;
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    pointer-events: none;
-    z-index: 20;
-}
-
-/* Адаптивность */
-@media (max-width: 600px) {
-    .circle {
-        width: 180px;
-        height: 180px;
-    }
-}
+/* --- Звездный фон --- */
+#stars-bg { position: fixed; inset: 0; background: radial-gradient(ellipse at bottom, #1c1f24 0%, #0b0c12 100%); overflow: hidden; z-index: -1; }
+#stars-bg::before, #stars-bg::after { content: ''; position: absolute; top: -1000px; left: -1000px; right: -1000px; bottom: -1000px; background-image:
+  radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8) 50%, transparent 51%),
+  radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.6) 50%, transparent 51%),
+  radial-gradient(2px 2px at 130px 90px, rgba(255,255,255,0.7) 50%, transparent 51%),
+  radial-gradient(1px 1px at 200px 40px, rgba(255,255,255,0.5) 50%, transparent 51%);
+  background-repeat: repeat; animation: move-stars 120s linear infinite; }
+#stars-bg::after { opacity: 0.6; animation-duration: 180s; }
+@keyframes move-stars { from { transform: translateY(0); } to { transform: translateY(1000px); } }

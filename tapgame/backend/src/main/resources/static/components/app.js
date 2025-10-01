@@ -30,28 +30,122 @@ let gameState = {
     level: 0,
     achievements: [],
     totalClicks: 0,
-    firstClick: false
+    firstClick: false,
+    // Daily limit
+    dailyTapCount: 0,
+    dailyTapDate: null,
+    // Boosters
+    tapMul: 1,
+    timeBoostUntil: 0,
+    // Audio
+    sfxEnabled: true,
+    musicEnabled: true,
+    // Backend flag (future integration)
+    backendRegistered: false,
 };
 
 // DOM elements
-const $circle = document.querySelector('.goose-img');
+const $circle = document.querySelector('#circle') || document.querySelector('.goose-img');
 const $score = document.querySelector('.score');
 const $level = document.querySelector('.level');
 const $progressBar = document.querySelector('.progress-bar');
 const $progressText = document.querySelector('.progress-text');
 const $achievementToast = document.querySelector('.achievement-toast');
+// SPA/UI
+const $navButtons = Array.from(document.querySelectorAll('.nav-btn'));
+const $screens = {
+    home: document.getElementById('screen-home'),
+    rating: document.getElementById('screen-rating'),
+    profile: document.getElementById('screen-profile'),
+};
+const $boost15 = document.getElementById('boost-15min');
+const $boostTimer = document.getElementById('boost-timer');
+const $mulButtons = Array.from(document.querySelectorAll('.tap-mul'));
+const $toggleSfx = document.getElementById('toggle-sfx');
+const $toggleMusic = document.getElementById('toggle-music');
 
 // Initialize game
 function init() {
     loadGame();
     render();
     setupEventListeners();
+    setupNavigation();
+    setupAudioControls();
+    setupBoosters();
+    startBoostTimerTicker();
     
     if (!gameState.firstClick) {
         setTimeout(() => {
             showAchievement('Добро пожаловать!', 'Кликните по гусю, чтобы начать игру');
         }, 1000);
     }
+
+// SPA navigation
+function setupNavigation() {
+    $navButtons.forEach(btn => {
+        btn.addEventListener('click', () => switchScreen(btn.getAttribute('data-target')));
+    });
+}
+
+function switchScreen(name) {
+    Object.keys($screens).forEach(key => {
+        const el = $screens[key];
+        if (!el) return;
+        el.classList.toggle('active', key === name);
+    });
+    $navButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-target') === name));
+}
+
+// Audio controls
+function setupAudioControls() {
+    applyAudioState();
+    if ($toggleSfx) $toggleSfx.addEventListener('click', () => { gameState.sfxEnabled = !gameState.sfxEnabled; applyAudioState(); saveGame(); });
+    if ($toggleMusic) $toggleMusic.addEventListener('click', () => { gameState.musicEnabled = !gameState.musicEnabled; applyAudioState(); saveGame(); });
+}
+
+function applyAudioState() {
+    const sfx = !!gameState.sfxEnabled;
+    const sounds = [document.getElementById('clickSound'), document.getElementById('levelUpSound'), document.getElementById('achievementSound')];
+    sounds.forEach(a => { if (a) a.muted = !sfx; });
+    if ($toggleSfx) $toggleSfx.textContent = sfx ? '🔊' : '🔇';
+    if ($toggleMusic) $toggleMusic.textContent = gameState.musicEnabled ? '🎵' : '🚫';
+}
+
+// Boosters
+function setupBoosters() {
+    if ($boost15) {
+        $boost15.addEventListener('click', () => {
+            gameState.timeBoostUntil = Date.now() + 15 * 60 * 1000; // 15 minutes
+            saveGame();
+            updateBoostTimerUI();
+        });
+    }
+    $mulButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mul = Number(btn.getAttribute('data-mul')) || 1;
+            gameState.tapMul = mul;
+            $mulButtons.forEach(b => b.classList.toggle('active', b === btn));
+            saveGame();
+        });
+        const m = Number(btn.getAttribute('data-mul')) || 1;
+        if (m === Number(gameState.tapMul)) btn.classList.add('active');
+    });
+    updateBoostTimerUI();
+}
+
+function startBoostTimerTicker() { setInterval(updateBoostTimerUI, 1000); }
+
+function updateBoostTimerUI() {
+    if (!$boostTimer) return;
+    const remain = (gameState.timeBoostUntil || 0) - Date.now();
+    if (remain > 0) {
+        const mm = Math.floor(remain / 60000);
+        const ss = Math.floor((remain % 60000) / 1000);
+        $boostTimer.textContent = `x2 активен: ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    } else {
+        $boostTimer.textContent = '';
+    }
+}
 }
 
 // Load game state from localStorage
@@ -74,17 +168,51 @@ function saveGame() {
             level: gameState.level,
             achievements: gameState.achievements,
             totalClicks: gameState.totalClicks,
-            firstClick: gameState.firstClick
+            firstClick: gameState.firstClick,
+            dailyTapCount: gameState.dailyTapCount,
+            dailyTapDate: gameState.dailyTapDate,
+            tapMul: gameState.tapMul,
+            timeBoostUntil: gameState.timeBoostUntil,
+            sfxEnabled: gameState.sfxEnabled,
+            musicEnabled: gameState.musicEnabled,
         }));
     } catch (e) {
         console.error('Failed to save game state', e);
     }
 }
 
+// Daily limit and boosters utils
+function todayStr() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+}
+
+function ensureDailyWindow() {
+    const today = todayStr();
+    if (gameState.dailyTapDate !== today) {
+        gameState.dailyTapDate = today;
+        gameState.dailyTapCount = 0;
+        saveGame();
+    }
+}
+
+function canTap() {
+    ensureDailyWindow();
+    return gameState.dailyTapCount < 500;
+}
+
+function getEffectiveMultiplier() {
+    const now = Date.now();
+    const timeMul = now < (gameState.timeBoostUntil || 0) ? 2 : 1;
+    return Math.max(1, Number(gameState.tapMul) || 1) * timeMul;
+}
+
 // Update score and check for level up
 function addScore(points = POINTS_PER_CLICK) {
-    gameState.score += points;
+    const eff = getEffectiveMultiplier();
+    gameState.score += points * eff;
     gameState.totalClicks += 1;
+    gameState.dailyTapCount = (gameState.dailyTapCount || 0) + 1;
     
     const newLevel = getCurrentLevel();
     if (newLevel > gameState.level) {
@@ -240,6 +368,27 @@ function render() {
     if ($score) $score.textContent = gameState.score.toLocaleString();
     if ($level) $level.textContent = gameState.level + 1;
     updateProgressBar();
+    renderDailyProgress();
+}
+
+// Daily progress UI
+function renderDailyProgress() {
+    const dailyText = document.getElementById('daily-text');
+    const dailyBar = document.getElementById('daily-bar');
+    if (!dailyText || !dailyBar) return;
+    ensureDailyWindow();
+    const used = Math.min(500, gameState.dailyTapCount || 0);
+    dailyText.textContent = `Тапов сегодня: ${used}/500`;
+    const pct = Math.min(100, Math.round((used / 500) * 100));
+    dailyBar.style.width = pct + '%';
+    // color thresholds
+    if (pct >= 95) {
+        dailyBar.style.background = 'linear-gradient(90deg, #ff5252, #ff1744)';
+    } else if (pct >= 80) {
+        dailyBar.style.background = 'linear-gradient(90deg, #FFC107, #FF9800)';
+    } else {
+        dailyBar.style.background = 'linear-gradient(90deg, #8a8ffe, #5f63f2)';
+    }
 }
 
 // Particle effects
@@ -326,6 +475,10 @@ function createPlusOne(x, y) {
 
 function handleClick(event) {
     event.preventDefault();
+    if (!canTap()) {
+        showAchievement('Лимит', 'Дневной лимит 500 тапов исчерпан');
+        return;
+    }
     
     const x = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : 0);
     const y = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : 0);
@@ -339,7 +492,9 @@ function handleClick(event) {
     const clickSound = document.getElementById('clickSound');
     if (clickSound) {
         clickSound.currentTime = 0;
-        clickSound.play().catch(e => console.log('Audio play failed:', e));
+        if (gameState.sfxEnabled) {
+            clickSound.play().catch(e => console.log('Audio play failed:', e));
+        }
     }
     
     // Add score
@@ -362,6 +517,10 @@ function setupEventListeners() {
     if ($gameArea) {
         $gameArea.addEventListener('click', handleClick);
         $gameArea.addEventListener('touchstart', handleClick, { passive: false });
+    }
+    if ($circle) {
+        $circle.addEventListener('click', handleClick);
+        $circle.addEventListener('touchstart', handleClick, { passive: false });
     }
     
     // Prevent context menu on long press
