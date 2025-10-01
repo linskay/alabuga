@@ -199,7 +199,7 @@ const AdminScreen: React.FC = () => {
   const [userBranches, setUserBranches] = useState<any[]>([]);
   const [userMissions, setUserMissions] = useState<any[]>([]);
   const [showUserMissions, setShowUserMissions] = useState(false);
-  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
+  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; userMissionId?: number; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
   const [confirmRemoveMission, setConfirmRemoveMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
   // Функции для получения сообщений подтверждения с бекенда
   const openDeleteUserConfirm = async (user: any) => {
@@ -272,8 +272,9 @@ const AdminScreen: React.FC = () => {
     try {
       const confirmation = await backend.messages.completeMission(mission.missionId);
       setConfirmCompleteMission({ 
-        open: true, 
-        missionId: mission.missionId, 
+        open: true,
+        userMissionId: mission.id,
+        missionId: mission.missionId,
         missionName: mission.missionName,
         title: confirmation.title,
         message: confirmation.message
@@ -281,8 +282,9 @@ const AdminScreen: React.FC = () => {
     } catch (e: any) {
       console.warn('Не удалось получить сообщение подтверждения:', e?.message);
       setConfirmCompleteMission({ 
-        open: true, 
-        missionId: mission.missionId, 
+        open: true,
+        userMissionId: mission.id,
+        missionId: mission.missionId,
         missionName: mission.missionName,
         title: 'Выполнение миссии',
         message: `Вы действительно хотите пометить миссию «${mission.missionName}» как выполненную?`
@@ -355,9 +357,9 @@ const AdminScreen: React.FC = () => {
   };
 
   // Функции для управления миссиями пользователя
-  const markMissionCompleted = (missionId: number, missionName: string) => {
-    // Находим миссию для получения данных
-    const mission = userMissions.find(m => m.missionId === missionId);
+  const markMissionCompleted = (userMissionId: number, missionName: string) => {
+    // Находим запись пользовательской миссии по её ID
+    const mission = userMissions.find(m => m.id === userMissionId);
     if (mission) {
       openCompleteMissionConfirm(mission);
     }
@@ -366,17 +368,25 @@ const AdminScreen: React.FC = () => {
   const confirmCompleteMissionAction = async () => {
     if (!confirmCompleteMission.missionId || !editUser?.id) return;
     try {
-      // Используем missionId из UserMission, а не id самой UserMission
-      const userMission = userMissions.find(m => m.id === confirmCompleteMission.missionId);
+      const userMission = userMissions.find(m => m.id === confirmCompleteMission.userMissionId);
       if (!userMission) {
         setNotif({ open: true, title: 'Ошибка', message: 'Миссия не найдена', variant: 'error' });
         return;
       }
-      
-      await backend.users.completeMission(editUser.id, userMission.missionId);
-      setUserMissions(prev => prev.map(m => 
-        m.id === confirmCompleteMission.missionId ? { ...m, status: 'COMPLETED' } : m
-      ));
+      try {
+        await backend.users.completeMission(editUser.id, userMission.missionId);
+      } catch (e: any) {
+        // Если завершение заблокировано модерацией, пробуем одобрить как админ
+        const msg = getErrorMessage(e) || '';
+        if (/модерац/i.test(msg) || /moder/i.test(msg)) {
+          await backend.missions.moderate(editUser.id, userMission.missionId, true);
+        } else {
+          throw e;
+        }
+      }
+      setUserMissions(prev => prev.map(m => (
+        m.id === confirmCompleteMission.userMissionId ? { ...m, status: 'COMPLETED', progress: 100 } : m
+      )));
       setNotif({ open: true, title: 'Миссия отмечена как выполненная', message: 'Миссия успешно отмечена как выполненная', variant: 'success' });
       setConfirmCompleteMission({ open: false });
     } catch (e: any) {
