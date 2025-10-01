@@ -329,9 +329,11 @@ function addAchievement(achievementId) {
     showAchievement('Достижение разблокировано!', achievement.title);
     
     const achievementSound = document.getElementById('achievementSound');
-    if (achievementSound) {
+    if (achievementSound && achievementSound.querySelector('source') && achievementSound.querySelector('source').getAttribute('src')) {
         achievementSound.currentTime = 0;
-        achievementSound.play().catch(e => console.log('Audio play failed:', e));
+        if (gameState.sfxEnabled) {
+            achievementSound.play().catch(e => console.log('Audio play failed:', e));
+        }
     }
     
     saveGame();
@@ -490,7 +492,7 @@ function handleClick(event) {
     
     // Play click sound
     const clickSound = document.getElementById('clickSound');
-    if (clickSound) {
+    if (clickSound && clickSound.querySelector('source') && clickSound.querySelector('source').getAttribute('src')) {
         clickSound.currentTime = 0;
         if (gameState.sfxEnabled) {
             clickSound.play().catch(e => console.log('Audio play failed:', e));
