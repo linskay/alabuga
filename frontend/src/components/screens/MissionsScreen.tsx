@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
 import styled, { keyframes } from 'styled-components';
 import MainButton from '../MainButton';
 import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
@@ -382,7 +382,7 @@ const MissionsScreen: React.FC = () => {
           {itemsToRender.map((m, idx) => (
             <motion.div key={`${m.title}-${idx}`} variants={itemVariants}>
               <StyledCard>
-                <div className={`card ${status === 'history' ? 'history-card' : ''}`} style={{ width: 180 }}>
+                <motion.div layoutId={`mission-${m.id}-card`} className={`card ${status === 'history' ? 'history-card' : ''}`} style={{ width: 180 }}>
                   <span />
                   <div className="content">
                     {m.type && (
@@ -394,7 +394,7 @@ const MissionsScreen: React.FC = () => {
                         {m.type === 'QUEST' ? 'Квесты' : m.type === 'CHALLENGE' ? 'Рекрутинг' : m.type === 'TEST' ? 'Лекторий' : 'Симулятор'}
                       </div>
                     )}
-                    <div className="title">{m.title}</div>
+                    <div className={`title ${m.type ? 'mt-5' : ''}`}>{m.title}</div>
                     <div className="meta">
                       <div>Сложн.: {m.difficulty}</div>
                       <div>Награда: {m.reward}</div>
@@ -434,7 +434,7 @@ const MissionsScreen: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </StyledCard>
             </motion.div>
           ))}
@@ -490,117 +490,110 @@ const MissionsScreen: React.FC = () => {
         onAction={status !== 'active' ? () => setStatus('active') : undefined}
       />
 
-      {/* Модальное окно с деталями миссии */}
-      {expandedMission && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4"
-          onClick={() => setExpandedMission(null)}
-        >
+      <AnimatePresence>
+        {expandedMission && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 max-w-2xl w-full max-h-[80vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4"
+            onClick={() => setExpandedMission(null)}
           >
-            {/* Изображение миссии */}
-            <div className="relative h-48 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-              <img
-                src={getMissionImage(expandedMission)}
-                alt={expandedMission.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const img = e.currentTarget as HTMLImageElement;
-                  img.style.display = 'none';
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
-              <button
-                onClick={() => setExpandedMission(null)}
-                className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-slate-800/80 border border-slate-600 text-white hover:bg-slate-700 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            <motion.div
+              layoutId={`mission-${expandedMission.id}-card`}
+              transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+              className="relative bg-slate-900/80 rounded-2xl border border-cyan-400/30 max-w-2xl w-full max-h-[80vh] shadow-[0_0_30px_rgba(34,211,238,0.35)] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{ boxShadow: '0 0 60px rgba(34,211,238,0.25), inset 0 0 30px rgba(34,211,238,0.15)' }} />
+              {/* Изображение миссии */}
+              <div className="relative h-52 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 flex items-center justify-center border-b border-cyan-400/20">
+                <span className="text-cyan-200/80 text-sm tracking-wide">Здесь изображение миссии</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+                <button
+                  onClick={() => setExpandedMission(null)}
+                  className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/25 transition-colors"
                 >
-                  <path d="M5 12h14" />
-                  <path d="M12 5v14" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Контент миссии */}
-            <div className="p-6 space-y-4">
-              <div>
-                <p className="text-cyan-400 text-sm font-medium mb-1">{getMissionCategory(expandedMission)}</p>
-                <h3 className="text-2xl font-bold text-white">{expandedMission.title}</h3>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-2">Описание</h4>
-                <p className="text-slate-300">{expandedMission.description}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Сложность</h5>
-                  <p className="text-slate-300">{expandedMission.difficulty}</p>
-                </div>
-                <div>
-                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Награда</h5>
-                  <p className="text-slate-300">{expandedMission.reward}</p>
-                </div>
-              </div>
-
-              {expandedMission.requiredExperience && (
-                <div>
-                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Требуемый опыт</h5>
-                  <p className="text-slate-300">{expandedMission.requiredExperience} XP</p>
-                </div>
-              )}
-
-              {expandedMission.requiredRank && (
-                <div>
-                  <h5 className="text-sm font-medium text-cyan-400 mb-1">Требуемый ранг</h5>
-                  <p className="text-slate-300">{expandedMission.requiredRank}</p>
-                </div>
-              )}
-
-              {status === 'available' && (
-                <div className="pt-4">
-                  <button
-                    onClick={() => {
-                      askConfirm(expandedMission);
-                      setExpandedMission(null);
-                    }}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium rounded-lg transition-all duration-300"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    Взять миссию
-                  </button>
-                </div>
-              )}
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-              {status === 'history' && (
-                <div className="pt-4">
-                  <div className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-medium rounded-lg text-center">
-                    ✓ Выполнена
+              {/* Контент миссии */}
+              <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+                <div>
+                  <p className="text-cyan-400 text-sm font-medium mb-1">{getMissionCategory(expandedMission)}</p>
+                  <h3 className="text-2xl font-bold text-white">{expandedMission.title}</h3>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Описание</h4>
+                  <p className="text-slate-300">{expandedMission.description}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h5 className="text-sm font-medium text-cyan-400 mb-1">Сложность</h5>
+                    <p className="text-slate-300">{expandedMission.difficulty}</p>
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-medium text-cyan-400 mb-1">Награда</h5>
+                    <p className="text-slate-300">{expandedMission.reward}</p>
                   </div>
                 </div>
-              )}
-            </div>
+
+                {expandedMission.requiredExperience && (
+                  <div>
+                    <h5 className="text-sm font-medium text-cyan-400 mb-1">Требуемый опыт</h5>
+                    <p className="text-slate-300">{expandedMission.requiredExperience} XP</p>
+                  </div>
+                )}
+
+                {expandedMission.requiredRank && (
+                  <div>
+                    <h5 className="text-sm font-medium text-cyan-400 mb-1">Требуемый ранг</h5>
+                    <p className="text-slate-300">{expandedMission.requiredRank}</p>
+                  </div>
+                )}
+
+                {status === 'available' && (
+                  <div className="pt-4">
+                    <button
+                      onClick={() => {
+                        askConfirm(expandedMission);
+                        setExpandedMission(null);
+                      }}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium rounded-lg transition-all duration-300"
+                    >
+                      Взять миссию
+                    </button>
+                  </div>
+                )}
+
+                {status === 'history' && (
+                  <div className="pt-4">
+                    <div className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-medium rounded-lg text-center">
+                      ✓ Выполнена
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

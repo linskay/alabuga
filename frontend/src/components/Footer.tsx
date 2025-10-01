@@ -40,6 +40,7 @@ interface ScaryFooterProps {
   socialLinks?: Array<{ icon: React.ReactNode; href: string; label: string }>;
   onPrivacyClick?: () => void;
   onCookiesClick?: () => void;
+  compact?: boolean;
 }
 
 const ScaryFooter: React.FC<ScaryFooterProps> = ({
@@ -81,7 +82,8 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
       href: "https://t.me/AlabugaOEZ", 
       label: "Telegram" 
     }
-  ]
+  ],
+  compact = false
 }) => {
   const [glitchText, setGlitchText] = React.useState(companyName);
   const [eyePositions, setEyePositions] = React.useState<Array<{ x: number; y: number }>>([]);
@@ -115,9 +117,10 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
 
   return (
     <motion.footer 
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      initial={{ y: 48, opacity: 0 }}
+      whileInView={{ y: 0, opacity: 1 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
       className="relative text-white overflow-hidden border-t border-white/20 backdrop-blur-xl"
       style={{
         background: 'rgba(36, 43, 140, 0.1)',
@@ -148,11 +151,11 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
       <div className="absolute inset-0 bg-gradient-to-t from-blue-950/20 via-transparent to-transparent" />
       
       {/* Main content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-1">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-4">
+      <div className={`relative z-10 max-w-7xl mx-auto px-6 ${compact ? 'pt-0' : 'pt-1'}`}>
+        <div className={`grid grid-cols-1 md:grid-cols-3 ${compact ? 'gap-6 mb-3' : 'gap-8 mb-4'}`}>
           {/* Company section with glitch effect */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-blue-500 font-mono tracking-wider filter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+            <h3 className={`font-bold text-blue-500 font-mono tracking-wider filter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] ${compact ? 'text-xl' : 'text-2xl'}`}>
               {glitchText}
             </h3>
             <p className="text-gray-400 text-sm leading-relaxed">
@@ -286,7 +289,7 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
         </div>
 
         {/* Divider with scary effect */}
-        <div className="relative my-4">
+        <div className={`relative ${compact ? 'my-3' : 'my-4'}`}>
           <div className="h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
           <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-pulse" />
         </div>
@@ -371,14 +374,14 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
         </div>
 
         {/* Copyright */}
-        <div className="mt-2 text-center mb-1">
+        <div className={`${compact ? 'mt-1 mb-1' : 'mt-2 mb-1'} text-center`}>
           <p className="text-sm text-gray-400 font-mono">
             © {new Date().getFullYear()} {companyName}. Все права защищены.
           </p>
         </div>
 
         {/* Glitch message */}
-        <div className="text-center">
+        <div className={`text-center ${compact ? 'pb-1' : ''}`}>
           <GlitchText text="БУДУЩЕЕ НАЧИНАЕТСЯ ЗДЕСЬ" />
         </div>
       </div>
