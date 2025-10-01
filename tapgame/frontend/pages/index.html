@@ -1,50 +1,59 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>КосмоГусь: Алабу-га-га</title>
-    <link rel="stylesheet" href="../components/styles.css">
+    <base href="/">
+    <link rel="stylesheet" href="/frontend/components/styles.css">
 </head>
-
 <body>
     <div class="game">
         <div class="header">
-            <div class="score-container">
-                <img class="img1" src="../assets/coin.png" alt="монеты">
-                <h2 class="score" id="score">0</h2>
+            <div class="header-top">
+                <div class="score-container">
+                    <img class="coin-icon" src="/frontend/assets/coin.png" alt="монеты">
+                    <span class="score" id="score">0</span>
+                </div>
+                <div class="level-container">
+                    <span class="level-label">Уровень</span>
+                    <span class="level" id="level">1</span>
+                </div>
             </div>
-            <div class="level-container">
-                <span class="level-label">Уровень</span>
-                <span class="level" id="level">1</span>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
+
+            <div class="progress-section">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
                 <div class="progress-text" id="progressText">0/100</div>
             </div>
         </div>
 
-        <div class="circle">
-            <img id="circle" class="img2" src="../assets/Goose.png" alt="КосмоГусь">
+        <div class="game-area">
+            <div class="circle">
+                <img id="circle" class="goose-img" src="/frontend/assets/Goose.png" alt="КосмоГусь">
+            </div>
         </div>
 
         <div id="achievement-toast" class="achievement-toast">
-            <span class="achievement-text"></span>
+            <span class="achievement-emoji">🎉</span>
+            <div class="achievement-content">
+                <div class="achievement-title">Достижение разблокировано!</div>
+                <div class="achievement-text"></div>
+            </div>
         </div>
     </div>
 
     <audio id="clickSound" preload="auto">
-        <source src="../assets/sounds/click.mp3" type="audio/mpeg">
+        <source src="/frontend/assets/sounds/click.mp3" type="audio/mpeg">
     </audio>
     <audio id="levelUpSound" preload="auto">
-        <source src="../assets/sounds/level-up.mp3" type="audio/mpeg">
+        <source src="/frontend/assets/sounds/level-up.mp3" type="audio/mpeg">
     </audio>
     <audio id="achievementSound" preload="auto">
-        <source src="../assets/sounds/achievement.mp3" type="audio/mpeg">
+        <source src="/frontend/assets/sounds/achievement.mp3" type="audio/mpeg">
     </audio>
 
-    <script src="../components/app.js" defer></script>
+    <script src="/frontend/components/app.js" defer></script>
 </body>
-
 </html>
