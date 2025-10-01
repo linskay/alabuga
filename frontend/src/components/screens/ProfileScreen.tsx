@@ -19,8 +19,9 @@ import Energon from '../Energon';
 import MissionIcon from '../MissionIcon';
 import ExperienceIcon from '../ExperienceIcon';
 import RankIcon from '../RankIcon';
-import { backend, UserDTO, UserCompetency, UserMission } from '../../api';
+import { backend, UserDTO, UserCompetency, UserMission, API_BASE_URL } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
+import { motion as m } from 'framer-motion';
 
 const DEFAULT_COMPETENCIES: { name: string; max: number }[] = [
   { name: 'Сила Миссии', max: 500 },
@@ -50,6 +51,101 @@ const AstronautCard = ({ login, rank, experience }: { login: string; rank: numbe
 };
 
 const ProfileScreen: React.FC = () => {
+  const phrases: string[] = [
+    'Запускай свои двигатели — пора на орбиту!',
+    'Не ползи как червяк, лети как фотон!',
+    'Твоя траектория только начинается.',
+    'Выходи за пределы своей гравитационной зоны комфорта!',
+    'Даже самый долгий полёт начинается с одного импульса.',
+    'Не жди сигнала с Земли — стань своим ЦУПом!',
+    'Каждая освоенная компетенция — новая звёздная система на твоей карте.',
+    'Собирай свой экипаж, капитан!',
+    'Ты не каденТЫ, ты каденТЬ!',
+    'Гравитация слаба — твои амбиции сильны.',
+    'Сбой в системе — не повод для паники, а задача для героя.',
+    'Апгрейдни свои нейросети!',
+    'Сделал дело — смело смотри в иллюминатор на звёзды.',
+    'В космосе никто не услышит, как ты прокрастинируешь.',
+    'Хватит тормозить — время выходить на гипердрайв!',
+    'Наш Нексус не продаёт волшебные таблетки, только знания.',
+    'Не бойся темноты — в ней лучше видно звёзды.',
+    'Твой мозг — самый мощный квантовый компьютер на борту. Используй его!',
+    'В одиночку можно долететь до Луны, но чтобы достичь Альдебарана — нужен экипаж.',
+    'Мы все часть одного экипажа на станции «Алабуга.TECH».',
+    'Твой код — твой позывной. Пусть его услышат в другой галактике!',
+    'Объединяйтесь в созвездия! Вместе мы ярче.',
+    'В космосе нет Wi‑Fi, но на нашей платформе есть — пользуйся!',
+    'Ты не просто человек. Ты — звёздная пыль, осознавшая саму себя.',
+    'Смотри на проблемы с орбиты — они кажутся такими мелкими.',
+    'Во Вселенной нет парковки для твоих нереализованных идей.',
+    'Будь как пульсар — посылай регулярные сигналы о своём успехе.',
+    'Герои не ждут спасательного челнока, они его пилотируют.',
+    'Не ищи планету с подходящими условиями — создай их сам.',
+    'Космос ждёт. А ты?',
+    'Хватит ходить вразвалочку! Включай двигатели и на орбиту!',
+    'Если не взлетишь — станешь обедом для марсианских червей. Гагарин же смог!',
+    'Твоя траектория — мой новый маршрут. Летим!',
+    'Вылезай из гравитационного болота! Или я помогу клювом.',
+    'Даже мой пра‑пра‑пра‑Гусь начинал с одного взмаха крыльев. А у тебя есть гипердвигатель!',
+    'Не жди, пока с Земли пришлют зерно! Бери штурвал в свои лапы!',
+    'Каждая прокачанная компетенция — новая планета, которую можно обгадить. Красота!',
+    'Собирай экипаж! Один Гусь — хорошо, а стая — угроза для Галактики.',
+    'Ты не кадет, ты мой пилот! КРЯ!',
+    'Моя тяга к хаосу сильнее гравитации. Заряжайся!',
+    'Сбой в системе? Отличный повод всё перезапустить... клювом.',
+    'Апгрейдни свои нейросети, пока я не заменил их на семечки!',
+    'Сделал дело — гуляй смело. Но только по моей траектории!',
+    'В космосе никто не услышит, как ты кряхтишь. Но я услышу!',
+    'Хватит тормозить! На гипердрайв, пока не подлетели космические коты!',
+    'Мой Нексус не продаёт волшебные таблетки. Только знания и зерно.',
+    'Не бойся темноты — в ней лучше видно, куда лететь.',
+    'Твой мозг — мой бортовой компьютер. Думай быстрее!',
+    'В одиночку можно долететь до Луны, но беспорядок на Альдебаране — только стаей!',
+    'Мы все гуси на одной станции. Дисциплина и строй!',
+    'Твой код — твой почерк. Пусть его увидят от Земли до Андромеды!',
+    'Объединяйтесь в стаи! Вместе мы — сила.',
+    'В космосе нет Wi‑Fi, но на моей платформе есть. Лети к цели!',
+    'Ты не просто человек. Ты — мой пилот. А я — твой Гусь!',
+    'Смотри на проблемы с высоты моего полёта — они букашки.',
+    'Нет парковки для сомнений. Только взлётная полоса!',
+    'Будь как пульсар — пусть боятся глушить.',
+    'Герои не ждут челнок. Они его крадут и летят!',
+    'Создай свои условия... и назначь меня главным.',
+    'Космос ждёт. А я уже лечу. Догоняй!'
+  ];
+  const [gooseVisible, setGooseVisible] = useState(false);
+  const [goosePhrase, setGoosePhrase] = useState<string>('');
+  const [phraseCount, setPhraseCount] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    let timer: number | undefined;
+    const schedule = () => {
+      const base = 120000; // 2 минуты
+      const jitter = Math.floor(Math.random() * 30000); // +-30с
+      timer = window.setTimeout(() => {
+        if (!mounted) return;
+        const show = Math.random() < 0.6; // 60% шанс
+        if (show) {
+          const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+          setGoosePhrase(phrase);
+          setGooseVisible(true);
+          setPhraseCount(c => c + 1);
+          window.setTimeout(() => setGooseVisible(false), 7000);
+        }
+        schedule();
+      }, base + (Math.random() < 0.5 ? -jitter : jitter));
+    };
+    // Показать при первом заходе обязательно
+    const firstPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    setGoosePhrase(firstPhrase);
+    setGooseVisible(true);
+    setPhraseCount(1);
+    const firstHide = window.setTimeout(() => setGooseVisible(false), 7000);
+    // Дальше по расписанию
+    schedule();
+    return () => { mounted = false; if (timer) window.clearTimeout(timer); };
+  }, []);
   const {
     notifications,
     isPanelOpen,
@@ -61,6 +157,17 @@ const ProfileScreen: React.FC = () => {
   } = useNotifications();
   
   const { refreshUserData } = useAppContext();
+
+  const resolveArtifactImageUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+    if (url.startsWith('/images/artefacts/')) return url;
+    if (url.startsWith('images/artefacts/')) return `/${url}`;
+    if (url.startsWith('/images/artifacts/')) return url;
+    if (url.startsWith('images/')) return `/${url}`;
+    if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
+    return `/${url}`;
+  };
 
   const getRankName = (rankLevel: number) => {
     const rankNames: { [key: number]: string } = {
@@ -86,6 +193,18 @@ const ProfileScreen: React.FC = () => {
   const [nextRankReq, setNextRankReq] = useState<any | null>(null);
   const [equippedArtifacts, setEquippedArtifacts] = useState<any[]>([]);
   const [currentRank, setCurrentRank] = useState<any | null>(null);
+  const getRankNameFromResponse = (rankResp: any, level: number): string | null => {
+    if (!rankResp) return null;
+    if (typeof rankResp === 'string') return rankResp;
+    if (Array.isArray(rankResp)) {
+      const match = rankResp.find((r: any) => (r?.level ?? r?.rankLevel) === level);
+      return (match?.name as string) || null;
+    }
+    if (typeof rankResp === 'object') {
+      return (rankResp.name as string) || null;
+    }
+    return null;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -99,42 +218,59 @@ const ProfileScreen: React.FC = () => {
         }
 
         // Проверяем валидность сессии
+        let effectiveUser: UserDTO | null = null;
         try {
           const validationResponse = await backend.auth.validate(login);
           if (!validationResponse.valid) {
             setError('Сессия истекла. Пожалуйста, войдите заново.');
             return;
           }
-          setUser(validationResponse.user);
+          effectiveUser = validationResponse.user as UserDTO;
+          setUser(effectiveUser);
         } catch (validationError) {
           // Если валидация не удалась, пробуем получить пользователя напрямую
           const u = await backend.users.byLogin(login);
           if (!mounted) return;
-          setUser(u);
+          effectiveUser = u as UserDTO;
+          setUser(effectiveUser);
         }
 
-        if (!mounted || !user) return;
+        if (!mounted || !effectiveUser) return;
         
         try {
           const [comp, missions, artifacts, rank] = await Promise.all([
-            backend.users.competencies(user.id),
-            backend.users.missions(user.id),
-            backend.users.artifacts(user.id),
-            backend.ranks.byLevel(user.rank ?? 0)
+            backend.users.competencies(effectiveUser.id),
+            backend.users.missions(effectiveUser.id),
+            backend.users.artifacts(effectiveUser.id),
+            backend.ranks.byLevel(effectiveUser.rank ?? 0)
           ]);
           if (!mounted) return;
           setCompetencies(comp || []);
           setUserMissions(missions || []);
-          setCurrentRank(rank || null);
+          let resolvedRank: any = rank || null;
+          if (!resolvedRank || !resolvedRank.name) {
+            try {
+              const all = await backend.ranks.list();
+              const level = effectiveUser.rank ?? 0;
+              const match = (all || []).find((r: any) => (r?.level ?? r?.rankLevel) === level);
+              if (match) {
+                resolvedRank = match;
+              }
+            } catch {}
+          }
+          setCurrentRank(resolvedRank);
           
           // Фильтруем только экипированные артефакты
           const equipped = (artifacts || []).filter((a: any) => a.isEquipped);
           setEquippedArtifacts(equipped);
         } catch {}
         try {
-          const req = await backend.ranks.requirementsByLevel((user.rank ?? 0) + 1);
+          const allReqs = await backend.ranks.requirements();
           if (!mounted) return;
-          setNextRankReq(req || null);
+          const targetLevel = (effectiveUser.rank ?? 0) + 1;
+          const normalizeLevel = (r: any) => (r?.rank_level ?? r?.rankLevel ?? r?.level);
+          const candidates = (allReqs || []).filter((r: any) => normalizeLevel(r) === targetLevel);
+          setNextRankReq(candidates?.[0] || null);
         } catch {}
       } catch (e: any) {
         console.warn('Не удалось загрузить профиль:', e?.message);
@@ -145,7 +281,7 @@ const ProfileScreen: React.FC = () => {
   }, [refreshUserData]);
 
   return (
-    <div className="relative w-full min-h-screen pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden overflow-y-auto z-10">
+    <div className="relative w-full pb-8 pt-2 px-8 sm:pt-4 md:pt-6 lg:pt-8 overflow-x-hidden z-10">
       {/* PyramidLoader2 Component - Background */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
@@ -285,7 +421,13 @@ const ProfileScreen: React.FC = () => {
                     <RankIcon size={22} />
                     Текущий ранг
                   </span>
-                  <span className="text-cyan-400 font-bold">{currentRank?.name || getRankName(user?.rank ?? 0)}</span>
+                  <span className="text-cyan-400 font-bold">{
+                    (() => {
+                      const level = user?.rank ?? 0;
+                      const byResp = getRankNameFromResponse(currentRank, level);
+                      return byResp || (currentRank?.name as string) || `Ранг ${level}`;
+                    })()
+                  }</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
@@ -395,12 +537,32 @@ const ProfileScreen: React.FC = () => {
                     className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-400/20 hover:border-blue-400/40 transition-all duration-300"
                   >
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">A</span>
+                      <div className="w-24 h-24 mx-auto mb-3 rounded-xl overflow-hidden bg-gradient-to-br from-blue-400/20 to-purple-500/20 flex items-center justify-center">
+                        {(() => {
+                          const imageUrl = artifact.imageUrl || artifact.image_url;
+                          if (imageUrl) {
+                            return (
+                              <img
+                                src={resolveArtifactImageUrl(imageUrl)}
+                                alt={artifact.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '12px' }}
+                                onError={(e) => { 
+                                  const img = e.currentTarget as HTMLImageElement;
+                                  img.style.display = 'none';
+                                  // Показываем заглушку при ошибке
+                                  const parent = img.parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = '<span class="text-white/60 font-bold text-lg">A</span>';
+                                  }
+                                }}
+                              />
+                            );
+                          }
+                          return <span className="text-white/60 font-bold text-lg">A</span>;
+                        })()}
                       </div>
                       <div className="text-white font-medium mb-1">{artifact.name}</div>
                       <div className="text-gray-400 text-sm mb-2">{artifact.rarity}</div>
-                      <div className="text-green-400 text-xs">Экипирован</div>
                     </div>
                   </motion.div>
                 ))
@@ -420,6 +582,24 @@ const ProfileScreen: React.FC = () => {
         onMarkAsRead={markAsRead}
         onMarkAllAsRead={markAllAsRead}
       />
+
+      {/* Goose assistant */}
+      <m.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: gooseVisible ? 1 : 0, y: gooseVisible ? 0 : 20 }}
+        transition={{ duration: 0.4 }}
+        className="fixed right-4 bottom-6 z-[200] pointer-events-none"
+      >
+        <div className="relative flex items-end gap-3">
+          <div className="max-w-xs bg-white/90 text-slate-900 rounded-2xl px-3 py-2 shadow-xl border border-white/60">
+            <div className="text-sm font-medium">{goosePhrase}</div>
+            {phraseCount > 0 && phraseCount % 2 === 0 && (
+              <div className="text-xs mt-1 text-slate-600">alabu‑ga‑ga</div>
+            )}
+          </div>
+          <img src="/images/gaga.gif" alt="gaga" className="w-24 h-24 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]" />
+        </div>
+      </m.div>
     </div>
   );
 };

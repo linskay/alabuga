@@ -120,6 +120,7 @@ export const backend = {
     list: () => api.get<MissionDTO[]>('/api/missions'),
     update: (id: number, body: Partial<MissionDTO>) => api.put<MissionDTO>(`/api/missions/${id}`, body),
     delete: (id: number) => api.delete<void>(`/api/missions/${id}`),
+    moderate: (userId: number, missionId: number, approved: boolean) => api.post(`/api/missions/moderate?userId=${userId}&missionId=${missionId}&approved=${approved}`),
   },
   ranks: {
     list: () => api.get<RankDTO[]>('/api/ranks'),

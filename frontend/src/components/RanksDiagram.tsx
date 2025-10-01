@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { backend, RankDTO } from '../api';
+import { backend } from '../api';
 import { motion, useAnimation, useMotionTemplate, useMotionValue, animate } from 'framer-motion';
 // Simple white outline SVG icons
 const IconWrap = ({ children }: { children: React.ReactNode }) => (
@@ -176,7 +176,6 @@ const RankCard: React.FC<{ rank: RankData; isSelected: boolean; onClick: () => v
 const RanksDiagram: React.FC = () => {
   const [selectedRank, setSelectedRank] = useState<string>('cadet');
   const [currentBranch, setCurrentBranch] = useState<'all' | 'dock' | 'tech' | 'research' | 'leadership'>('all');
-  const [ranks, setRanks] = useState<RankData[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const color = useMotionValue(COLORS_TOP[0]);
   const textControls = useAnimation();
@@ -187,32 +186,37 @@ const RanksDiagram: React.FC = () => {
   }, [color, textControls]);
 
   const backgroundImage = useMotionTemplate`radial-gradient(125% 125% at 50% 0%, #020617 50%, ${color})`;
-  const filteredRanks = (ranks ?? STATIC_RANKS).filter(r => {
+  const filteredRanks = STATIC_RANKS.filter(r => {
     if (currentBranch === 'all') return true;
     if (currentBranch === 'dock') return r.level === 1 || r.level === 5;
     return r.branch === currentBranch;
   });
-  const selectedRankData = (ranks ?? STATIC_RANKS).find(r => r.id === selectedRank);
+  const selectedRankData = STATIC_RANKS.find(r => r.id === selectedRank);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const data = await backend.ranks.list();
+        const login = localStorage.getItem('currentLogin') || 'commander';
+        const user = await backend.users.byLogin(login);
         if (!mounted) return;
-        const mapped: RankData[] = data.map((d: RankDTO) => ({
-          id: String(d.id),
-          name: d.name,
-          description: d.description || '',
-          icon: Zap,
-          branch: (d.branch as any) || 'tech',
-          level: d.level ?? 0,
-          color: '#0ea5e9',
-          glowColor: '#0ea5e9',
-        }));
-        setRanks(mapped);
+        const level = user?.rank ?? 1;
+        const branchId = user?.branchId ?? null;
+        const branchKey: 'tech' | 'research' | 'leadership' | 'final' =
+          level === 1 || level === 5
+            ? 'final'
+            : (branchId === 2 ? 'research' : branchId === 3 ? 'leadership' : 'tech');
+        const match = STATIC_RANKS.find(r => r.level === level && r.branch === branchKey)
+          || (level === 1 ? STATIC_RANKS.find(r => r.level === 1 && r.branch === 'final') : null)
+          || (level === 5 ? STATIC_RANKS.find(r => r.level === 5 && r.branch === 'final') : null);
+        if (match) {
+          setSelectedRank(match.id);
+        } else {
+          const fallback: Record<number, string> = { 1: 'cadet', 2: 'navigator', 3: 'analyst', 4: 'architect', 5: 'keeper' };
+          setSelectedRank(fallback[level] || 'cadet');
+        }
       } catch (e: any) {
-        setError(e?.message || 'Не удалось загрузить ранги');
+        setError(null);
       }
     })();
     return () => { mounted = false; };
@@ -244,7 +248,7 @@ const RanksDiagram: React.FC = () => {
         </motion.div>
 
         {error && (
-          <div className="mb-4 text-sm text-red-300">{error} — показаны демонстрационные данные</div>
+          <div className="mb-4 text-sm text-red-300">{error}</div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 bg-transparent">
           {filteredRanks.map((rank, index) => (
