@@ -245,6 +245,34 @@ const MissionsScreen: React.FC = () => {
   const itemsToRender = pageItems;
 
   const changeStatus = (id: StatusId) => { setStatus(id); setPage(1); };
+  
+  const [uiTexts, setUiTexts] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const texts = await backend.messages.uiTexts();
+        if (!mounted) return;
+        setUiTexts(texts || {});
+      } catch { /* ignore */ }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const sectionHistory: Record<StatusId, string> = {
+    active: uiTexts['missions.active.history'] || '—',
+    available: uiTexts['missions.available.history'] || '—',
+    soon: uiTexts['missions.soon.history'] || '—',
+    history: uiTexts['missions.history.history'] || '—'
+  };
+
+  const getMotivation = (s: StatusId, hasItems: boolean): string | null => {
+    if (s === 'active') return uiTexts['missions.active.motivation.empty'] || null;
+    if (s === 'available') return hasItems ? (uiTexts['missions.available.motivation.has'] || null) : (uiTexts['missions.available.motivation.empty'] || null);
+    if (s === 'soon') return uiTexts['missions.soon.motivation'] || null;
+    if (s === 'history') return hasItems ? null : (uiTexts['missions.history.motivation.empty'] || null);
+    return null;
+  };
 
   const handleTakeMission = async (mission: MissionItem) => {
     if (!mission.id || !user) return;
@@ -374,72 +402,104 @@ const MissionsScreen: React.FC = () => {
         </MainButton>
       </motion.div>
 
+      {/* История раздела */}
+      <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+        <div className="text-[11px] md:text-xs tracking-wide text-white/70 font-mono opacity-90 mb-4">
+          <span className="text-cyan-300/80 font-semibold mr-2">ИСТОРИЯ РАЗДЕЛА:</span>
+          <span className="text-white/80">{sectionHistory[status]}</span>
+        </div>
+      </div>
+
       {/* Сетка карточек */}
       <motion.div variants={containerVariants} initial="hidden" animate="show" className="px-4"
         transition={{ when: 'beforeChildren' }}
       >
-        <StyledCardGrid>
-          {itemsToRender.map((m, idx) => (
-            <motion.div key={`${m.title}-${idx}`} variants={itemVariants}>
-              <StyledCard>
-                <motion.div layoutId={`mission-${m.id}-card`} className={`card ${status === 'history' ? 'history-card' : ''}`} style={{ width: 180 }}>
-                  <span />
-                  <div className="content">
-                    {m.type && (
-                      <div className="badge" style={{
-                        background: m.type === 'QUEST' ? 'rgba(16,185,129,0.2)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.2)' : m.type === 'TEST' ? 'rgba(245,158,11,0.2)' : 'rgba(168,85,247,0.2)',
-                        borderColor: m.type === 'QUEST' ? 'rgba(16,185,129,0.35)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.35)' : m.type === 'TEST' ? 'rgba(245,158,11,0.35)' : 'rgba(168,85,247,0.35)',
-                        color: m.type === 'QUEST' ? '#34d399' : m.type === 'CHALLENGE' ? '#60a5fa' : m.type === 'TEST' ? '#fbbf24' : '#c084fc'
-                      }}>
-                        {m.type === 'QUEST' ? 'Квесты' : m.type === 'CHALLENGE' ? 'Рекрутинг' : m.type === 'TEST' ? 'Лекторий' : 'Симулятор'}
-                      </div>
-                    )}
-                    <div className={`title ${m.type ? 'mt-5' : ''}`}>{m.title}</div>
-                    <div className="meta">
-                      <div>Сложн.: {m.difficulty}</div>
-                      <div>Награда: {m.reward}</div>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      {status === 'available' && (
-                        <button
-                          onClick={() => askConfirm(m)}
-                          className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded text-cyan-300 text-xs hover:bg-cyan-500/30 transition-all duration-300"
-                        >
-                          Взять миссию
-                        </button>
-                      )}
-                      {status === 'history' && (
-                        <div className="px-3 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs text-center">
-                          ✓ Выполнена
+        {itemsToRender.length === 0 ? (
+          <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+            <div className="flex flex-col items-center text-center gap-3 py-10">
+              {/* Мини‑гусь */}
+              <img src="/images/gaga.gif" alt="gaga" className="w-16 h-16 object-contain opacity-90" />
+              {/* Мотивационное сообщение */}
+              <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono">
+                <span className="text-cyan-300/80 font-semibold mr-2">МОТИВАЦИЯ:</span>
+                <span>{getMotivation(status, false)}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <StyledCardGrid>
+            {itemsToRender.map((m, idx) => (
+              <motion.div key={`${m.title}-${idx}`} variants={itemVariants}>
+                <StyledCard>
+                  <motion.div layoutId={`mission-${m.id}-card`} className={`card ${status === 'history' ? 'history-card' : ''}`} style={{ width: 180 }}>
+                    <span />
+                    <div className="content">
+                      {m.type && (
+                        <div className="badge" style={{
+                          background: m.type === 'QUEST' ? 'rgba(16,185,129,0.2)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.2)' : m.type === 'TEST' ? 'rgba(245,158,11,0.2)' : 'rgba(168,85,247,0.2)',
+                          borderColor: m.type === 'QUEST' ? 'rgba(16,185,129,0.35)' : m.type === 'CHALLENGE' ? 'rgba(59,130,246,0.35)' : m.type === 'TEST' ? 'rgba(245,158,11,0.35)' : 'rgba(168,85,247,0.35)',
+                          color: m.type === 'QUEST' ? '#34d399' : m.type === 'CHALLENGE' ? '#60a5fa' : m.type === 'TEST' ? '#fbbf24' : '#c084fc'
+                        }}>
+                          {m.type === 'QUEST' ? 'Квесты' : m.type === 'CHALLENGE' ? 'Рекрутинг' : m.type === 'TEST' ? 'Лекторий' : 'Симулятор'}
                         </div>
                       )}
-                      <button
-                        onClick={() => setExpandedMission(m)}
-                        className="h-8 w-8 flex items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/30 transition-all duration-300"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                      <div className={`title ${m.type ? 'mt-5' : ''}`}>{m.title}</div>
+                      <div className="meta">
+                        <div>Сложн.: {m.difficulty}</div>
+                        <div>Награда: {m.reward}</div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        {status === 'available' && (
+                          <button
+                            onClick={() => askConfirm(m)}
+                            className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded text-cyan-300 text-xs hover:bg-cyan-500/30 transition-all duration-300"
+                          >
+                            Взять миссию
+                          </button>
+                        )}
+                        {status === 'history' && (
+                          <div className="px-3 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs text-center">
+                            ✓ Выполнена
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setExpandedMission(m)}
+                          className="h-8 w-8 flex items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/30 transition-all duration-300"
                         >
-                          <path d="M5 12h14" />
-                          <path d="M12 5v14" />
-                        </svg>
-                      </button>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              </StyledCard>
-            </motion.div>
-          ))}
-        </StyledCardGrid>
+                  </motion.div>
+                </StyledCard>
+              </motion.div>
+            ))}
+          </StyledCardGrid>
+        )}
       </motion.div>
+
+      {/* Мотивация при наличии карточек (только для Available) */}
+      {itemsToRender.length > 0 && status === 'available' && (
+        <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+          <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono mt-6">
+            <span className="text-cyan-300/80 font-semibold mr-2">МОТИВАЦИЯ:</span>
+            <span>{getMotivation(status, true)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Пагинация */}
       <div className="mt-8 flex items-center justify-center space-x-4">
