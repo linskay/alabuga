@@ -341,7 +341,7 @@ const MissionsScreen: React.FC = () => {
   };
 
   return (
-    <div className="h-full pb-8 relative">
+    <div className="pb-8">
       <DecoOrb>
         <div className="ring r1" />
         <div className="ring r2" />

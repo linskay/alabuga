@@ -117,10 +117,9 @@ const ScaryFooter: React.FC<ScaryFooterProps> = ({
 
   return (
     <motion.footer 
-      initial={{ y: 48, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      initial={false}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0 }}
       className="relative text-white overflow-hidden border-t border-white/20 backdrop-blur-xl"
       style={{
         background: 'rgba(36, 43, 140, 0.1)',

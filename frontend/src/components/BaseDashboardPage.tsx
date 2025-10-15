@@ -158,7 +158,9 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
       </motion.div>
 
       {/* Footer */}
-      <Footer />
+      <div className="mt-auto">
+        <Footer />
+      </div>
     </div>
   );
 };

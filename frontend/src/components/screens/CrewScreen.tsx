@@ -267,7 +267,7 @@ const CrewScreen: React.FC = () => {
   const renderNetworkTab = () => null;
 
   return (
-    <div className="h-full pb-8 overflow-y-auto max-h-screen">
+    <div className="pb-8">
 
       {/* Header and toggle only */}
       <div className="mb-6 flex items-center justify-between">

@@ -54,12 +54,12 @@ const CosmicProgressBar: React.FC<CosmicProgressBarProps> = ({
   return (
     <div className={`w-full space-y-3 ${className}`}>
       {/* Label and Value */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center min-w-0">
         <motion.span
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -20 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className={`font-semibold text-white ${textSizeClasses[size]} flex-1`}
+          className={`font-semibold text-white ${textSizeClasses[size]} flex-1 min-w-0 break-words whitespace-normal`}
         >
           {label}
         </motion.span>
@@ -68,7 +68,7 @@ const CosmicProgressBar: React.FC<CosmicProgressBarProps> = ({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : 20 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className={`font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent ${textSizeClasses[size]} ml-4`}
+            className={`font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent ${textSizeClasses[size]} ml-2 whitespace-nowrap`}
           >
             {Math.round(animatedValue)}/{maxValue}
           </motion.span>
