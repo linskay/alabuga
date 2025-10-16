@@ -47,7 +47,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
   };
 
   return (
-      <div className="relative w-full min-h-screen overflow-x-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
+      <div className="relative w-full min-h-screen overflow-x-hidden bg-gradient-cosmic flex flex-col" style={{ cursor: 'default' }}>
       {/* Animated Cosmic Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <AnimatedStars />
@@ -83,7 +83,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full flex flex-col"
+        className="relative z-10 w-full flex-1 flex flex-col"
       >
 
         <AnimatePresence mode="wait">
@@ -103,7 +103,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
       </motion.div>
 
       {/* Footer */}
-      <Footer onPrivacyClick={() => {}} onCookiesClick={() => {}} />
+      <div className="mt-auto">
+        <Footer onPrivacyClick={() => {}} onCookiesClick={() => {}} />
+      </div>
 
       {/* Floating UI Elements */}
       <div className="absolute inset-0 pointer-events-none z-0">

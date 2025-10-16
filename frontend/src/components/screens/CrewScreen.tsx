@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { backend, UserDTO } from '../../api';
+import { backend, UserDTO, StatisticsDTO } from '../../api';
 import MainButton from '../MainButton';
 import ShinyText from '../ShinyText';
 import styled from 'styled-components';
@@ -99,15 +99,10 @@ const CrewScreen: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'all' | 'week'>('all');
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [loadingRank, setLoadingRank] = useState(false);
+  const [statistics, setStatistics] = useState<StatisticsDTO | null>(null);
+  const [activityChart, setActivityChart] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  const tabs: never[] = [];
-
-  const teamMembers = [
-    { name: 'Алексей Петров', role: 'Tech Lead', level: 45, avatar: '👨‍💻', status: 'online', xp: 15420 },
-    { name: 'Мария Сидорова', role: 'Frontend Dev', level: 38, avatar: '👩‍💻', status: 'online', xp: 12800 },
-    { name: 'Дмитрий Козлов', role: 'Backend Dev', level: 42, avatar: '👨‍🔬', status: 'away', xp: 14200 },
-    { name: 'Анна Волкова', role: 'UI/UX Designer', level: 35, avatar: '👩‍🎨', status: 'offline', xp: 11200 }
-  ];
 
   useEffect(() => {
     if (activeTab !== 'ranking') return;
@@ -115,9 +110,27 @@ const CrewScreen: React.FC = () => {
     (async () => {
       try {
         setLoadingRank(true);
-        const list = await backend.users.list();
+        console.log('Загружаем данные статистики...');
+        
+        const [list, stats, chart] = await Promise.all([
+          backend.users.list(),
+          backend.statistics.overview().catch(err => {
+            console.error('Ошибка загрузки статистики:', err);
+            return null;
+          }),
+          backend.statistics.activityChart().catch(err => {
+            console.error('Ошибка загрузки графика:', err);
+            return null;
+          })
+        ]);
+        
         if (!mounted) return;
+        console.log('Данные загружены:', { list: list.length, stats, chart });
         setUsers(list);
+        setStatistics(stats);
+        setActivityChart(chart);
+      } catch (error) {
+        console.error('Общая ошибка загрузки:', error);
       } finally {
         if (mounted) setLoadingRank(false);
       }
@@ -174,17 +187,59 @@ const CrewScreen: React.FC = () => {
     }));
   }, [users, timeframe, weeklyXpByUser]);
 
-  const networkUsers = [
-    { name: 'Олег Васильев', role: 'Senior Dev', level: 50, avatar: '👨‍💼', mutual: 3, status: 'online' },
-    { name: 'Татьяна Лебедева', role: 'Product Manager', level: 48, avatar: '👩‍💼', mutual: 5, status: 'online' },
-    { name: 'Артем Соколов', role: 'DevOps Engineer', level: 44, avatar: '👨‍🔧', mutual: 2, status: 'away' },
-    { name: 'Наталья Федорова', role: 'QA Engineer', level: 40, avatar: '👩‍🔬', mutual: 4, status: 'offline' }
-  ];
-
-  const renderTeamTab = () => null;
 
   const renderRankingTab = () => (
     <div className="space-y-6">
+      {/* System Statistics */}
+      {statistics && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[
+            { 
+              title: 'Активные пользователи', 
+              value: statistics.activeUsers.toLocaleString(), 
+              growth: `+${statistics.activeUsersGrowth.toFixed(0)}% за месяц`,
+              color: 'from-green-400 to-emerald-500' 
+            },
+            { 
+              title: 'Завершенные миссии', 
+              value: statistics.completedMissions.toLocaleString(), 
+              growth: `+${statistics.completedMissionsGrowth.toFixed(0)}% за месяц`,
+              color: 'from-blue-400 to-cyan-500' 
+            },
+            { 
+              title: 'Средний уровень', 
+              value: statistics.averageLevel.toFixed(0), 
+              growth: `+${statistics.averageLevelGrowth.toFixed(0)}% за месяц`,
+              color: 'from-purple-400 to-violet-500' 
+            },
+            { 
+              title: 'Время в системе', 
+              value: `${statistics.averageTimeInSystem.toFixed(1)}ч`, 
+              growth: `+${statistics.averageTimeInSystemGrowth.toFixed(0)}% за месяц`,
+              color: 'from-orange-400 to-red-500' 
+            }
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+              className="bg-black/30 backdrop-blur-md border border-white/20 rounded-xl p-4"
+            >
+              <div className="text-center">
+                <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                  {stat.value}
+                </div>
+                <div className="text-gray-300 text-sm mt-1">{stat.title}</div>
+                <div className="text-green-400 text-xs mt-1">{stat.growth}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Activity Chart — скрыт по ТЗ для экрана экипажа */}
+
       {/* Ranking Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
@@ -196,7 +251,7 @@ const CrewScreen: React.FC = () => {
             key={index}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+            transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
             className="bg-black/30 backdrop-blur-md border border-white/20 rounded-xl p-4"
           >
             <div className="text-center">
@@ -264,7 +319,6 @@ const CrewScreen: React.FC = () => {
     </div>
   );
 
-  const renderNetworkTab = () => null;
 
   return (
     <div className="pb-8">

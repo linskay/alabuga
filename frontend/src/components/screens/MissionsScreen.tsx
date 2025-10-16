@@ -402,10 +402,8 @@ const MissionsScreen: React.FC = () => {
         </MainButton>
       </motion.div>
 
-      {/* История раздела */}
       <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
         <div className="text-[11px] md:text-xs tracking-wide text-white/70 font-mono opacity-90 mb-4">
-          <span className="text-cyan-300/80 font-semibold mr-2">ИСТОРИЯ РАЗДЕЛА:</span>
           <span className="text-white/80">{sectionHistory[status]}</span>
         </div>
       </div>
@@ -417,11 +415,8 @@ const MissionsScreen: React.FC = () => {
         {itemsToRender.length === 0 ? (
           <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
             <div className="flex flex-col items-center text-center gap-3 py-10">
-              {/* Мини‑гусь */}
               <img src="/images/gaga.gif" alt="gaga" className="w-16 h-16 object-contain opacity-90" />
-              {/* Мотивационное сообщение */}
               <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono">
-                <span className="text-cyan-300/80 font-semibold mr-2">МОТИВАЦИЯ:</span>
                 <span>{getMotivation(status, false)}</span>
               </div>
             </div>
@@ -491,11 +486,10 @@ const MissionsScreen: React.FC = () => {
         )}
       </motion.div>
 
-      {/* Мотивация при наличии карточек (только для Available) */}
+      {/* Мотивация при наличии карточек (только текст без голубого лейбла) */}
       {itemsToRender.length > 0 && status === 'available' && (
         <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
           <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono mt-6">
-            <span className="text-cyan-300/80 font-semibold mr-2">МОТИВАЦИЯ:</span>
             <span>{getMotivation(status, true)}</span>
           </div>
         </div>

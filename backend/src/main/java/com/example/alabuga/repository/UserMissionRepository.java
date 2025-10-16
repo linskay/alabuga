@@ -1,5 +1,6 @@
 package com.example.alabuga.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +28,9 @@ public interface UserMissionRepository extends JpaRepository<UserMission, Long> 
     List<UserMission> findByUserIdAndBranchId(@Param("userId") Long userId, @Param("branchId") Long branchId);
     
     List<UserMission> findByMissionIdAndStatusIn(Long missionId, List<MissionStatus> statuses);
+    
+    long countByStatus(String status);
+    
+    @Query("SELECT COUNT(um) FROM UserMission um WHERE um.status = :status AND um.completedAt BETWEEN :start AND :end")
+    long countByStatusAndCompletedAtBetween(@Param("status") String status, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

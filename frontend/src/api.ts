@@ -53,6 +53,16 @@ export type UserMission = { id: number; missionId?: number; missionName?: string
 export type MissionDTO = { id: number; name: string; description?: string; difficulty?: string; experienceReward?: number; isActive?: boolean; requiredExperience?: number; requiredRank?: number; type?: string };
 export type CardDTO = { id: number; name: string; seriesName: string; frontImageUrl?: string; backDescription?: string; rarity: string; unlockCondition?: string; unlockRank?: number; isActive?: boolean };
 export type UserCardDTO = { id: number; user: any; card: CardDTO; obtainedAt: string; isNew: boolean };
+export type StatisticsDTO = { 
+  activeUsers: number; 
+  activeUsersGrowth: number; 
+  completedMissions: number; 
+  completedMissionsGrowth: number; 
+  averageLevel: number; 
+  averageLevelGrowth: number; 
+  averageTimeInSystem: number; 
+  averageTimeInSystemGrowth: number; 
+};
 
 export const backend = {
   auth: {
@@ -136,6 +146,10 @@ export const backend = {
     markViewed: (userId: number, cardId: number) => api.post(`/api/cards/mark-viewed/${userId}/${cardId}`),
     series: () => api.get<string[]>('/api/cards/series'),
     cardsBySeries: (seriesName: string) => api.get<CardDTO[]>(`/api/cards/series/${encodeURIComponent(seriesName)}`),
+  },
+  statistics: {
+    overview: () => api.get<StatisticsDTO>('/api/statistics/overview'),
+    activityChart: () => api.get<any>('/api/statistics/activity-chart'),
   },
 };
 
