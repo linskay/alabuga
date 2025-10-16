@@ -10,9 +10,13 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.example.alabuga.dto.StatisticsDTO;
+import com.example.alabuga.dto.MissionStatisticsDTO;
 import com.example.alabuga.entity.User;
+import com.example.alabuga.entity.MissionStatus;
+import com.example.alabuga.entity.Mission;
 import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
+import com.example.alabuga.repository.MissionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +26,7 @@ public class StatisticsService {
 
     private final UserRepository userRepository;
     private final UserMissionRepository userMissionRepository;
+    private final MissionRepository missionRepository;
 
     public StatisticsDTO getOverviewStatistics() {
         // Активные пользователи за 30 дней по updatedAt
@@ -36,9 +41,9 @@ public class StatisticsService {
                 : 0.0;
 
         // Завершенные миссии
-        long completedMissions = userMissionRepository.countByStatus("COMPLETED");
+        long completedMissions = userMissionRepository.countByStatus(MissionStatus.COMPLETED);
         long prevCompletedMissions = userMissionRepository.countByStatusAndCompletedAtBetween(
-                "COMPLETED",
+                MissionStatus.COMPLETED,
                 now.minusDays(60),
                 now.minusDays(30)
         );
@@ -96,5 +101,24 @@ public class StatisticsService {
         chart.put("data", data);
         chart.put("type", "line");
         return chart;
+    }
+
+    public MissionStatisticsDTO getMissionStatistics(Long missionId) {
+        Mission mission = missionRepository.findById(missionId).orElse(null);
+
+        long assignedTotal = userMissionRepository.countByMissionId(missionId);
+        long completedTotal = userMissionRepository.countByMissionIdAndStatus(missionId, MissionStatus.COMPLETED);
+        long inProgressUsers = userMissionRepository.countDistinctUsersByMissionIdAndStatus(missionId, MissionStatus.IN_PROGRESS);
+        long uniqueAssignees = userMissionRepository.countDistinctAssigneesByMissionId(missionId);
+
+        return MissionStatisticsDTO.builder()
+                .missionId(missionId)
+                .missionName(mission != null ? mission.getName() : null)
+                .missionCreatedAt(mission != null && mission.getCreatedAt() != null ? mission.getCreatedAt().toString() : null)
+                .assignedTotal(assignedTotal)
+                .completedTotal(completedTotal)
+                .inProgressUsers(inProgressUsers)
+                .uniqueAssignees(uniqueAssignees)
+                .build();
     }
 }

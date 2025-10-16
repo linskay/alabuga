@@ -64,6 +64,16 @@ export type StatisticsDTO = {
   averageTimeInSystemGrowth: number; 
 };
 
+export type MissionStatisticsDTO = {
+  missionId: number;
+  missionName?: string | null;
+  missionCreatedAt?: string | null;
+  assignedTotal: number;
+  completedTotal: number;
+  inProgressUsers: number;
+  uniqueAssignees: number;
+};
+
 export const backend = {
   auth: {
     login: (login: string, password?: string) => api.post<{ success: boolean; user: UserDTO; message: string }>('/api/auth/login', { login, password }),
@@ -150,6 +160,7 @@ export const backend = {
   statistics: {
     overview: () => api.get<StatisticsDTO>('/api/statistics/overview'),
     activityChart: () => api.get<any>('/api/statistics/activity-chart'),
+    mission: (missionId: number) => api.get<MissionStatisticsDTO>(`/api/statistics/missions/${missionId}`),
   },
 };
 

@@ -452,6 +452,19 @@ const AdminScreen: React.FC = () => {
       setNotif({ open: true, title: 'Ошибка удаления миссии', message: e?.message || 'Не удалось удалить миссию', variant: 'error' });
     }
   };
+  const openMissionStats = async (mission: any) => {
+    setMissionStatsModal({ open: true, loading: true, mission });
+    try {
+      const stats = await backend.statistics.mission(mission.id);
+      setMissionStatsModal({ open: true, loading: false, mission, data: stats });
+      // Показать краткую сводку через уведомление
+      const summary = `Назначений: ${stats.assignedTotal}; Завершено: ${stats.completedTotal}; В работе: ${stats.inProgressUsers}; Уникальных участников: ${stats.uniqueAssignees}`;
+      setNotif({ open: true, title: `Статистика миссии: ${stats.missionName || mission.name}`, message: summary, variant: 'info' });
+    } catch (e: any) {
+      setMissionStatsModal({ open: true, loading: false, mission, data: null, error: e?.message || 'Не удалось загрузить статистику' });
+      setNotif({ open: true, title: 'Не удалось загрузить статистику', message: e?.message || 'Ошибка запроса', variant: 'error' });
+    }
+  };
   const searchUsers = async (query: string) => {
     if (!query.trim()) return setAssignUserResults([]);
     try {
@@ -508,6 +521,7 @@ const AdminScreen: React.FC = () => {
   const [allCompetencies, setAllCompetencies] = useState<any[]>([]);
   const [artifactToggle, setArtifactToggle] = useState<boolean>(false);
   const [artifactList, setArtifactList] = useState<any[]>([]);
+  const [missionStatsModal, setMissionStatsModal] = useState<{ open: boolean; loading: boolean; mission?: any; data?: any | null; error?: string }>({ open: false, loading: false });
   const [selectedArtifactId, setSelectedArtifactId] = useState<number | null>(null);
   
   // Artifact modals
@@ -530,12 +544,36 @@ const AdminScreen: React.FC = () => {
   const [currentShopPage, setCurrentShopPage] = useState(1);
   const itemsPerPage = 10;
 
-  const analytics = [
-    { title: 'Активные пользователи', value: '1,247', change: '+12%', color: 'from-green-400 to-emerald-500' },
-    { title: 'Завершенные миссии', value: '3,456', change: '+8%', color: 'from-blue-400 to-cyan-500' },
-    { title: 'Средний уровень', value: '42', change: '+5%', color: 'from-purple-400 to-violet-500' },
-    { title: 'Время в системе', value: '2.4ч', change: '+15%', color: 'from-orange-400 to-red-500' }
-  ];
+  const [analytics, setAnalytics] = useState<Array<{ title: string; value: string; change: string; color: string }>>([]);
+  const [analyticsChart, setAnalyticsChart] = useState<{ labels: string[]; data: number[] } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await backend.statistics.overview();
+        if (!mounted || !stats) return;
+        setAnalytics([
+          { title: 'Активные пользователи', value: (stats.activeUsers ?? 0).toLocaleString(), change: `${stats.activeUsersGrowth ? (stats.activeUsersGrowth > 0 ? '+' : '') + stats.activeUsersGrowth.toFixed(0) : '0'}%`, color: 'from-green-400 to-emerald-500' },
+          { title: 'Завершенные миссии', value: (stats.completedMissions ?? 0).toLocaleString(), change: `${stats.completedMissionsGrowth ? (stats.completedMissionsGrowth > 0 ? '+' : '') + stats.completedMissionsGrowth.toFixed(0) : '0'}%`, color: 'from-blue-400 to-cyan-500' },
+          { title: 'Средний уровень', value: (stats.averageLevel ?? 0).toFixed(0), change: `${stats.averageLevelGrowth ? (stats.averageLevelGrowth > 0 ? '+' : '') + stats.averageLevelGrowth.toFixed(0) : '0'}%`, color: 'from-purple-400 to-violet-500' },
+          { title: 'Время в системе', value: `${(stats.averageTimeInSystem ?? 0).toFixed(1)}ч`, change: `${stats.averageTimeInSystemGrowth ? (stats.averageTimeInSystemGrowth > 0 ? '+' : '') + stats.averageTimeInSystemGrowth.toFixed(0) : '0'}%`, color: 'from-orange-400 to-red-500' }
+        ]);
+        try {
+          const chart = await backend.statistics.activityChart();
+          if (mounted && chart) {
+            const normalized = { labels: chart.labels || [], data: chart.data || [] };
+            setAnalyticsChart(normalized);
+            try { (window as any).__adminActivityChart = normalized; } catch {}
+          }
+        } catch {}
+      } catch (e) {
+        // без падения интерфейса
+        setAnalytics([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const [shopItems, setShopItems] = useState<any[]>([]);
   const [addProductOpen, setAddProductOpen] = useState(false);
@@ -1063,6 +1101,14 @@ const AdminScreen: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  className="px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded text-purple-300 text-sm hover:bg-purple-500/30 transition-all duration-300"
+                  onClick={() => openMissionStats(mission)}
+                >
+                  Статистика
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
                   onClick={() => openDeleteMissionConfirm(mission)}
                 >
@@ -1123,7 +1169,7 @@ const AdminScreen: React.FC = () => {
         ))}
       </div>
 
-      {/* Charts with CardTsup */}
+      {/* Charts with CardTsup — подключаем реальные данные */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1136,8 +1182,15 @@ const AdminScreen: React.FC = () => {
                 <span className="mr-2">📊</span>
                 Активность пользователей
               </h3>
-              <div className="h-48 bg-white/5 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400">График активности</span>
+              <div className="text-center text-gray-400">
+                <div className="text-sm">Данные за последние 7 дней:</div>
+                <div className="text-xs mt-1">
+                  {(analyticsChart?.labels || []).join(', ')}
+                </div>
+                <div className="text-sm mt-3">Активность:</div>
+                <div className="text-xs mt-1">
+                  {(analyticsChart?.data || []).join(', ')}
+                </div>
               </div>
             </div>
           </CardTsup>

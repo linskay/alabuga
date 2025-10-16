@@ -1,6 +1,8 @@
 package com.example.alabuga.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -87,4 +89,9 @@ public class Mission {
     @Column(name = "image_url", length = 500)
     @Schema(description = "URL изображения миссии", example = "https://example.com/images/mission1.jpg")
     private String imageUrl;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Schema(description = "Дата создания миссии")
+    private LocalDateTime createdAt;
 }
