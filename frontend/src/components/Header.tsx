@@ -85,7 +85,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
         WebkitBackdropFilter: 'blur(20px)'
       }}
     >
-      {/* Логотип с анимированной надписью */}
       <motion.div
         className="flex items-center space-x-3"
         whileHover={{ scale: 1.05 }}
@@ -115,7 +114,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
               console.log('Logo image loaded successfully');
             }}
           />
-          {/* Fallback логотип */}
           <div 
             className="w-8 h-8 sm:w-10 sm:h-10 relative z-10 transition-all duration-300 group-hover:scale-110 items-center justify-center font-bold text-cyan-400 text-xs sm:text-sm"
             style={{
@@ -126,7 +124,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
           >
             AT
           </div>
-          {/* Дополнительное свечение */}
           <div 
             className="absolute inset-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full opacity-30 transition-all duration-300 group-hover:opacity-50 group-hover:scale-150"
             style={{
@@ -142,9 +139,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
         </div>
       </motion.div>
 
-      {/* Кнопки справа */}
       <div className="flex items-center space-x-3">
-        {/* Кнопка входа */}
         {showLoginButton && (
           <div
             className="relative"
@@ -176,7 +171,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
           </div>
         )}
 
-        {/* Кнопка 404 (для демонстрации) */}
         {show404Button && (
           <button
             onClick={on404Click}
@@ -186,13 +180,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, showBackButton = false, o
           </button>
         )}
 
-        {/* Кнопка выхода */}
         {showExitButton && (
           <ExitButton onClick={onExitClick} />
         )}
       </div>
       
-      {/* CSS для анимации свечения */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes pulse {

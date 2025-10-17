@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import CompetencyMap from '../CompetencyMap';
 import RanksDiagram from '../RanksDiagram';
-import LaserFlow from '../LaserFlow';
+import CosmicOrbits from '../CosmicOrbits';
 import ShinyText from '../ShinyText';
 import HoloBackground from '../HoloBackground';
 
@@ -11,7 +10,7 @@ const MapScreen: React.FC = () => {
     <div className="min-h-screen pb-8 relative">
       <HoloBackground />
 
-      {/* Competency Map */}
+      {/* Cosmic Orbits (replaces Competency Map) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -22,17 +21,12 @@ const MapScreen: React.FC = () => {
             <ShinyText text="КАРТА КОМПЕТЕНЦИЙ" speed={6} className="text-xl font-bold text-white tracking-wide" />
           </h3>
           <div className="w-full flex items-center justify-center overflow-visible">
-            <CompetencyMap />
+            <CosmicOrbits />
           </div>
         </div>
       </motion.div>
 
-      {/* Connector between map and ranks */}
-      <div className="w-full overflow-visible -mt-14 -mb-14 relative z-0 pointer-events-none" style={{ height: '26vh', minHeight: 180, maxHeight: 420 }}>
-        <div className="mx-auto" style={{ width: '100%', maxWidth: 720 }}>
-          <LaserFlow color="#A78BFA" wispDensity={1.3} flowSpeed={0.5} />
-        </div>
-      </div>
+      {/* Connector removed as requested */}
 
       {/* Ranks Diagram (under branches) */}
       <motion.div

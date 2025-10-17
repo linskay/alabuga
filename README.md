@@ -1,411 +1,611 @@
-# Alabuga Project
+#  Alabuga.TECH
 
-Полнофункциональное веб-приложение с Spring Boot backend и React frontend.
+> Космическая платформа для развития и мотивации
 
-## 🚀 Быстрый запуск в режиме разработки
+[![ERD](https://img.shields.io/badge/ERD-Database%20Schema-blue.svg)](https://liambx.com/erd/p/linskay.github.io/alabuga/schema.sql)
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue.svg)](https://www.typescriptlang.org/)
+[![Maven](https://img.shields.io/badge/Maven-3.9.0-red.svg)](https://maven.apache.org/)
+[![Docker](https://img.shields.io/badge/Docker-24.0.0-blue.svg)](https://www.docker.com/)
+[![Liquibase](https://img.shields.io/badge/Liquibase-4.20.0-lightblue.svg)](https://www.liquibase.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15.0-blue.svg)](https://www.postgresql.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.3.0-38B2AC.svg)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer%20Motion-10.16.0-purple.svg)](https://www.framer.com/motion/)
+[![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-API-blue.svg)](https://core.telegram.org/bots/api)
 
-### 1. Запуск базы данных PostgreSQL
+## 📋 Содержание
+
+- [Быстрый старт](#-быстрый-старт)
+- [Архитектура](#-архитектура)
+- [Реализованные механики](#-реализованные-механики)
+- [Планы развития](#-планы-развития)
+- [API документация](#-api-документация)
+
+## 🚀 Быстрый старт
+
+### Предварительные требования
+
+- Java 17+
+- Node.js 18+
+- Docker & Docker Compose
+- Maven 3.9+
+
+### Запуск проекта
+
+1. **Клонируйте репозиторий**
+   ```bash
+   git clone <repository-url>
+   cd alabuga
+   ```
+
+2. **Запустите тестовую базу данных**
 ```bash
 docker-compose up -d
 ```
 
-### 2. Запуск backend приложения
+3. **Запустите backend (Java)**
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-### 3. Проверка работы
-- **API:** http://localhost:8080/api/users
-- **Swagger UI:** http://localhost:8080/swagger-ui.html
-- **PostgreSQL:** localhost:5432 (alabuga/alabuga_dev/password)
-
-## 🛠️ Управление базой данных
-
-### Очистка базы данных (если нужно)
-```bash
-docker exec -i alabuga-postgres psql -U alabuga -d alabuga_dev < clear-database.sql
-```
-
-### Остановка и удаление данных
-```bash
-docker-compose down -v
-```
-
-## 📁 Структура проекта
-
-```
-alabuga/
-├── backend/          # Spring Boot приложение
-├── frontend/         # React TypeScript приложение
-├── docker-compose.yml # PostgreSQL для разработки
-├── clear-database.sql # Скрипт очистки БД
-└── pom.xml          # Multi-module Maven конфигурация
-```
-
-## 🛠️ Технологический стек
-
-### Backend
-- **Java 17**
-- **Spring Boot 3.1.0**
-- **Spring Data JPA**
-- **PostgreSQL** - основная база данных
-- **Liquibase** - управление миграциями БД
-- **Lombok** - уменьшение boilerplate кода
-- **SpringDoc OpenAPI** - документация API
-- **Maven** - управление зависимостями
-
-### Frontend
-- **React 18.2.0**
-- **TypeScript 5.3.3**
-- **React Scripts 5.0.1**
-
-## ⚙️ Профили конфигурации
-
-### Development (dev) - РЕКОМЕНДУЕМЫЙ
-- PostgreSQL база данных в Docker
-- Подробное логирование
-- Liquibase включен
-- Swagger UI доступен
-
-**Запуск:**
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-### Production (prod)
-- PostgreSQL база данных
-- Валидация схемы БД
-- Liquibase включен
-- Оптимизированное логирование
-
-**Запуск:**
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
-```
-
-## API Документация
-
-После запуска приложения:
-- **Swagger UI:** http://localhost:8080/swagger-ui.html
-- **OpenAPI JSON:** http://localhost:8080/api-docs
-
-## База данных
-
-### H2 Console (только dev профиль)
-- **URL:** http://localhost:8080/h2-console
-- **JDBC URL:** `jdbc:h2:mem:devdb`
-- **Username:** `sa`
-- **Password:** `password`
-
-### Миграции Liquibase
-Миграции находятся в `backend/src/main/resources/db/changelog/`
-
-## Переменные окружения (Production)
-
-```bash
-DATABASE_URL=jdbc:postgresql://localhost:5432/alabuga
-DATABASE_USERNAME=alabuga
-DATABASE_PASSWORD=your_password
-```
-
-## Игровая система
-
-### Компетенции
-Реализованы 9 космических компетенций с системой прогрессии:
-
-1. **🚀 Сила Миссии** (Вера в дело)
-2. **⚡ Импульс Прорыва** (Стремление к большему)
-3. **📡 Канал Связи** (Общение)
-4. **🔍 Модуль Аналитики** (Аналитика)
-5. **🎮 Пульт Командования** (Командование)
-6. **⚖️ Кодекс Звёздного Права** (Юриспруденция)
-7. **🧠 Голограммное Мышление** (Трёхмерное мышление)
-8. **💰 Кредитный Поток** (Базовая экономика)
-9. **✈️ Курс Аэронавигации** (Основы аэронавигации)
-
-**Система прогрессии:**
-- Каждый пользователь имеет все 9 компетенций
-- Очки опыта начисляются от выполнения миссий (0-500 очков)
-- Простая система без уровней - только очки опыта
-
-### Артефакты
-Космическая система артефактов с различными уровнями редкости и функциональностью:
-
-**Редкость артефактов:**
-- **COMMON** - Обычный (базовые артефакты)
-- **RARE** - Редкий (улучшенные артефакты)
-- **EPIC** - Эпический (мощные артефакты)
-- **LEGENDARY** - Легендарный (уникальные артефакты)
-
-**Атрибуты артефактов:**
-- **Название** - уникальное имя артефакта
-- **Краткое описание** - краткая информация о назначении
-- **Изображение** - URL изображения артефакта
-- **Редкость** - уровень редкости артефакта
-- **Статус** - активен/неактивен
-
-**Функциональность:**
-- **Назначение** - артефакты можно назначать пользователям вручную или через миссии
-- **Экипировка** - пользователи могут экипировать/снимать артефакты
-- **Просмотр** - пользователи могут просматривать артефакты других игроков
-- **Управление** - полный CRUD для администраторов
-
-### Энергоны
-Универсальная энергетическая валюта, которую можно переводить в мощность для систем корабля или обменивать на ресурсы.
-
-**Особенности:**
-- **Универсальность** - можно использовать для любых космических операций
-- **Конвертация** - легко переводится в мощность для систем корабля
-- **Торговля** - используется для покупки товаров в Нексусе
-- **Начисление** - получается за выполнение миссий и достижения
-
-### Нексус - Космический Магазин
-Центральный торговый хаб для приобретения чертежей, ресурсов, улучшений и артефактов.
-
-**Категории товаров:**
-- **🔧 Чертежи** - схемы для строительства космических систем
-- **⚡ Ресурсы** - энергетические кристаллы, металлические сплавы, процессоры
-- **🛡️ Улучшения** - модули защиты, усилители связи
-- **🌟 Артефакты** - древние космические артефакты и звездные карты
-
-**Функциональность:**
-- **Просмотр товаров** - доступны все товары с изображениями и описаниями
-- **Покупка** - товары покупаются за Энергоны
-- **Подтверждение** - при покупке появляется сообщение: "Для активации чертежа требуется X Энергонов. Подтвердить синтез в Нексусе?"
-- **Управление** - админы могут добавлять/удалять товары
-- **Склад** - система ограниченного количества товаров
-
-### Система Рангов
-Нелинейная система рангов с тремя ветками развития и финальным объединяющим рангом.
-
-**Стартовый ранг:**
-- **Космо-Кадет** - общий старт для всех космических специалистов
-
-**Ветки развития:**
-
-1. **🛰️ Аналитико-Техническая** (математический склад ума)
-   - **Навигатор Траекторий** - специалист по расчету космических траекторий
-   - **Аналитик Орбит** - эксперт по анализу орбитальных систем  
-   - **Архитектор Станции** - мастер проектирования космических станций
-   - *Сильные стороны: аналитика, инженерия, структурность*
-
-2. **📜 Гуманитарно-Исследовательская** (креатив и исследования)
-   - **Хронист Галактики** - летописец космических событий и истории
-   - **Исследователь Культур** - изучатель инопланетных цивилизаций
-   - **Мастер Лектория** - преподаватель космических наук
-   - *Сильные стороны: обучение, контент, история, идеи*
-
-3. **📡 Коммуникационно-Лидерская** (управление и связи)
-   - **Связист Звёздного Флота** - специалист по межзвездной связи
-   - **Штурман Экипажа** - лидер навигационной команды
-   - **Командир Отряда** - командир космического отряда
-   - *Сильные стороны: коммуникация, командная работа, управление*
-
-**🎯 Финальный объединяющий ранг:**
-- **Хранитель Станции «Алабуга.TECH»** - высший ранг космического специалиста
-
-**Требования для повышения ранга:**
-- **Опыт** - определенное количество очков опыта
-- **Миссии** - выполнение обязательных миссий с конкретными названиями
-- **Компетенции** - накопление очков в определенных компетенциях
-- **Настройка** - админы могут настраивать требования вручную
-- **Дефолты** - система работает с предустановленными значениями
-
-### Система Уведомлений
-Автоматические системные уведомления с историей для всех пользователей.
-
-**Типы уведомлений:**
-- **RANK_ASSIGNMENT** - присвоение ранга при регистрации
-- **RANK_PROMOTION** - повышение ранга
-- **MISSION_COMPLETED** - завершение миссии
-- **ARTIFACT_ACQUIRED** - получение артефакта
-- **SHOP_PURCHASE** - покупка в магазине
-- **SYSTEM_MESSAGE** - системные сообщения
-- **ACHIEVEMENT** - достижения
-
-**Функциональность:**
-- **История** - все уведомления сохраняются с датой создания
-- **Статус прочтения** - отслеживание прочитанных/непрочитанных уведомлений
-- **Метаданные** - дополнительная информация в JSON формате
-- **Автоматическое создание** - уведомления создаются при важных событиях
-- **Космическая тематика** - все сообщения в стиле космического флота
-
-**Примеры уведомлений:**
-- При регистрации: "СИСТЕМНЫЙ ЖУРНАЛ: ИНИЦИАЦИЯ НОВОГО ЧЛЕНА ЭКИПАЖА"
-- При повышении ранга: "СИСТЕМНЫЙ ЖУРНАЛ: ПОВЫШЕНИЕ СТАТУСА"
-- При покупке: "СИСТЕМНЫЙ ЖУРНАЛ: ПОКУПКА В НЕКСУСЕ"
-
-### Ветки миссий
-Система из 4 статических веток миссий:
-
-1. **🌙 Док Лунной Базы** - Базовые квесты
-   - Знакомство с системой, заполнение анкет, первые шаги
-
-2. **💍 Кольцо Посланцев** - Привлечение новых
-   - Приглашения, посты, привлечение новых участников, расширение сообщества
-
-3. **🎓 Академия Звёздного Флота** - Обучение и тесты
-   - Образовательные программы, тесты, курсы, повышение квалификации
-
-4. **⚔️ Пояс Испытаний** - Симуляции и челленджи
-   - Симуляции, мини-игры, челленджи, практические задания
-
-### Миссии
-Система миссий с полным функционалом:
-
-**Типы миссий:**
-- **QUEST** - Квест
-- **CHALLENGE** - Челлендж  
-- **TEST** - Тест
-- **SIMULATION** - Симуляция
-
-**Сложность:**
-- **EASY** - Легкая
-- **MEDIUM** - Средняя
-- **HARD** - Сложная
-- **EXPERT** - Экспертная
-
-**Особенности:**
-- **Модерация** - миссии могут требовать проверки модератора
-- **Награды** - опыт, мана, артефакты
-- **Прогресс** - отслеживание выполнения (0-100%)
-- **Статусы** - NOT_STARTED, IN_PROGRESS, COMPLETED, FAILED
-
-## Структура API
-
-### Пользователи
-- `GET /api/users` - получить всех пользователей
-- `GET /api/users/{id}` - получить пользователя по ID
-- `POST /api/users` - создать нового пользователя
-- `PUT /api/users/{id}` - обновить пользователя
-- `DELETE /api/users/{id}` - удалить пользователя
-
-### Компетенции
-- `GET /api/competencies` - получить все компетенции
-- `GET /api/users/{id}/competencies` - получить компетенции пользователя
-- `POST /api/users/{id}/competencies/{competencyId}/experience` - добавить опыт к компетенции
-- `PUT /api/users/{id}/competencies/{competencyId}` - установить очки опыта компетенции
-
-### Артефакты
-**Управление артефактами:**
-- `GET /api/artifacts` - получить все артефакты
-- `GET /api/artifacts/active` - получить только активные артефакты
-- `GET /api/artifacts/{id}` - получить артефакт по ID
-- `GET /api/artifacts/rarity/{rarity}` - получить артефакты по редкости
-- `GET /api/artifacts/search?name={name}` - поиск артефактов по названию
-- `POST /api/artifacts` - создать артефакт
-- `PUT /api/artifacts/{id}` - обновить артефакт
-- `DELETE /api/artifacts/{id}` - удалить артефакт
-- `POST /api/artifacts/{id}/toggle-status` - переключить статус артефакта
-
-**Работа с пользователями:**
-- `GET /api/artifacts/user/{userId}` - получить артефакты пользователя
-- `GET /api/artifacts/user/{userId}/public` - получить артефакты другого пользователя (публичный просмотр)
-- `POST /api/artifacts/assign?userId={id}&artifactId={id}` - назначить артефакт пользователю
-- `DELETE /api/artifacts/user/{userId}/artifact/{artifactId}` - удалить артефакт у пользователя
-- `POST /api/artifacts/user/{userId}/artifact/{artifactId}/equip` - экипировать/снять артефакт
-
-### Магазин Нексус
-**Управление товарами:**
-- `GET /api/shop` - получить все товары магазина
-- `GET /api/shop/available` - получить доступные товары
-- `GET /api/shop/{id}` - получить товар по ID
-- `GET /api/shop/search?name={name}` - поиск товаров по названию
-- `POST /api/shop` - создать товар (только для админов)
-- `PUT /api/shop/{id}` - обновить товар (только для админов)
-- `DELETE /api/shop/{id}` - удалить товар (только для админов)
-- `POST /api/shop/{id}/toggle-status` - переключить статус товара (только для админов)
-
-**Покупки:**
-- `POST /api/shop/purchase?userId={id}&shopItemId={id}` - купить товар в Нексусе
-
-### Система Рангов
-**Управление рангами:**
-- `GET /api/ranks` - получить все ранги
-- `GET /api/ranks/branch/{branch}` - получить ранги по ветке
-- `GET /api/ranks/level/{level}` - получить ранг по уровню
-
-**Управление требованиями:**
-- `GET /api/ranks/requirements` - получить все требования рангов
-- `GET /api/ranks/requirements/active` - получить активные требования
-- `GET /api/ranks/requirements/level/{level}` - получить требования ранга по уровню
-- `POST /api/ranks/requirements` - создать требования ранга
-- `PUT /api/ranks/requirements/{id}` - обновить требования ранга
-- `DELETE /api/ranks/requirements/{id}` - удалить требования ранга
-
-**Повышение рангов:**
-- `POST /api/ranks/promote?userId={id}` - повысить пользователя до следующего ранга
-- `GET /api/ranks/can-promote?userId={id}` - проверить, может ли пользователь быть повышен
-
-### Система Уведомлений
-**Управление уведомлениями:**
-- `GET /api/notifications/user/{userId}` - получить все уведомления пользователя
-- `GET /api/notifications/user/{userId}/unread` - получить непрочитанные уведомления
-- `GET /api/notifications/{id}` - получить уведомление по ID
-- `POST /api/notifications` - создать новое уведомление
-- `PUT /api/notifications/{id}` - обновить уведомление
-- `DELETE /api/notifications/{id}` - удалить уведомление
-
-**Статус прочтения:**
-- `PUT /api/notifications/{id}/read` - отметить уведомление как прочитанное
-- `PUT /api/notifications/user/{userId}/read-all` - отметить все уведомления как прочитанные
-- `GET /api/notifications/user/{userId}/unread-count` - получить количество непрочитанных
-
-### Ветки миссий
-- `GET /api/branches` - получить все ветки
-- `GET /api/branches/{id}` - получить ветку по ID
-- `GET /api/branches/search?name={name}` - поиск веток по названию
-
-### Миссии
-- `GET /api/missions` - получить все миссии
-- `GET /api/missions/{id}` - получить миссию по ID
-- `GET /api/missions/branch/{branchId}` - получить миссии по ветке
-- `POST /api/missions` - создать миссию
-- `PUT /api/missions/{id}` - обновить миссию
-- `DELETE /api/missions/{id}` - удалить миссию
-
-### Пользовательские миссии
-- `GET /api/missions/user/{userId}` - получить миссии пользователя
-- `GET /api/missions/user/{userId}/branch/{branchId}` - получить миссии пользователя по ветке
-- `POST /api/missions/start` - начать миссию
-- `PUT /api/missions/progress` - обновить прогресс миссии
-- `POST /api/missions/complete` - завершить миссию
-- `POST /api/missions/moderate` - модерировать миссию
-
-## Разработка
-
-### Расширение системы
-
-**CRUD операции реализованы для всех сущностей:**
-- **Пользователи** - полный CRUD с ролями и статистикой
-- **Компетенции** - управление компетенциями и прогрессом пользователей
-- **Артефакты** - система артефактов с экипировкой
-- **Миссии** - полный CRUD с системой модерации и наград
-- **Ветки миссий** - статические enum с 4 ветками
-- **Магазин Нексус** - система товаров с покупками за Энергоны
-- **Система Рангов** - нелинейные ранги с требованиями и повышениями
-- **Система Уведомлений** - автоматические уведомления с историей
-- **Связи пользователей** - компетенции, артефакты и миссии пользователей
-
-
-### Проблемы с запуском
-
-1. **Проверьте Java версию:**
-   ```bash
-   java -version  # Должна быть 17+
+   cd backend
+   mvn spring-boot:run
    ```
+   - При первом запуске автоматически применятся миграции Liquibase
+   - API будет доступно на `http://localhost:8080`
 
-2. **Очистите Maven кэш:**
-   ```bash
-   mvn clean
+4. **Запустите frontend (React)**
+```bash
+   cd frontend
+   npm install
+   npm start
    ```
+   - Приложение будет доступно на `http://localhost:3000`
 
-3. **Проверьте порты:**
-   - Backend: 8080
-   - Frontend: 3000
+### Тестовые пользователи
 
-### Проблемы с базой данных
+Для входа используйте следующие тестовые учётные записи:
+- Логин: `admin`, Пароль: `admin`
+- Логин: `user`, Пароль: `user`
 
-1. **H2 не запускается:** Проверьте профиль (должен быть `dev`)
-2. **Liquibase ошибки:** Проверьте changelog файлы
-3. **PostgreSQL:** Убедитесь что сервер запущен и доступен
+Авторизация выполняется через модальное окно на лендинге.
+
+## 🏗️ Архитектура
+
+### База данных (ERD)
+
+[![ERD](https://img.shields.io/badge/ERD-Database%20Schema-blue.svg)](https://liambx.com/erd/p/linskay.github.io/alabuga/schema.sql)
+
+```mermaid
+erDiagram
+    USERS {
+        bigint id PK
+        varchar login UK
+        varchar email
+        varchar password_hash
+        varchar first_name
+        varchar last_name
+        varchar role
+        integer rank
+        integer experience
+        integer energy
+        integer branch_id FK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    BRANCHES {
+        bigint id PK
+        varchar name
+        varchar description
+        boolean is_active
+    }
+    
+    RANKS {
+        bigint id PK
+        varchar name
+        integer level
+        varchar branch
+        text description
+        integer required_experience
+    }
+    
+    MISSIONS {
+        bigint id PK
+        varchar name
+        text description
+        varchar difficulty
+        integer experience_reward
+        integer energy_reward
+        boolean requires_moderation
+        boolean is_active
+        integer required_experience
+        integer required_rank
+        varchar type
+    }
+    
+    USER_MISSIONS {
+        bigint id PK
+        bigint user_id FK
+        bigint mission_id FK
+        varchar status
+        integer progress
+        text notes
+        timestamp started_at
+        timestamp completed_at
+    }
+    
+    COMPETENCIES {
+        bigint id PK
+        varchar name
+        text description
+        boolean is_active
+    }
+    
+    USER_COMPETENCIES {
+        bigint id PK
+        bigint user_id FK
+        bigint competency_id FK
+        integer points
+        integer level
+        integer max_points
+    }
+    
+    ARTIFACTS {
+        bigint id PK
+        varchar name
+        text description
+        varchar rarity
+        varchar image_url
+        boolean is_active
+    }
+    
+    USER_ARTIFACTS {
+        bigint id PK
+        bigint user_id FK
+        bigint artifact_id FK
+        boolean is_equipped
+        timestamp obtained_at
+    }
+    
+    SHOP_ITEMS {
+        bigint id PK
+        varchar name
+        text description
+        integer price
+        boolean available
+    }
+    
+    USER_PURCHASES {
+        bigint id PK
+        bigint user_id FK
+        bigint shop_item_id FK
+        integer price_paid
+        integer energy_after
+        timestamp purchased_at
+    }
+    
+    CARDS {
+        bigint id PK
+        varchar name
+        varchar series_name
+        varchar front_image_url
+        text back_description
+        varchar rarity
+        text unlock_condition
+        integer unlock_rank
+        boolean is_active
+    }
+    
+    USER_CARDS {
+        bigint id PK
+        bigint user_id FK
+        bigint card_id FK
+        timestamp obtained_at
+        boolean is_new
+    }
+    
+    NOTIFICATIONS {
+        bigint id PK
+        bigint user_id FK
+        varchar type
+        varchar title
+        text message
+        boolean is_read
+        timestamp created_at
+    }
+    
+    USERS ||--o{ USER_MISSIONS : "has"
+    MISSIONS ||--o{ USER_MISSIONS : "assigned_to"
+    USERS ||--o{ USER_COMPETENCIES : "has"
+    COMPETENCIES ||--o{ USER_COMPETENCIES : "belongs_to"
+    USERS ||--o{ USER_ARTIFACTS : "owns"
+    ARTIFACTS ||--o{ USER_ARTIFACTS : "owned_by"
+    USERS ||--o{ USER_PURCHASES : "makes"
+    SHOP_ITEMS ||--o{ USER_PURCHASES : "purchased"
+    USERS ||--o{ USER_CARDS : "collects"
+    CARDS ||--o{ USER_CARDS : "collected_by"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    BRANCHES ||--o{ USERS : "belongs_to"
+```
+
+### Компонентная диаграмма приложения
+
+```mermaid
+graph TB
+    subgraph "Frontend (React + TypeScript)"
+        A[Landing Page] --> B[Home Page]
+        B --> C[Dashboard]
+        C --> D[Profile Screen]
+        C --> E[Crew Screen]
+        C --> F[Missions Screen]
+        C --> G[Ship Screen]
+        C --> H[Admin Screen]
+        
+        subgraph "UI Components"
+            I[AnimatedBackground]
+            J[CosmicButton]
+            K[ShinyText]
+            L[MainButton]
+            M[NeonGradientCard]
+            N[Goose Assistant]
+            O[Ranking Cards]
+            P[Notification Panel]
+        end
+        
+        subgraph "Hooks & Utils"
+            Q[useNotifications]
+            R[use404]
+            S[errorHandler]
+            T[API Client]
+        end
+    end
+    
+    subgraph "Backend (Spring Boot)"
+        U[Auth Controller]
+        V[User Controller]
+        W[Mission Controller]
+        X[Shop Controller]
+        Y[Rank Controller]
+        Z[Card Controller]
+        AA[Message Controller]
+        
+        subgraph "Services"
+            BB[UserService]
+            CC[MissionService]
+            DD[NotificationService]
+            EE[RankService]
+            FF[ShopService]
+        end
+        
+        subgraph "Repositories"
+            GG[UserRepository]
+            HH[MissionRepository]
+            II[RankRepository]
+            JJ[ShopRepository]
+        end
+    end
+    
+    subgraph "External Services"
+        KK[Telegram Bot API]
+        LL[PostgreSQL Database]
+    end
+    
+    subgraph "Telegram App"
+        MM[Tap Game with Goose Gaga]
+        NN[Telegram Bot Interface]
+    end
+    
+    A --> U
+    D --> V
+    F --> W
+    H --> V
+    H --> W
+    
+    U --> BB
+    V --> BB
+    W --> CC
+    X --> FF
+    
+    BB --> GG
+    CC --> HH
+    EE --> II
+    FF --> JJ
+    
+    GG --> LL
+    HH --> LL
+    II --> LL
+    JJ --> LL
+    
+    NN --> KK
+    MM --> NN
+```
+
+## ⚡ Реализованные механики
+
+### 🎯 Система пользователей и ролей
+- **Авторизация**: Упрощённая система с заглушкой для тестирования
+- **Роли**: ADMIN, USER с разными уровнями доступа
+- **Профили**: Полная информация о пользователе, статистика, компетенции
+- **Ветки развития**: Различные направления карьерного роста
+
+### 🏆 Система рангов и опыта
+- **Ранги**: 11 уровней от "Космо-Кадета" до "Хранителя Станции"
+- **Опыт**: Начисление за выполнение миссий и активность
+- **Прогресс-бары**: Визуализация прогресса до следующего ранга
+- **Требования**: Система требований для повышения ранга
+
+### 🎮 Система миссий
+- **Типы миссий**: Различные категории с разной сложностью
+- **Статусы**: NOT_STARTED, IN_PROGRESS, COMPLETED, FAILED
+- **Модерация**: Миссии, требующие подтверждения администратора
+- **Награды**: Опыт и энергон за выполнение
+- **Прогресс**: Отслеживание выполнения с заметками
+
+### 💎 Система компетенций
+- **9 базовых компетенций**: От "Силы Миссии" до "Курса Аэронавигации"
+- **Уровни**: Прокачка от 0 до 500 очков
+- **Визуализация**: Прогресс-бары с анимацией
+- **Подсказки**: Описания каждой компетенции
+
+### 🛸 Система артефактов
+- **Коллекционирование**: Различные артефакты с редкостью
+- **Экипировка**: Возможность экипировать артефакты
+- **Визуализация**: Карточки с изображениями и описаниями
+- **Редкость**: Система редкости артефактов
+
+### 🛒 Магазин
+- **Товары**: Различные предметы за энергон
+- **Покупки**: История покупок пользователя
+- **Энергон**: Внутренняя валюта системы
+- **Доступность**: Управление доступностью товаров
+
+### 🃏 Система карт
+- **Коллекционирование**: Карты по сериям
+- **Редкость**: Различные уровни редкости
+- **Условия разблокировки**: Требования для получения
+- **Новые карты**: Отметка о новых полученных картах
+
+### 📊 Рейтинг и статистика
+- **Общий рейтинг**: По опыту за всё время
+- **Недельный рейтинг**: По опыту за последние 7 дней
+- **Топ-3**: Специальные карточки для лидеров
+- **Таблица**: Полный рейтинг с бейджами для топ-10
+
+### 🔔 Система уведомлений
+- **Типы**: Различные категории уведомлений
+- **Прочтение**: Отметка о прочтении
+- **История**: Сохранение всех уведомлений
+- **Панель**: Удобный интерфейс для просмотра
+
+### 🎨 UI/UX компоненты
+- **Анимации**: Framer Motion для плавных переходов
+- **Космическая тематика**: Единый стиль интерфейса
+- **Адаптивность**: Поддержка различных устройств
+- **Тёмная тема**: Космический дизайн
+
+### 🦆 Гусь-помощник
+- **Мотивация**: 60+ фраз для мотивации пользователей
+- **Рандомность**: Появление раз в 2 минуты
+- **Персонализация**: Приветствие при первом заходе
+- **Интерактивность**: Дополнительные фразы "alabu-ga-ga"
+
+### 👨‍💼 Административная панель
+- **Управление пользователями**: CRUD операции
+- **Управление миссиями**: Создание, редактирование, удаление
+- **Модерация**: Подтверждение выполнения миссий
+- **Статистика**: Просмотр данных пользователей
+- **Магазин**: Управление товарами
+
+## 🚀 Планы развития
+
+### 🎪 Конструкторы и события
+- **Конструктор викторин**: Создание интерактивных викторин
+- **Система событий**: Временные мероприятия и челленджи
+- **Календарь событий**: Планирование и уведомления
+- **Награды за участие**: Специальные награды за события
+
+### 📈 Аналитика и отчёты
+- **Дашборд аналитики**: Графики и метрики активности
+- **Отчёты по пользователям**: Детальная статистика
+- **Тренды**: Анализ популярности миссий и компетенций
+- **Экспорт данных**: Возможность экспорта статистики
+
+### 🎯 Расширенная система ролей
+- **Гранулярные права**: Детальная настройка доступа
+- **Роли по веткам**: Специализированные роли
+- **Менторство**: Система наставничества
+- **Командные роли**: Роли в рамках команд
+
+### 🌐 Социальные функции
+- **Команды**: Создание и управление командами
+- **Друзья**: Система друзей и подписок
+- **Чат**: Внутренний мессенджер
+- **Достижения**: Система достижений и бейджей
+
+### 🔧 Технические улучшения
+- **Микросервисная архитектура**: Разделение на сервисы
+- **Кэширование**: Redis для повышения производительности
+- **Мониторинг**: Интеграция с системами мониторинга
+- **CI/CD**: Автоматизация развёртывания
+
+### 📱 Мобильное приложение
+- **React Native**: Кроссплатформенное мобильное приложение
+- **Push-уведомления**: Уведомления о миссиях и событиях
+- **Офлайн-режим**: Работа без интернета
+- **Синхронизация**: Синхронизация данных между устройствами
+
+## 📚 API документация
+
+Ниже приведён консолидированный список основных REST‑эндпоинтов (по контроллерам).
+
+### Аутентификация (`/api/auth`)
+- `POST /api/auth/login` — вход в систему (упрощённо: по логину)
+- `POST /api/auth/validate` — валидация сессии и получение текущего пользователя
+
+### Пользователи (`/api/users`)
+- `GET /api/users` — список пользователей
+- `GET /api/users/{id}` — получить пользователя по ID
+- `GET /api/users/login/{login}` — получить пользователя по логину
+- `PUT /api/users/{id}` — обновить пользователя
+- `DELETE /api/users/{id}` — удалить пользователя
+- `GET /api/users/roles` — список ролей пользователей
+- `GET /api/users/search?name=` — поиск пользователей по имени
+- `GET /api/users/role/{role}` — пользователи по роли
+- `GET /api/users/active` — активные пользователи
+- `GET /api/users/rank/{minRank}` — пользователи с мин. рангом
+- `GET /api/users/experience/{minExperience}` — пользователи с мин. опытом
+
+Статистика пользователя:
+- `POST /api/users/{id}/experience?experience=` — добавить опыт
+- `POST /api/users/{id}/energy?energy=` — добавить энергон
+- `POST /api/users/{id}/energy/spend?energy=` — потратить энергон
+
+Компетенции:
+- `GET /api/users/competencies` — список всех компетенций
+- `GET /api/users/{id}/competencies` — компетенции пользователя
+- `POST /api/users/{id}/competencies?competencyId=&initialLevel=` — добавить пользователю компетенцию
+- `PUT /api/users/{id}/competencies/{competencyId}?experiencePoints=` — обновить очки/уровень компетенции
+
+Миссии пользователя:
+- `GET /api/users/{id}/missions` — миссии пользователя
+- `POST /api/users/{userId}/missions/{missionId}/take` — выдать/взять миссию пользователю
+- `DELETE /api/users/{userId}/missions/{missionId}/remove` — удалить миссию у пользователя
+
+Артефакты пользователя:
+- `GET /api/users/{userId}/artifacts` — артефакты пользователя
+- `POST /api/users/{userId}/artifacts/{artifactId}/equip` — экипировать
+- `POST /api/users/{userId}/artifacts/{artifactId}/give` — выдать
+
+Карты пользователя:
+- `GET /api/cards/user/{userId}` — карты пользователя
+- `GET /api/cards/user/{userId}/series/{seriesName}` — карты по серии
+- `POST /api/cards/mark-viewed/{userId}/{cardId}` — пометить карту просмотренной
+
+### Миссии (`/api/missions`)
+- `GET /api/missions` — список миссий
+- `POST /api/missions` — создать миссию
+- `PUT /api/missions/{id}` — обновить миссию
+- `DELETE /api/missions/{id}` — удалить миссию
+
+Управление прогрессом и завершением:
+- `PUT /api/missions/progress?userId=&missionId=&progress=&notes=` — обновить прогресс
+- `POST /api/missions/complete?userId=&missionId=` — завершить миссию
+- `POST /api/missions/moderate?userId=&missionId=&approved=` — модерировать (для миссий с модерацией)
+
+Вспомогательные сообщения (подтверждения):
+- `GET /api/messages/complete-mission/{missionId}` — текст подтверждения завершения миссии
+- `GET /api/messages/remove-mission/{userId}/{missionId}` — текст подтверждения удаления миссии у пользователя
+- `GET /api/messages/take-mission/{missionId}` — текст подтверждения выдачи миссии
+
+### Ранги (`/api/ranks`)
+- `GET /api/ranks` — список рангов
+- `GET /api/ranks/level/{level}` — получить ранг по уровню
+- `GET /api/ranks/requirements` — требования рангов
+- `GET /api/ranks/requirements/level/{level}` — требования для конкретного уровня
+- `GET /api/ranks/branch/{branch}` — ранги по ветке (если включено)
+
+### Магазин (`/api/shop`)
+- `GET /api/shop` — список товаров
+- `GET /api/shop/available` — доступные товары
+- `POST /api/shop` — создать товар
+- `PUT /api/shop/{id}` — обновить товар
+- `DELETE /api/shop/{id}` — удалить товар
+- `POST /api/shop/purchase?userId=&shopItemId=` — покупка пользователем
+- `GET /api/shop/purchases/{userId}` — история покупок пользователя
+- `GET /api/shop/{shopItemId}/confirmation-message` — текст подтверждения покупки
+
+### Артефакты (`/api/artifacts`)
+- `GET /api/artifacts` — список артефактов
+- `GET /api/artifacts/active` — активные артефакты
+- `POST /api/artifacts` — создать
+- `PUT /api/artifacts/{id}` — обновить
+- `DELETE /api/artifacts/{id}` — удалить
+
+### Карты (`/api/cards`)
+- `GET /api/cards/series` — список серий
+- `GET /api/cards/series/{seriesName}` — карты по серии
+- `GET /api/cards/available/{userId}` — доступные пользователю
+- `POST /api/cards/check-awards/{userId}` — проверить награды/выдачи
+
+### Ветки (`/api/branches`)
+- `GET /api/branches` — список веток
+
+### Служебные сообщения (`/api/messages`)
+- `GET /api/messages/ui-texts` — словарь UI‑текстов
+- `GET /api/messages/delete-user/{userId}` — подтверждение удаления пользователя
+- `GET /api/messages/delete-artifact/{artifactId}` — подтверждение удаления артефакта
+- `GET /api/messages/delete-mission/{missionId}` — подтверждение удаления миссии
+
+### Swagger UI
+Документация API: `http://localhost:8080/swagger-ui.html`
+
+## 📄 Лицензия
+
+Этот проект лицензирован под MIT License - см. файл [LICENSE](LICENSE) для деталей.
+
+## 👥 Команда
+
+Участники проекта:
+- Черемискина Алина — техлид, тимлид, главный разработчик
+- Иван Пестеров — создатель Telegram‑апса
+- Мария Голдовская — ручной тестировщик
+
+## 🗂️ Системные сообщения и контент
+
+### Сообщения (забиты в систему)
+В систему добавлены тексты подтверждений и UI‑сообщений, которые отдаются фронту через `/api/messages/*`:
+- Подтверждение завершения миссии: «Вы действительно хотите пометить миссию … как выполненную?»
+- Подтверждение удаления миссии у пользователя (с подстановкой имени/логина): «Вы уверены, что хотите удалить миссию … у пользователя …?»
+- Подтверждения удаления пользователя и артефакта.
+- UI‑словари (`/api/messages/ui-texts`) для унификации надписей (кнопки, заголовки, уведомления).
+
+Также на фронте реализованы мотивационные фразы «гуся‑помощника» (60+ фраз), появляющиеся контекстно и по таймеру.
+
+### Что такое Энергоны
+Энергон — внутренняя валюта платформы:
+- Начисляется за активности, может покупаться/тратиться через магазин.
+- Используется как стоимость товаров/бонусов, часть наград за миссии.
+- Изменяется через эндпоинты: добавление (`POST /api/users/{id}/energy`), списание (`POST /api/users/{id}/energy/spend`).
+- Отображается в профиле и в рейтинге (⚡ рядом с логином).
+
+### Лор (внутренняя вселенная)
+Проект стилизован под космическую станцию «Алабуга.TECH» с собственным лором:
+- Ранги — карьерные ступени «от кадета до хранителя станции».
+- Миссии — тематические поручения станции (часть требует модерации «ЦУП»).
+- Гусь‑помощник — персонаж‑мотиватор с фирменными репликами («alabu‑ga‑ga»).
+- Карты/артефакты — коллекционный элемент вселенной, усиливающий вовлечённость.
+
+### Описания компетенций
+Для каждой из 9 базовых компетенций заданы понятные названия и короткие описания (подсказки в UI):
+- «Сила Миссии» — вера в дело.
+- «Импульс Прорыва» — стремление к большему.
+- «Канал Связи» — общение.
+- «Модуль Аналитики» — аналитика.
+- «Пульт Командования» — командование.
+- «Кодекс Звёздного Права» — юриспруденция.
+- «Голограммное Мышление» — объёмное мышление.
+- «Кредитный Поток» — базовая экономика.
+- «Курс Аэронавигации» — основы аэронавигации.
+
+Каждая компетенция имеет лимиты (очки/уровни), визуализацию прогресса и может влиять на доступность контента.
+
+### Ветки развития
+Ветки (branch) описывают направления роста и влияют на требования рангов/контента:
+- Список веток доступен через `/api/branches`.
+- Пользователь связан с веткой (`branchId`) и получает релевантные требования рангов (`/api/ranks/requirements`).
+- В будущем — специализированные роли/миссии/карты под ветки.
+
+### 📱 Telegram-приложение
+У нас есть отдельное Telegram-приложение с тапалкой и гусем Гага:
+- **Игра**: Простая тапалка с гусем Гага для развлечения пользователей
+- **Порт**: Для тестирования можно переназначить порт (по умолчанию стандартный)
+- **Преимущества**: 
+  - Реклама в массах через Telegram
+  - Дополнительный канал взаимодействия с пользователями
+  - Интеграция с основной платформой через API
+- **Технологии**: Telegram Bot API, интеграция с основным backend
+
+---
+
+**Alabuga.TECH** - где каждый становится космическим пилотом! 🚀✨

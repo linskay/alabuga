@@ -28,14 +28,15 @@ public class AuthController {
     @Operation(summary = "Вход в систему")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String login = credentials.get("login");
-        // String password = credentials.get("password"); // Пока не используется, но может понадобиться в будущем
+        String password = credentials.get("password");
         
         if (login == null || login.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Логин не может быть пустым"));
         }
+        if (password == null || password.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Пароль не может быть пустым"));
+        }
         
-        // Для простоты пока что проверяем только существование пользователя
-        // В будущем можно добавить проверку пароля
         Optional<UserDTO> user = userService.getUserByLogin(login);
         
         if (user.isEmpty()) {
@@ -45,6 +46,16 @@ public class AuthController {
         // Проверяем, что пользователь активен
         if (!user.get().getIsActive()) {
             return ResponseEntity.status(401).body(Map.of("error", "Пользователь деактивирован"));
+        }
+        
+        // TODO: заменить на проверку BCrypt-хеша и JWT-токены.
+        // Для тестовой среды допускаем пароль == логин для пользователей admin/organizer/user
+        String normalized = login.trim().toLowerCase();
+        boolean allowedTestUser = normalized.equals("admin") || normalized.equals("organizer") || normalized.equals("user");
+        if (allowedTestUser) {
+            if (!password.equals(login)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Неверный логин или пароль"));
+            }
         }
         
         return ResponseEntity.ok(Map.of(

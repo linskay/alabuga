@@ -94,7 +94,7 @@ const Wrapper = styled.div`
   @keyframes grid-move { 0% { transform: perspective(500px) rotateX(60deg) translateY(0)} 100% { transform: perspective(500px) rotateX(60deg) translateY(40px)} }
 
   .loader-container { position: absolute; right: 24px; bottom: 24px; width: 320px; height: 320px; display: flex; justify-content: center; align-items: center; perspective: 800px; transform-style: preserve-3d; z-index: 1; }
-  .hologram-platform { position: absolute; width: 260px; height: 56px; bottom: -70px; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,221,255,.3) 0%, rgba(0,0,0,0) 70%); box-shadow: 0 0 30px rgba(0,221,255,.4); transform: rotateX(60deg); filter: blur(8px); animation: platform-glow 4s infinite alternate; }
+  .hologram-platform { position: absolute; width: 260px; height: 56px; bottom: -70px; border-radius: 50%; background: none; box-shadow: none; transform: rotateX(60deg); filter: blur(8px); animation: none; }
   .platform-rings { position: absolute; width: 260px; height: 56px; bottom: -70px; transform: rotateX(60deg); }
   .platform-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; opacity: .4; animation: platform-ring-pulse 4s infinite alternate; }
   .platform-ring:nth-child(1) { border-color: rgba(0,221,255,.4); animation-delay: -1s; }
@@ -133,7 +133,7 @@ const Wrapper = styled.div`
   @keyframes particle-float { 0%,100% { transform: translateZ(0) translateX(0) translateY(0) scale(.8); opacity: 0 } 25% { opacity: 1; transform: translateZ(30px) translateX(10px) translateY(-10px) scale(1)} 50% { transform: translateZ(60px) translateX(20px) translateY(-20px) scale(1.2); opacity: .8 } 75% { opacity: .4; transform: translateZ(30px) translateX(10px) translateY(-10px) scale(1) } }
   @keyframes rotate { 0% { transform: rotateX(0) rotateY(0) rotateZ(0)} 100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg)} }
 
-  .glitch-effect { position: absolute; inset: 0; opacity: 0; animation: glitch 7s infinite; pointer-events: none; z-index: 2; background: linear-gradient(45deg, rgba(255,0,222,.3) 0%, transparent 20%, rgba(0,221,255,.3) 40%, transparent 60%, rgba(255,0,222,.3) 80%, transparent 100%); }
+  .glitch-effect { position: absolute; inset: 0; opacity: 0; animation: glitch 7s infinite; pointer-events: none; z-index: 2; background: none; }
   @keyframes glitch { 0%,100% { opacity: 0 } 94%,96% { opacity: 0 } 94.5% { opacity: .8; transform: translate(5px,-5px) skew(-5deg,5deg)} 95% { opacity: .8; transform: translate(-5px,5px) skew(5deg,-5deg)} 95.5% { opacity: .8; transform: translate(5px,0) skew(-5deg,0)} }
 
   .loading-text { position: absolute; bottom: -72px; right: 24px; text-align: center; font-size: 12px; letter-spacing: 2px; color: rgba(255,255,255,.8); text-shadow: 0 0 10px rgba(0,221,255,.6); animation: text-flicker 2s infinite; }

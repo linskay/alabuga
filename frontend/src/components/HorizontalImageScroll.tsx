@@ -238,7 +238,7 @@ const HorizontalImageScroll: React.FC = () => {
             linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)
           `,
-          backgroundSize: '400px 1080px',
+          backgroundSize: `400px ${window.innerHeight}px`,
           backgroundPosition: '0px -100px'
         }}
       />
@@ -372,7 +372,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               {/* Облако с надписью */}
               <motion.div
-                className="absolute -top-2 left-1/2 transform -translate-x-1/2"
+                className="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 pointer-events-none"
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ 
                   opacity: scrollProgress >= 0 && scrollProgress <= 0.4 ? 0.85 : 0,
@@ -409,7 +409,7 @@ const HorizontalImageScroll: React.FC = () => {
               <img
                 src="/images/1.png"
                 alt="Space 1"
-                className="w-[800px] h-[800px] object-contain drop-shadow-2xl"
+                className="relative z-20 w-[800px] h-[800px] object-contain drop-shadow-2xl"
               />
             </motion.div>
           </div>
@@ -417,7 +417,7 @@ const HorizontalImageScroll: React.FC = () => {
           {/* Section 2 - Image 2 */}
           <div className="h-full flex items-end justify-center relative" style={{ width: '100vw' }}>
             <motion.div
-              className="relative z-20"
+              className="relative z-20 h-full flex items-end"
               initial={{ opacity: 0, x: 0, filter: "blur(20px)" }}
               animate={{ 
                 opacity: scrollProgress > 0.3 && scrollProgress <= 0.7 ? 1 : 0,
@@ -511,7 +511,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               {/* Облако с надписью */}
               <motion.div
-                className="absolute -top-20 left-1/2 transform -translate-x-1/2"
+                className="absolute bottom-32 right-8 z-30 pointer-events-none"
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ 
                   opacity: scrollProgress > 0.3 && scrollProgress <= 0.7 ? 1 : 0,
@@ -548,7 +548,7 @@ const HorizontalImageScroll: React.FC = () => {
               <img
                 src="/images/2.png"
                 alt="Space 2"
-                className="w-[800px] h-[800px] object-contain drop-shadow-2xl"
+                className="relative z-20 h-auto max-h-full w-auto object-contain drop-shadow-2xl"
               />
             </motion.div>
           </div>
@@ -556,7 +556,7 @@ const HorizontalImageScroll: React.FC = () => {
             {/* Section 3 - Image 3 */}
             <div className="h-full flex items-end justify-center relative" style={{ width: '100vw' }}>
             <motion.div
-              className="relative z-20 mt-8 sm:mt-12 md:mt-16 lg:mt-20"
+              className="relative z-20 h-full flex items-end"
               initial={{ opacity: 0, x: 0, filter: "blur(20px)" }}
               animate={{ 
                 opacity: scrollProgress > 0.6 ? 1 : 0,
@@ -678,7 +678,7 @@ const HorizontalImageScroll: React.FC = () => {
 
               {/* Облако с надписью */}
               <motion.div
-                className="absolute top-20 sm:top-24 md:top-28 lg:top-32 left-1/2 transform -translate-x-1/2"
+                className="absolute top-32 left-1/2 transform -translate-x-1/2 z-30 pointer-events-none"
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ 
                   opacity: scrollProgress > 0.6 ? 0.85 : 0,
@@ -715,7 +715,7 @@ const HorizontalImageScroll: React.FC = () => {
               <img
                 src="/images/3.png"
                 alt="Space 3"
-                className="h-[907px] w-auto object-contain drop-shadow-2xl"
+                className="relative z-20 h-auto max-h-full w-auto object-contain drop-shadow-2xl"
               />
 
             </motion.div>

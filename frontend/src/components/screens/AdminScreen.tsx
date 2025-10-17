@@ -9,10 +9,36 @@ import SystemNotification from '../SystemNotification';
 import ShinyText from '../ShinyText';
 import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
+import AdventCalendar, { AdventCalendarData } from '../AdventCalendar';
+import NeonEventCard from '../NeonEventCard';
+
+const AdventCalendarPreview: React.FC<{ days: number; items: Record<number, any>; centerTitle: string }>= ({ days, items, centerTitle }) => {
+  const cells = Array.from({ length: days }).map((_, i) => ({
+    id: i + 1,
+    opened: !!items[i + 1]?.opened,
+  }));
+  return (
+    <div className="space-y-3">
+      <div className="text-white/80 text-center text-sm">{centerTitle || 'Адвент‑Галактика'}</div>
+      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+        {cells.map(c => (
+          <div key={c.id} className={`relative rounded-lg p-3 border flex items-center justify-center select-none ${c.opened ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-white/10 bg-slate-800/60'}`}>
+            {/* simple cosmo icon */}
+            <svg viewBox="0 0 24 24" className="w-5 h-5 absolute top-1 left-1" fill="none" stroke={c.opened ? '#34d399' : '#94a3b8'} strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M2 12c4-3 16-3 20 0M2 12c4 3 16 3 20 0" />
+            </svg>
+            <span className={`font-semibold ${c.opened ? 'text-emerald-300' : 'text-white/80'}`}>{c.id}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const AdminScreen: React.FC = () => {
   const { refreshUserData } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts'>('crew');
+  const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts' | 'ranks' | 'events'>('crew');
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
   // Универсальная функция для обработки ошибок
@@ -35,7 +61,9 @@ const AdminScreen: React.FC = () => {
     { id: 'missions' as const, name: 'ЗАДАНИЯ', color: 'from-orange-400 to-red-500' },
     { id: 'analytics' as const, name: 'АНАЛИТИКА', color: 'from-purple-400 to-violet-500' },
     { id: 'shop' as const, name: 'МАГАЗИН', color: 'from-green-400 to-emerald-500' },
-    { id: 'artifacts' as const, name: 'АРТЕФАКТЫ', color: 'from-sky-400 to-indigo-500' }
+    { id: 'artifacts' as const, name: 'АРТЕФАКТЫ', color: 'from-sky-400 to-indigo-500' },
+    { id: 'ranks' as const, name: 'РАНГИ', color: 'from-cyan-400 to-blue-500' },
+    { id: 'events' as const, name: 'ИВЕНТЫ', color: 'from-fuchsia-400 to-pink-500' }
   ];
 
   const [users, setUsers] = useState<any[]>([]);
@@ -58,6 +86,96 @@ const AdminScreen: React.FC = () => {
   const [artifactSearch, setArtifactSearch] = useState<string>('');
   const [artifactSortKey, setArtifactSortKey] = useState<'name' | 'rarity' | 'createdAt' | 'isActive'>('name');
   const [artifactSortAsc, setArtifactSortAsc] = useState<boolean>(true);
+  const [ranksModal, setRanksModal] = useState<{ open: boolean; rankId?: string } | null>(null);
+  const [rankForm, setRankForm] = useState<{ afterLevel: number; name: string; requiredExperience: number; competencies: Record<string, number> }>({ afterLevel: 1, name: '', requiredExperience: 0, competencies: {
+    'Сила Миссии': 0,
+    'Импульс Прорыва': 0,
+    'Канал Связи': 0,
+    'Модуль Аналитики': 0,
+    'Пульт Командования': 0,
+    'Кодекс Звёздного Права': 0,
+    'Голограммное Мышление': 0,
+    'Кредитный Поток': 0,
+    'Курс Аэронавигации': 0,
+  } });
+
+  // Events tools state
+  const [countdownModal, setCountdownModal] = useState<{ open: boolean } | null>(null);
+  const [countdownForm, setCountdownForm] = useState<{ title: string; deadline: string; showOnMain: boolean; enabled: boolean }>({ title: '', deadline: '', showOnMain: true, enabled: true });
+  const [testShowOnMain, setTestShowOnMain] = useState<boolean>(false);
+  const [adventOpen, setAdventOpen] = useState<{ open: boolean }>({ open: false });
+  const [adventData, setAdventData] = useState<{ days: number; theme: 'motivation'|'rewards'|'tips'|'custom'; centerTitle: string; items: Record<number, { phrase?: string; reward?: string; tip?: string; task?: string; opened?: boolean }>}>({ days: 12, theme: 'motivation', centerTitle: 'Адвент‑Галактика', items: {} });
+  // Test constructor state
+  const [testOpen, setTestOpen] = useState<{ open: boolean }>({ open: false });
+  type TestQuestion = { id: number; image?: string; text: string; kind: 'Характер' | 'Мотивация' | 'Ценности'; answers: { label: string; scores: { Характер: number; Мотивация: number; Ценности: number } }[] };
+  const [testData, setTestData] = useState<{ title: string; description: string; questions: TestQuestion[] }>({ title: 'Космический профиль', description: 'Определи свой путь: характер, мотивация, ценности', questions: [
+    { id: 1, text: 'Что ведёт тебя в полёте?', kind: 'Мотивация', answers: [
+      { label: 'Жажда открытия', scores: { Характер: 0, Мотивация: 2, Ценности: 0 } },
+      { label: 'Командный долг', scores: { Характер: 1, Мотивация: 0, Ценности: 1 } }
+    ] },
+  ] });
+  // Lottery constructor state
+  const [lotteryOpen, setLotteryOpen] = useState<{ open: boolean }>({ open: false });
+  const [lotteryStep, setLotteryStep] = useState<number>(1);
+  const [lotteryData, setLotteryData] = useState<{
+    title: string;
+    description: string;
+    drawAt: string;
+    tickets: { count: number; mode: 'auto' | 'manual'; ids: string[]; rare: boolean };
+    prizes: { id: number; name: string; description?: string; qty: number; type: 'reward'|'artifact'|'ticket' }[];
+    visual: { shape: 'square'|'card'|'capsule'; glow: 'blue'|'violet'|'teal'|'pink'; background: 'stars'|'galaxy'|'portal' };
+  }>({
+    title: '',
+    description: '',
+    drawAt: '',
+    tickets: { count: 100, mode: 'auto', ids: [], rare: false },
+    prizes: [ { id: 1, name: 'Бонус опыта', qty: 10, type: 'reward' } ],
+    visual: { shape: 'card', glow: 'violet', background: 'stars' }
+  });
+
+  // Wheel of Fortune state
+  const [wheelOpen, setWheelOpen] = useState<{ open: boolean }>({ open: false });
+  type WheelSector = { id: number; name: string; description?: string; type: 'points'|'gift'|'promo'|'empty'; qty: number; weight: number; color: string; icon?: string };
+  const [wheelData, setWheelData] = useState<{ sectors: WheelSector[] }>({
+    sectors: [
+      { id: 1, name: '50 очков', type: 'points', qty: 1, weight: 3, color: '#22d3ee' },
+      { id: 2, name: 'Промокод', type: 'promo', qty: 1, weight: 2, color: '#a78bfa' },
+      { id: 3, name: 'Пусто', type: 'empty', qty: 0, weight: 1, color: '#334155' },
+    ]
+  });
+  const [wheelSpin, setWheelSpin] = useState<{ spinning: boolean; angle: number; result?: WheelSector }>(
+    { spinning: false, angle: 0 }
+  );
+
+  const spinWheel = () => {
+    const total = wheelData.sectors.reduce((s, x) => s + Math.max(0, x.weight), 0) || 1;
+    let r = Math.random() * total; let chosen = wheelData.sectors[0];
+    for (const s of wheelData.sectors) { r -= Math.max(0, s.weight); if (r <= 0) { chosen = s; break; } }
+    const idx = wheelData.sectors.findIndex(s => s.id === chosen.id);
+    const slice = 360 / Math.max(1, wheelData.sectors.length);
+    const target = 360 * 5 + (slice * idx) + slice / 2; // 5 оборотов + позиция сектора
+    setWheelSpin({ spinning: true, angle: target, result: chosen });
+    setTimeout(() => setWheelSpin(s => ({ ...s, spinning: false })), 4000);
+  };
+
+  // Competition Map state
+  const [compOpen, setCompOpen] = useState<{ open: boolean }>({ open: false });
+  type Stage = { id: number; name: string; goal?: string; reward?: string; icon?: string; active?: boolean };
+  const [compData, setCompData] = useState<{
+    title: string;
+    type: 'individual' | 'team';
+    dateStart: string;
+    dateEnd: string;
+    slogan?: string;
+    stages: Stage[];
+    participants: string[];
+    teams: { name: string; avatar?: string; members: string[] }[];
+  }>({
+    title: '', type: 'individual', dateStart: '', dateEnd: '', slogan: '',
+    stages: [ { id: 1, name: 'Старт', goal: 'Пройти тест', reward: '10 баллов', active: true } ],
+    participants: [],
+    teams: []
+  });
   // Загрузка пользователей из бэкенда
   useEffect(() => {
     (async () => {
@@ -81,7 +199,7 @@ const AdminScreen: React.FC = () => {
   const [userBranches, setUserBranches] = useState<any[]>([]);
   const [userMissions, setUserMissions] = useState<any[]>([]);
   const [showUserMissions, setShowUserMissions] = useState(false);
-  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
+  const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; userMissionId?: number; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
   const [confirmRemoveMission, setConfirmRemoveMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
   // Функции для получения сообщений подтверждения с бекенда
   const openDeleteUserConfirm = async (user: any) => {
@@ -154,8 +272,9 @@ const AdminScreen: React.FC = () => {
     try {
       const confirmation = await backend.messages.completeMission(mission.missionId);
       setConfirmCompleteMission({ 
-        open: true, 
-        missionId: mission.missionId, 
+        open: true,
+        userMissionId: mission.id,
+        missionId: mission.missionId,
         missionName: mission.missionName,
         title: confirmation.title,
         message: confirmation.message
@@ -163,8 +282,9 @@ const AdminScreen: React.FC = () => {
     } catch (e: any) {
       console.warn('Не удалось получить сообщение подтверждения:', e?.message);
       setConfirmCompleteMission({ 
-        open: true, 
-        missionId: mission.missionId, 
+        open: true,
+        userMissionId: mission.id,
+        missionId: mission.missionId,
         missionName: mission.missionName,
         title: 'Выполнение миссии',
         message: `Вы действительно хотите пометить миссию «${mission.missionName}» как выполненную?`
@@ -237,9 +357,9 @@ const AdminScreen: React.FC = () => {
   };
 
   // Функции для управления миссиями пользователя
-  const markMissionCompleted = (missionId: number, missionName: string) => {
-    // Находим миссию для получения данных
-    const mission = userMissions.find(m => m.missionId === missionId);
+  const markMissionCompleted = (userMissionId: number, missionName: string) => {
+    // Находим запись пользовательской миссии по её ID
+    const mission = userMissions.find(m => m.id === userMissionId);
     if (mission) {
       openCompleteMissionConfirm(mission);
     }
@@ -248,17 +368,25 @@ const AdminScreen: React.FC = () => {
   const confirmCompleteMissionAction = async () => {
     if (!confirmCompleteMission.missionId || !editUser?.id) return;
     try {
-      // Используем missionId из UserMission, а не id самой UserMission
-      const userMission = userMissions.find(m => m.id === confirmCompleteMission.missionId);
+      const userMission = userMissions.find(m => m.id === confirmCompleteMission.userMissionId);
       if (!userMission) {
         setNotif({ open: true, title: 'Ошибка', message: 'Миссия не найдена', variant: 'error' });
         return;
       }
-      
-      await backend.users.completeMission(editUser.id, userMission.missionId);
-      setUserMissions(prev => prev.map(m => 
-        m.id === confirmCompleteMission.missionId ? { ...m, status: 'COMPLETED' } : m
-      ));
+      try {
+        await backend.users.completeMission(editUser.id, userMission.missionId);
+      } catch (e: any) {
+        // Если завершение заблокировано модерацией, пробуем одобрить как админ
+        const msg = getErrorMessage(e) || '';
+        if (/модерац/i.test(msg) || /moder/i.test(msg)) {
+          await backend.missions.moderate(editUser.id, userMission.missionId, true);
+        } else {
+          throw e;
+        }
+      }
+      setUserMissions(prev => prev.map(m => (
+        m.id === confirmCompleteMission.userMissionId ? { ...m, status: 'COMPLETED', progress: 100 } : m
+      )));
       setNotif({ open: true, title: 'Миссия отмечена как выполненная', message: 'Миссия успешно отмечена как выполненная', variant: 'success' });
       setConfirmCompleteMission({ open: false });
     } catch (e: any) {
@@ -324,6 +452,19 @@ const AdminScreen: React.FC = () => {
       setNotif({ open: true, title: 'Ошибка удаления миссии', message: e?.message || 'Не удалось удалить миссию', variant: 'error' });
     }
   };
+  const openMissionStats = async (mission: any) => {
+    setMissionStatsModal({ open: true, loading: true, mission });
+    try {
+      const stats = await backend.statistics.mission(mission.id);
+      setMissionStatsModal({ open: true, loading: false, mission, data: stats });
+      // Показать краткую сводку через уведомление
+      const summary = `Назначений: ${stats.assignedTotal}; Завершено: ${stats.completedTotal}; В работе: ${stats.inProgressUsers}; Уникальных участников: ${stats.uniqueAssignees}`;
+      setNotif({ open: true, title: `Статистика миссии: ${stats.missionName || mission.name}`, message: summary, variant: 'info' });
+    } catch (e: any) {
+      setMissionStatsModal({ open: true, loading: false, mission, data: null, error: e?.message || 'Не удалось загрузить статистику' });
+      setNotif({ open: true, title: 'Не удалось загрузить статистику', message: e?.message || 'Ошибка запроса', variant: 'error' });
+    }
+  };
   const searchUsers = async (query: string) => {
     if (!query.trim()) return setAssignUserResults([]);
     try {
@@ -380,6 +521,7 @@ const AdminScreen: React.FC = () => {
   const [allCompetencies, setAllCompetencies] = useState<any[]>([]);
   const [artifactToggle, setArtifactToggle] = useState<boolean>(false);
   const [artifactList, setArtifactList] = useState<any[]>([]);
+  const [missionStatsModal, setMissionStatsModal] = useState<{ open: boolean; loading: boolean; mission?: any; data?: any | null; error?: string }>({ open: false, loading: false });
   const [selectedArtifactId, setSelectedArtifactId] = useState<number | null>(null);
   
   // Artifact modals
@@ -402,12 +544,36 @@ const AdminScreen: React.FC = () => {
   const [currentShopPage, setCurrentShopPage] = useState(1);
   const itemsPerPage = 10;
 
-  const analytics = [
-    { title: 'Активные пользователи', value: '1,247', change: '+12%', color: 'from-green-400 to-emerald-500' },
-    { title: 'Завершенные миссии', value: '3,456', change: '+8%', color: 'from-blue-400 to-cyan-500' },
-    { title: 'Средний уровень', value: '42', change: '+5%', color: 'from-purple-400 to-violet-500' },
-    { title: 'Время в системе', value: '2.4ч', change: '+15%', color: 'from-orange-400 to-red-500' }
-  ];
+  const [analytics, setAnalytics] = useState<Array<{ title: string; value: string; change: string; color: string }>>([]);
+  const [analyticsChart, setAnalyticsChart] = useState<{ labels: string[]; data: number[] } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await backend.statistics.overview();
+        if (!mounted || !stats) return;
+        setAnalytics([
+          { title: 'Активные пользователи', value: (stats.activeUsers ?? 0).toLocaleString(), change: `${stats.activeUsersGrowth ? (stats.activeUsersGrowth > 0 ? '+' : '') + stats.activeUsersGrowth.toFixed(0) : '0'}%`, color: 'from-green-400 to-emerald-500' },
+          { title: 'Завершенные миссии', value: (stats.completedMissions ?? 0).toLocaleString(), change: `${stats.completedMissionsGrowth ? (stats.completedMissionsGrowth > 0 ? '+' : '') + stats.completedMissionsGrowth.toFixed(0) : '0'}%`, color: 'from-blue-400 to-cyan-500' },
+          { title: 'Средний уровень', value: (stats.averageLevel ?? 0).toFixed(0), change: `${stats.averageLevelGrowth ? (stats.averageLevelGrowth > 0 ? '+' : '') + stats.averageLevelGrowth.toFixed(0) : '0'}%`, color: 'from-purple-400 to-violet-500' },
+          { title: 'Время в системе', value: `${(stats.averageTimeInSystem ?? 0).toFixed(1)}ч`, change: `${stats.averageTimeInSystemGrowth ? (stats.averageTimeInSystemGrowth > 0 ? '+' : '') + stats.averageTimeInSystemGrowth.toFixed(0) : '0'}%`, color: 'from-orange-400 to-red-500' }
+        ]);
+        try {
+          const chart = await backend.statistics.activityChart();
+          if (mounted && chart) {
+            const normalized = { labels: chart.labels || [], data: chart.data || [] };
+            setAnalyticsChart(normalized);
+            try { (window as any).__adminActivityChart = normalized; } catch {}
+          }
+        } catch {}
+      } catch (e) {
+        // без падения интерфейса
+        setAnalytics([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const [shopItems, setShopItems] = useState<any[]>([]);
   const [addProductOpen, setAddProductOpen] = useState(false);
@@ -935,6 +1101,14 @@ const AdminScreen: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  className="px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded text-purple-300 text-sm hover:bg-purple-500/30 transition-all duration-300"
+                  onClick={() => openMissionStats(mission)}
+                >
+                  Статистика
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="px-3 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-sm hover:bg-red-500/30 transition-all duration-300"
                   onClick={() => openDeleteMissionConfirm(mission)}
                 >
@@ -995,7 +1169,7 @@ const AdminScreen: React.FC = () => {
         ))}
       </div>
 
-      {/* Charts with CardTsup */}
+      {/* Charts with CardTsup — подключаем реальные данные */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1008,8 +1182,15 @@ const AdminScreen: React.FC = () => {
                 <span className="mr-2">📊</span>
                 Активность пользователей
               </h3>
-              <div className="h-48 bg-white/5 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400">График активности</span>
+              <div className="text-center text-gray-400">
+                <div className="text-sm">Данные за последние 7 дней:</div>
+                <div className="text-xs mt-1">
+                  {(analyticsChart?.labels || []).join(', ')}
+                </div>
+                <div className="text-sm mt-3">Активность:</div>
+                <div className="text-xs mt-1">
+                  {(analyticsChart?.data || []).join(', ')}
+                </div>
               </div>
             </div>
           </CardTsup>
@@ -1098,80 +1279,52 @@ const AdminScreen: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
             >
-              <CardTsup width="100%" height="250px">
-                <div className="p-6 h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="text-3xl">🛍️</div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-bold text-lg truncate" title={item.name}>{item.name}</h4>
-                        <div className="text-2xl font-bold text-green-400 flex items-center gap-1">
-                          {item.price} <Energon size={20} />
-                        </div>
-                      </div>
+              <NeonEventCard title={item.name} stickyFooter={false}>
+                <div className="w-full flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white/80 text-sm">
+                      <span>Цена:</span>
+                      <span className="text-white font-semibold">{item.price}</span>
+                      <Energon size={18} />
                     </div>
-                    
-                    <div className="space-y-2 text-sm text-gray-300">
-                      <div className="flex justify-between">
-                        <span>Продаж:</span>
-                        <span className="text-white">{item.sales}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Статус:</span>
-                        <NeonSwitch 
-                          checked={item.status === 'active'} 
-                          onChange={async (v: boolean) => {
-                            try {
-                              const updated = await backend.shop.update(item.id, { available: v });
-                              setShopItems(prev => prev.map(s => s.id === item.id ? { ...s, status: v ? 'active' : 'inactive' } : s));
-                            } catch (e: any) {
-                              setNotif({ open: true, title: 'Ошибка обновления статуса', message: getErrorMessage(e), variant: 'error' });
-                            }
-                          }} 
-                        />
-                      </div>
+                    <div className={`px-2 py-1 rounded text-[10px] font-medium ${item.status==='active'?'border border-green-400/40 text-green-300 bg-green-500/10':'border border-white/20 text-white/70 bg-white/5'}`}>{item.status==='active'?'АКТИВЕН':'НЕАКТИВЕН'}</div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-white/70 text-xs">Продаж: <span className="text-white">{item.sales}</span></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/70 text-xs">Статус</span>
+                      <NeonSwitch
+                        checked={item.status === 'active'}
+                        onChange={async (v: boolean) => {
+                          try {
+                            const updated = await backend.shop.update(item.id, { available: v });
+                            setShopItems(prev => prev.map(s => s.id === item.id ? { ...s, status: v ? 'active' : 'inactive' } : s));
+                          } catch (e: any) {
+                            setNotif({ open: true, title: 'Ошибка обновления статуса', message: getErrorMessage(e), variant: 'error' });
+                          }
+                        }}
+                      />
                     </div>
                   </div>
-                  
-                  <div className="mt-4 space-y-3">
-                    <div className={`px-3 py-1 rounded text-xs text-center ${
-                      item.status === 'active' ? 'bg-green-500/30 text-green-300' : 'bg-gray-500/30 text-gray-400'
-                    }`}>
-                      {item.status === 'active' ? 'АКТИВЕН' : 'НЕАКТИВЕН'}
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-1 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
-                        onClick={() => {
-                          setEditProductOpen(item);
-                          setEditProduct({ name: item.name, price: item.price, available: item.status === 'active', description: (item as any).description || '', imageUrl: (item as any).imageUrl || '' });
-                        }}
-                      >
-                        Редактировать
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-1 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-blue-300 text-xs hover:bg-blue-500/30 transition-all duration-300"
-                        onClick={() => setNotif({ open: true, title: 'Статистика', message: 'Функция в разработке', variant: 'info' })}
-                      >
-                        Статистика
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-1 py-1 bg-red-500/20 border border-red-400/30 rounded text-red-300 text-xs hover:bg-red-500/30 transition-all duration-300"
-                        onClick={() => handleDeleteProduct(item.id)}
-                      >
-                        Удалить
-                      </motion.button>
-                    </div>
+                  <div className="flex items-center justify-end gap-2">
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => { setEditProductOpen(item); setEditProduct({ name: item.name, price: item.price, available: item.status==='active', description: (item as any).description || '', imageUrl: (item as any).imageUrl || '' }); }}>
+                      Редактировать
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => setNotif({ open: true, title: 'Статистика', message: 'Функция в разработке', variant: 'info' })}>
+                      Статистика
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-red-500/10 text-red-200 ring-1 ring-red-400/40 hover:bg-red-500/20 text-xs"
+                      onClick={() => handleDeleteProduct(item.id)}>
+                      Удалить
+                    </motion.button>
                   </div>
                 </div>
-              </CardTsup>
+              </NeonEventCard>
             </motion.div>
           ))}
         </div>
@@ -1274,64 +1427,38 @@ const AdminScreen: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
             >
-              <CardTsup width="100%" height="220px">
-                <div className="p-6 h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="text-3xl">🔮</div>
-                      <div>
-                        <h4 className="text-white font-bold text-lg">{item.name}</h4>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-gray-300">
-                      <div className="flex items-center gap-3">
-                        <span>Активен:</span>
-                        <NeonSwitch checked={!!item.isActive} onChange={async (v: boolean) => {
-                          try {
-                            const updated = await backend.artifacts.update(item.id, { isActive: v });
-                            setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.isActive } : a));
-                          } catch (e: any) {
-                            setNotif({ open: true, title: 'Ошибка статуса артефакта', message: getErrorMessage(e), variant: 'error' });
-                          }
-                        }} />
-                      </div>
-                    </div>
+              <NeonEventCard title={item.name} subtitle={item.rarity ? `Редкость: ${item.rarity}` : 'Артефакт'} stickyFooter={false}>
+                <div className="w-full flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-white/80 text-xs">
+                    <span>Активен</span>
+                    <NeonSwitch checked={!!item.isActive} onChange={async (v: boolean) => {
+                      try {
+                        const updated = await backend.artifacts.update(item.id, { isActive: v });
+                        setArtifactList(prev => prev.map((a: any) => a.id === item.id ? { ...a, isActive: updated.isActive } : a));
+                      } catch (e: any) {
+                        setNotif({ open: true, title: 'Ошибка статуса артефакта', message: getErrorMessage(e), variant: 'error' });
+                      }
+                    }} />
                   </div>
-                  
-                  <div className="mt-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs hover:bg-white/20 transition-all duration-300"
-                        onClick={() => {
-                          setEditArtifactOpen(item);
-                          setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.isActive });
-                        }}
-                      >
-                        Редактировать
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-2 py-1 bg-green-500/20 border border-green-400/30 rounded text-green-300 text-xs hover:bg-green-500/30 transition-all duration-300"
-                        onClick={() => setAssignArtifactOpen(item)}
-                      >
-                        Назначить
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="col-span-2 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded text-red-200 text-xs hover:bg-red-500/40 transition-all duration-300 font-medium"
-                        onClick={() => openDeleteArtifactConfirm(item)}
-                      >
-                        Деактивировать
-                      </motion.button>
-                    </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => { setEditArtifactOpen(item); setEditArtifact({ name: item.name, shortDescription: item.shortDescription || '', imageUrl: item.imageUrl || '', rarity: item.rarity || 'COMMON', isActive: item.isActive }); }}>
+                      Редактировать
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-white/10 text-white ring-1 ring-white/50 hover:bg-white/20 backdrop-blur-sm text-xs"
+                      onClick={() => setAssignArtifactOpen(item)}>
+                      Назначить
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 rounded bg-red-500/10 text-red-200 ring-1 ring-red-400/40 hover:bg-red-500/20 text-xs"
+                      onClick={() => openDeleteArtifactConfirm(item)}>
+                      Удалить
+                    </motion.button>
                   </div>
                 </div>
-              </CardTsup>
+              </NeonEventCard>
             </motion.div>
           ))}
         </div>
@@ -1406,16 +1533,489 @@ const AdminScreen: React.FC = () => {
         {activeTab === 'analytics' && renderAnalyticsTab()}
         {activeTab === 'shop' && renderShopTab && renderShopTab()}
         {activeTab === 'artifacts' && renderArtifactsTab()}
+        {activeTab === 'ranks' && (
+          <div className="mt-6 space-y-4">
+            <div className="text-white"><ShinyText text="УПРАВЛЕНИЕ РАНГАМИ" className="text-2xl font-bold" /></div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {[{id:'cadet',name:'Космо-Кадет',level:1},{id:'nav',name:'Навигатор Траекторий',level:2},{id:'analyst',name:'Аналитик Орбит',level:3},{id:'architect',name:'Архитектор Станции',level:4},{id:'keeper',name:'Хранитель Станции',level:5},
+                {id:'chronicler',name:'Хронист Галактики',level:2},{id:'culturalist',name:'Исследователь Культур',level:3},{id:'lecturer',name:'Мастер Лектория',level:4},
+                {id:'communicator',name:'Связист Звёздного Флота',level:2},{id:'crew-nav',name:'Штурман Экипажа',level:3},{id:'commander',name:'Командир Отряда',level:4}].map(r => (
+                <div key={r.id} onClick={() => { setRanksModal({ open: true, rankId: r.id }); setRankForm(v=>({ ...v, name: r.name, afterLevel: Math.max(1, r.level-1) })); }} className="cursor-pointer">
+                  <NeonEventCard title={r.name}>
+                    <div className="w-full flex items-center justify-between">
+                      <span className="text-white/70 text-xs">Уровень {r.level}</span>
+                      <button onClick={(e)=>{ e.stopPropagation(); setRanksModal({ open: true, rankId: r.id }); setRankForm(v=>({ ...v, name: r.name, afterLevel: Math.max(1, r.level-1) })); }} className="px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Открыть</button>
+                    </div>
+                  </NeonEventCard>
+                </div>
+              ))}
+            </div>
+
+            {ranksModal?.open && (
+              <div className="fixed inset-0 z-[300] flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/70" onClick={() => setRanksModal(null)} />
+                <div className="relative z-[310] w-[92%] max-w-2xl bg-slate-900/90 border border-cyan-400/30 rounded-2xl p-5">
+                  <div className="text-white"><ShinyText text="НАСТРОЙКИ РАНГА" className="text-xl font-bold" /></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <label className="text-sm text-white/80">Доступен после ранга
+                      <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={rankForm.afterLevel} onChange={e=>setRankForm(v=>({ ...v, afterLevel: Number(e.target.value) }))}>
+                        {[1,2,3,4].map(n=> <option key={n} value={n} className="bg-slate-800">{n}</option>)}
+                      </select>
+                    </label>
+                    <label className="text-sm text-white/80">Название ранга
+                      <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={rankForm.name} onChange={e=>setRankForm(v=>({ ...v, name: e.target.value }))} />
+                    </label>
+                    <label className="text-sm text-white/80">Требуемый опыт
+                      <input type="number" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={rankForm.requiredExperience} onChange={e=>setRankForm(v=>({ ...v, requiredExperience: Math.max(0, Number(e.target.value)) }))} />
+                    </label>
+                  </div>
+                  <div className="mt-4">
+                    <div className="text-white/90 text-sm mb-2">Требования по компетенциям</div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      {Object.keys(rankForm.competencies).map((k)=> (
+                        <label key={k} className="text-xs text-white/80">{k}
+                          <input type="number" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={rankForm.competencies[k]} onChange={e=>setRankForm(v=>({ ...v, competencies: { ...v.competencies, [k]: Math.max(0, Number(e.target.value)) } }))} />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5">
+                    <button onClick={()=>setRanksModal(null)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Отмена</button>
+                    <button onClick={()=>{ /* TODO: backend save */ setRanksModal(null); }} className="px-4 py-2 rounded-md bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30">Сохранить</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'events' && (
+          <div className="mt-6 space-y-5">
+            <div className="text-white"><ShinyText text="ИНСТРУМЕНТЫ ИВЕНТОВ" className="text-2xl font-bold" /></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <NeonEventCard title="Счётчик" subtitle="Обратный отсчёт" description="Покажите, сколько осталось до события или конца акции. Эффект срочности и вовлечения.">
+              <NeonSwitch checked={countdownForm.enabled} onChange={(v:boolean)=>setCountdownForm(s=>({ ...s, enabled: v }))} />
+              <button onClick={()=>setCountdownModal({ open:true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
+
+            <NeonEventCard title="Тесты" subtitle="Конструктор" description="Создавайте тесты по характеру, мотивации и ценностям. Используйте результаты для персонализации.">
+              <NeonSwitch checked={testShowOnMain} onChange={setTestShowOnMain} />
+              <button onClick={()=>setTestOpen({ open: true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
+
+            <NeonEventCard title="Адвент‑календарь" subtitle="Конструктор" description="Ежедневные задания/подарки/советы. Формируйте привычку и поддерживайте интерес.">
+              <button onClick={()=>setAdventOpen({ open: true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
+
+            <NeonEventCard title="Карта соревнования" subtitle="Конструктор" description="Маршрут из этапов с целями и наградами. Индивидуальные или командные сценарии.">
+              <button onClick={()=>setCompOpen({ open:true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
+
+            <NeonEventCard title="Лотерея" subtitle="Конструктор" description="Раздавайте билеты, настраивайте призы и визуал. Проводите розыгрыши для вовлечения.">
+              <button onClick={()=>{ setLotteryOpen({ open:true }); setLotteryStep(1); }} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
+
+            <NeonEventCard title="Колесо фортуны" subtitle="Конструктор" description="Редактируйте сектора, настраивайте веса и тестируйте вращение.">
+              <button onClick={()=>setWheelOpen({ open:true })} className="btn-create px-3 py-1.5 rounded-md bg-white/10 text-white ring-1 ring-white/60 hover:bg-white/20 backdrop-blur-sm transition">Создать</button>
+            </NeonEventCard>
+            </div>
+
+            {/* Countdown Modal */}
+            {countdownModal?.open && (
+              <div className="fixed inset-0 z-[300] flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/70" onClick={()=>setCountdownModal(null)} />
+                <div className="relative z-[310] w-[92%] max-w-xl rounded-2xl p-5" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(34,211,238,0.12))', boxShadow: '0 0 40px rgba(34,211,238,0.25), inset 0 0 20px rgba(34,211,238,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                  <div className="text-white"><ShinyText text="СЧЁТЧИК ОБРАТНОГО ОТСЧЁТА" className="text-xl font-bold" /></div>
+                  <div className="grid grid-cols-1 gap-3 mt-3">
+                    <label className="text-sm text-white/80">Заголовок
+                      <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={countdownForm.title} onChange={e=>setCountdownForm(s=>({ ...s, title: e.target.value }))} />
+                    </label>
+                    <label className="text-sm text-white/80">Дата и время окончания
+                      <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={countdownForm.deadline} onChange={e=>setCountdownForm(s=>({ ...s, deadline: e.target.value }))} />
+                    </label>
+                    <label className="text-sm text-white/80 flex items-center gap-3">Показывать на главной (в профиле всплывающим блоком)
+                      <NeonSwitch checked={countdownForm.showOnMain} onChange={(v:boolean)=>setCountdownForm(s=>({ ...s, showOnMain: v }))} />
+                    </label>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5">
+                    <button onClick={()=>setCountdownModal(null)} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Отмена</button>
+                    <button onClick={()=>{ /* TODO: save and propagate */ setCountdownModal(null); }} className="px-4 py-2 rounded-md bg-white text-slate-900 font-semibold">Сохранить</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {/* Lottery Constructor Modal */}
+          {lotteryOpen.open && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/70" onClick={()=>setLotteryOpen({ open:false })} />
+              <div className="relative z-[310] w-[96%] max-w-6xl rounded-2xl p-4 md:p-5 max-h-[88vh] overflow-hidden flex flex-col" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(167,139,250,0.12))', boxShadow: '0 0 60px rgba(167,139,250,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <div className="text-white"><ShinyText text="КОНСТРУКТОР ЛОТЕРЕИ" className="text-xl font-bold" /></div>
+                {/* no extra decorations, keep constructor neutral */}
+
+                {/* Steps header with titles */}
+                <div className="flex items-center gap-2 mt-3 text-white/80 text-xs flex-wrap">
+                  {[
+                    { n:1, t:'Основное' },
+                    { n:2, t:'Билеты' },
+                    { n:3, t:'Призы' },
+                    { n:4, t:'Визуал' },
+                    { n:5, t:'Подтверждение' },
+                  ].map(s=> (
+                    <div key={s.n} className={`px-2 py-1 rounded-full border ${lotteryStep===s.n? 'border-yellow-400 text-yellow-300':'border-white/15 text-white/60'}`}>Шаг {s.n}: {s.t}</div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex-1 overflow-auto pr-1">
+                    {lotteryStep===1 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="md:col-span-2 text-white/80 text-sm">
+                          <div className="mb-1">Что нужно заполнить:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>✨ Название лотереи</li>
+                            <li>Краткое описание (что разыгрывается)</li>
+                            <li>🗓 Дата и время розыгрыша</li>
+                          </ul>
+                        </div>
+                        <label className="text-sm text-white/80">Название лотереи ✨
+                          <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.title} onChange={e=>setLotteryData(s=>({ ...s, title: e.target.value }))} />
+                        </label>
+                        <label className="text-sm text-white/80">Дата и время розыгрыша
+                          <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.drawAt} onChange={e=>setLotteryData(s=>({ ...s, drawAt: e.target.value }))} />
+                        </label>
+                        <label className="text-sm text-white/80 md:col-span-2">Краткое описание
+                          <textarea rows={3} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.description} onChange={e=>setLotteryData(s=>({ ...s, description: e.target.value }))} />
+                        </label>
+                      </div>
+                    )}
+
+                    {lotteryStep===2 && (
+                      <div className="space-y-3">
+                        <div className="text-white/80 text-sm">
+                          <div className="mb-1">Настройте билеты:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>🎟 Количество билетов</li>
+                            <li>Режим: Автоматическая генерация или ручная загрузка списка ID</li>
+                            <li>🌟 Опция «Редкий билет» с особым свечением</li>
+                          </ul>
+                        </div>
+                        <label className="text-sm text-white/80">Количество билетов 🎟
+                          <input type="number" min={1} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white max-w-xs" value={lotteryData.tickets.count} onChange={e=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, count: Math.max(1, Number(e.target.value)) } }))} />
+                        </label>
+                        <div className="flex items-center gap-3 text-white/80 text-sm">
+                          <span>Режим:</span>
+                          <button onClick={()=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, mode: 'auto' } }))} className={`px-3 py-1 rounded border ${lotteryData.tickets.mode==='auto'?'border-yellow-400 text-yellow-300':'border-white/15 text-white/70'}`}>Авто‑генерация</button>
+                          <button onClick={()=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, mode: 'manual' } }))} className={`px-3 py-1 rounded border ${lotteryData.tickets.mode==='manual'?'border-yellow-400 text-yellow-300':'border-white/15 text-white/70'}`}>Ручная загрузка</button>
+                        </div>
+                        {lotteryData.tickets.mode==='manual' && (
+                          <textarea rows={4} placeholder="ticket-001, ticket-002, ..." className="w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.tickets.ids.join(', ')} onChange={e=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, ids: e.target.value.split(',').map(x=>x.trim()).filter(Boolean) } }))} />
+                        )}
+                        <label className="flex items-center gap-2 text-white/80 text-sm">
+                          <input type="checkbox" checked={lotteryData.tickets.rare} onChange={e=>setLotteryData(s=>({ ...s, tickets: { ...s.tickets, rare: e.target.checked } }))} />
+                          Опция «Редкий билет» с особым свечением 🌟
+                        </label>
+                      </div>
+                    )}
+
+                    {lotteryStep===3 && (
+                      <div className="space-y-3">
+                        <div className="text-white/80 text-sm">
+                          <div className="mb-1">Добавьте призы:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>Название, описание, количество</li>
+                            <li>Тип: 🎁 награда, 💎 артефакт, 🎫 дополнительный билет</li>
+                          </ul>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="text-white/80 text-sm">Призы</div>
+                          <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setLotteryData(s=>({ ...s, prizes: [...s.prizes, { id: (s.prizes.at(-1)?.id||0)+1, name: '', qty: 1, type: 'reward' }] }))}>Добавить приз</button>
+                        </div>
+                        <div className="space-y-2 max-h-[50vh] overflow-auto">
+                          {lotteryData.prizes.map((p,pi)=> (
+                            <div key={p.id} className="grid grid-cols-1 md:grid-cols-5 gap-2 border border-white/10 rounded p-2 bg-slate-900/60">
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={p.name} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], name: e.target.value }; return { ...s, prizes: arr }; })} />
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Описание" value={p.description||''} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], description: e.target.value }; return { ...s, prizes: arr }; })} />
+                              <input type="number" min={1} className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Кол-во" value={p.qty} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], qty: Math.max(1, Number(e.target.value)) }; return { ...s, prizes: arr }; })} />
+                              <select className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={p.type} onChange={e=>setLotteryData(s=>{ const arr=[...s.prizes]; arr[pi]={ ...arr[pi], type: e.target.value as any }; return { ...s, prizes: arr }; })}>
+                                <option className="bg-slate-800" value="reward">🎁 Награда</option>
+                                <option className="bg-slate-800" value="artifact">💎 Артефакт</option>
+                                <option className="bg-slate-800" value="ticket">🎫 Доп. билет</option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {lotteryStep===4 && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="md:col-span-3 text-white/80 text-sm">
+                          <div className="mb-1">Оформление:</div>
+                          <ul className="list-disc list-inside text-white/70 text-xs space-y-1">
+                            <li>Форма билета (квадрат/карточка/капсула)</li>
+                            <li>Цвет неонового свечения (синий, фиолетовый, бирюзовый, розовый)</li>
+                            <li>Фон сцены (звёзды, галактика, портал)</li>
+                          </ul>
+                        </div>
+                        <label className="text-sm text-white/80">Стиль билета
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.visual.shape} onChange={e=>setLotteryData(s=>({ ...s, visual: { ...s.visual, shape: e.target.value as any } }))}>
+                            <option className="bg-slate-800" value="square">Квадрат</option>
+                            <option className="bg-slate-800" value="card">Карточка</option>
+                            <option className="bg-slate-800" value="capsule">Капсула</option>
+                          </select>
+                        </label>
+                        <label className="text-sm text-white/80">Цвет свечения
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.visual.glow} onChange={e=>setLotteryData(s=>({ ...s, visual: { ...s.visual, glow: e.target.value as any } }))}>
+                            <option className="bg-slate-800" value="blue">Синий</option>
+                            <option className="bg-slate-800" value="violet">Фиолетовый</option>
+                            <option className="bg-slate-800" value="teal">Бирюзовый</option>
+                            <option className="bg-slate-800" value="pink">Розовый</option>
+                          </select>
+                        </label>
+                        <label className="text-sm text-white/80">Фон сцены
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={lotteryData.visual.background} onChange={e=>setLotteryData(s=>({ ...s, visual: { ...s.visual, background: e.target.value as any } }))}>
+                            <option className="bg-slate-800" value="stars">Звёзды</option>
+                            <option className="bg-slate-800" value="galaxy">Галактика</option>
+                            <option className="bg-slate-800" value="portal">Портал</option>
+                          </select>
+                        </label>
+                      </div>
+                    )}
+
+                    {lotteryStep===5 && (
+                      <div className="space-y-2 text-white/80 text-sm">
+                        <div><span className="text-white/60">Название:</span> {lotteryData.title||'—'}</div>
+                        <div><span className="text-white/60">Дата розыгрыша:</span> {lotteryData.drawAt||'—'}</div>
+                        <div><span className="text-white/60">Билетов:</span> {lotteryData.tickets.mode==='auto'? lotteryData.tickets.count : lotteryData.tickets.ids.length}</div>
+                        <div><span className="text-white/60">Призы:</span> {lotteryData.prizes.map(p=>p.name||'без имени').join(', ')}</div>
+                      </div>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-white/10">
+                  <div className="flex items-center gap-2">
+                    <button disabled={lotteryStep<=1} onClick={()=>setLotteryStep(s=>Math.max(1,s-1))} className={`px-3 py-1.5 rounded border ${lotteryStep<=1? 'border-white/10 text-white/30':'border-white/20 text-white/80 hover:bg-white/10'}`}>Назад</button>
+                    <button disabled={lotteryStep>=5} onClick={()=>setLotteryStep(s=>Math.min(5,s+1))} className={`px-3 py-1.5 rounded border ${lotteryStep>=5? 'border-white/10 text-white/30':'border-white/20 text-white/80 hover:bg-white/10'}`}>Далее</button>
+                    <span className="text-white/50 text-xs">Шаг {lotteryStep} из 5</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={()=>setLotteryOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+                    {lotteryStep===5 && (
+                      <button onClick={()=>{ /* TODO: launch */ setLotteryOpen({ open:false }); }} className="px-4 py-2 rounded-md bg-yellow-500/20 border border-yellow-400/40 text-yellow-200 hover:bg-yellow-500/30">Запустить лотерею 🚀</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Competition Map Modal (neon cosmic) */}
+          {compOpen.open && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/80" onClick={()=>setCompOpen({ open:false })} />
+              <div className="relative z-[310] w-[96%] max-w-7xl rounded-2xl p-5" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.15))', boxShadow: '0 0 60px rgba(99,102,241,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <div className="text-white mb-3"><ShinyText text="КОНСТРУКТОР КАРТЫ СОРЕВНОВАНИЯ" className="text-xl font-bold" /></div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[80vh] overflow-hidden">
+                  {/* Left: settings */}
+                  <div className="overflow-auto pr-1 space-y-3">
+                    <label className="text-sm text-white/80">Название соревнования
+                      <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.title} onChange={e=>setCompData(s=>({ ...s, title: e.target.value }))} />
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <label className="text-sm text-white/80">Тип
+                        <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.type} onChange={e=>setCompData(s=>({ ...s, type: e.target.value as any }))}>
+                          <option className="bg-slate-800" value="individual">Индивидуальное</option>
+                          <option className="bg-slate-800" value="team">Командное</option>
+                        </select>
+                      </label>
+                      <label className="text-sm text-white/80">Слоган
+                        <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.slogan} onChange={e=>setCompData(s=>({ ...s, slogan: e.target.value }))} />
+                      </label>
+                      <label className="text-sm text-white/80">Дата начала
+                        <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.dateStart} onChange={e=>setCompData(s=>({ ...s, dateStart: e.target.value }))} />
+                      </label>
+                      <label className="text-sm text-white/80">Дата окончания
+                        <input type="datetime-local" className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.dateEnd} onChange={e=>setCompData(s=>({ ...s, dateEnd: e.target.value }))} />
+                      </label>
+                    </div>
+
+                    {/* Stages */}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-white/80 text-sm">Этапы</div>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setCompData(s=>({ ...s, stages: [...s.stages, { id: (s.stages.at(-1)?.id||0)+1, name: '', goal: '', reward: '' }] }))}>Добавить этап</button>
+                    </div>
+                    <div className="space-y-2">
+                      {compData.stages.map((st, si)=> (
+                        <div key={st.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-2 rounded border border-white/15 bg-slate-900/70">
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={st.name} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], name: e.target.value }; return { ...s, stages:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Цель" value={st.goal||''} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], goal: e.target.value }; return { ...s, stages:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Награда" value={st.reward||''} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], reward: e.target.value }; return { ...s, stages:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Иконка URL" value={st.icon||''} onChange={e=>setCompData(s=>{ const a=[...s.stages]; a[si]={ ...a[si], icon: e.target.value }; return { ...s, stages:a }; })} />
+                          <div className="flex items-center gap-2">
+                            <button className="px-2 py-1 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ if (si===0) return; setCompData(s=>{ const a=[...s.stages]; const [m]=a.splice(si,1); a.splice(si-1,0,m); return { ...s, stages:a }; }); }}>▲</button>
+                            <button className="px-2 py-1 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ setCompData(s=>{ const a=[...s.stages]; const [m]=a.splice(si,1); a.splice(Math.min(a.length, si+1),0,m); return { ...s, stages:a }; }); }}>▼</button>
+                            <button className="text-red-300 border border-red-400/40 rounded px-2 py-1 hover:bg-red-500/10" onClick={()=>setCompData(s=>({ ...s, stages: s.stages.filter(x=>x.id!==st.id) }))}>Удалить</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Participants/Teams */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                      <label className="text-sm text-white/80">Участники (через запятую)
+                        <textarea rows={3} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={compData.participants.join(', ')} onChange={e=>setCompData(s=>({ ...s, participants: e.target.value.split(',').map(x=>x.trim()).filter(Boolean) }))} />
+                      </label>
+                      <div>
+                        <div className="flex items-center justify-between text-white/80 text-sm mb-2">
+                          <span>Команды</span>
+                          <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setCompData(s=>({ ...s, teams: [...s.teams, { name: 'Команда', members: [] }] }))}>Добавить команду</button>
+                        </div>
+                        <div className="space-y-2 max-h-[24vh] overflow-auto">
+                          {compData.teams.map((tm, ti)=> (
+                            <div key={ti} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-2 rounded border border-white/15 bg-slate-900/70">
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={tm.name} onChange={e=>setCompData(s=>{ const a=[...s.teams]; a[ti]={ ...a[ti], name: e.target.value }; return { ...s, teams:a }; })} />
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Аватар URL" value={tm.avatar||''} onChange={e=>setCompData(s=>{ const a=[...s.teams]; a[ti]={ ...a[ti], avatar: e.target.value }; return { ...s, teams:a }; })} />
+                              <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Участники (через запятую)" value={tm.members.join(', ')} onChange={e=>setCompData(s=>{ const a=[...s.teams]; a[ti]={ ...a[ti], members: e.target.value.split(',').map(x=>x.trim()).filter(Boolean) }; return { ...s, teams:a }; })} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ const json = JSON.stringify(compData, null, 2); navigator.clipboard.writeText(json); }}>Экспорт (JSON)</button>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{ const input = prompt('Вставьте JSON конфигурации:'); if (!input) return; try { const obj = JSON.parse(input); setCompData(obj); } catch {} }}>Импорт (JSON)</button>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10">Предпросмотр для пользователя</button>
+                    </div>
+                  </div>
+
+                  {/* Right: simple list preview map */}
+                  <div className="border border-white/15 rounded-xl p-4 bg-slate-900/70 overflow-auto">
+                    <div className="text-white/80 text-sm mb-2">Превью карты (упрощённое)</div>
+                    <div className="space-y-2">
+                      {compData.stages.map((st, i)=> (
+                        <div key={st.id} className="flex items-center gap-3">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold`} style={{ background: st.active? '#a78bfa':'#1f2937', color: '#fff', boxShadow: st.active? '0 0 10px rgba(167,139,250,0.7)':'none' }}>{i+1}</div>
+                          <div className="flex-1">
+                            <div className="text-white/90 text-sm">{st.name || `Этап ${i+1}`}</div>
+                            <div className="text-white/60 text-xs">{st.goal || 'Цель не задана'} • {st.reward || 'Награда не задана'}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {compData.stages.length === 0 && (
+                        <div className="text-white/50 text-sm">Этапы не добавлены</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+                  <button onClick={()=>setCompOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+                  <button onClick={()=>{/* TODO: save */ setCompOpen({ open:false });}} className="px-4 py-2 rounded-md bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 hover:bg-indigo-500/30">Сохранить</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wheel of Fortune Modal (neon cosmic) */}
+          {wheelOpen.open && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/80" onClick={()=>setWheelOpen({ open:false })} />
+              <div className="relative z-[310] w-[96%] max-w-6xl rounded-2xl p-4 md:p-6" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.15))', boxShadow: '0 0 60px rgba(168,85,247,0.25), inset 0 0 30px rgba(34,211,238,0.15)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <div className="text-white mb-3"><ShinyText text="КОНСТРУКТОР КОЛЕСА ФОРТУНЫ" className="text-xl font-bold" /></div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[80vh] overflow-hidden">
+                  {/* Left: sectors list and editor */}
+                  <div className="overflow-auto pr-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-white/80 text-sm">Сектора</div>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setWheelData(s=>({ ...s, sectors: [...s.sectors, { id: (s.sectors.at(-1)?.id||0)+1, name: '', type: 'points', qty: 1, weight: 1, color: '#22d3ee' }] }))}>Добавить сектор</button>
+                    </div>
+                    <div className="space-y-2">
+                      {wheelData.sectors.map((sec, si)=> (
+                        <div key={sec.id} className="grid grid-cols-1 md:grid-cols-6 gap-2 p-2 rounded border border-white/15 bg-slate-900/70">
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Название" value={sec.name} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], name: e.target.value }; return { ...s, sectors:a }; })} />
+                          <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Описание" value={sec.description||''} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], description: e.target.value }; return { ...s, sectors:a }; })} />
+                          <select className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={sec.type} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], type: e.target.value as any }; return { ...s, sectors:a }; })}>
+                            <option className="bg-slate-800" value="points">Баллы</option>
+                            <option className="bg-slate-800" value="gift">Подарок</option>
+                            <option className="bg-slate-800" value="promo">Промокод</option>
+                            <option className="bg-slate-800" value="empty">Пусто</option>
+                          </select>
+                          <input type="number" min={0} className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Кол-во" value={sec.qty} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], qty: Math.max(0, Number(e.target.value)) }; return { ...s, sectors:a }; })} />
+                          <input type="number" min={0} className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="Вес" value={sec.weight} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], weight: Math.max(0, Number(e.target.value)) }; return { ...s, sectors:a }; })} />
+                          <div className="flex items-center gap-2">
+                            <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white w-full" placeholder="#HEX цвет" value={sec.color} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], color: e.target.value }; return { ...s, sectors:a }; })} />
+                            <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white w-full" placeholder="Иконка URL" value={sec.icon||''} onChange={e=>setWheelData(s=>{ const a=[...s.sectors]; a[si]={ ...a[si], icon: e.target.value }; return { ...s, sectors:a }; })} />
+                            <button className="text-red-300 border border-red-400/40 rounded px-2 py-1 hover:bg-red-500/10" onClick={()=>setWheelData(s=>({ ...s, sectors: s.sectors.filter(x=>x.id!==sec.id) }))}>Удалить</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{
+                        const json = JSON.stringify(wheelData, null, 2);
+                        navigator.clipboard.writeText(json);
+                      }}>Экспорт (JSON)</button>
+                      <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>{
+                        const input = prompt('Вставьте JSON конфигурации:');
+                        if (!input) return; try { const obj = JSON.parse(input); setWheelData(obj); } catch {}
+                      }}>Импорт (JSON)</button>
+                    </div>
+                  </div>
+
+                  {/* Right: wheel preview */}
+                  <div className="border border-white/15 rounded-xl p-4 bg-slate-900/70 overflow-auto">
+                    <div className="text-white/80 text-sm mb-2">Превью колеса</div>
+                    <div className="flex items-center justify-center">
+                      <div className="relative" style={{ width: 300, height: 300 }}>
+                        <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(167,139,250,0.4), inset 0 0 20px rgba(34,211,238,0.25)' }} />
+                        <svg viewBox="0 0 100 100" className="w-full h-full rounded-full" style={{ transform: `rotate(${wheelSpin.angle}deg)`, transition: wheelSpin.spinning ? 'transform 4s cubic-bezier(0.19, 1, 0.22, 1)' : 'none', background: 'radial-gradient(circle at 50% 50%, rgba(2,6,23,0.8), rgba(2,6,23,0.95))' }}>
+                          {wheelData.sectors.map((s, i) => {
+                            const total = wheelData.sectors.length;
+                            const a0 = (i / total) * 2 * Math.PI; const a1 = ((i+1) / total) * 2 * Math.PI;
+                            const x0 = 50 + 50 * Math.cos(a0), y0 = 50 + 50 * Math.sin(a0);
+                            const x1 = 50 + 50 * Math.cos(a1), y1 = 50 + 50 * Math.sin(a1);
+                            const d = `M50,50 L${x0},${y0} A50,50 0 0,1 ${x1},${y1} z`;
+                            return <path key={s.id} d={d} fill={s.color} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />;
+                          })}
+                        </svg>
+                        {/* pointer */}
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0" style={{ borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '14px solid #fff' }} />
+                      </div>
+                    </div>
+                    <div className="flex justify-center mt-3">
+                      <button onClick={spinWheel} className="px-4 py-2 rounded-md border border-pink-400/40 text-pink-200 hover:bg-pink-500/10">Тестировать розыгрыш</button>
+                    </div>
+                    {wheelSpin.result && !wheelSpin.spinning && (
+                      <div className="text-center text-white/90 mt-2">Выпало: {wheelSpin.result.name}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+                  <button onClick={()=>setWheelOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+                  <button onClick={()=>{/* TODO: save local */ setWheelOpen({ open:false });}} className="px-4 py-2 rounded-md bg-fuchsia-500/20 border border-fuchsia-400/40 text-fuchsia-200 hover:bg-fuchsia-500/30">Сохранить настройки</button>
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
+        )}
       </motion.div>
 
-      {/* Pyramid Loader Component */}
+      {/* Decorative Pyramid - bottom-right, subtle, non-interactive */}
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
-        className="mt-12 flex justify-end"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ duration: 0.8, delay: 1.0 }}
+        className="fixed right-6 bottom-20 pointer-events-none z-0"
+        style={{ filter: 'drop-shadow(0 0 18px rgba(99,102,241,0.35))' }}
       >
-        <PyramidLoader />
+        <div style={{ opacity: 0.8 }}>
+          <PyramidLoader />
+        </div>
       </motion.div>
 
       <SystemNotification
@@ -2205,9 +2805,164 @@ const AdminScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Advent Constructor Modal */}
+      {adventOpen.open && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={()=>setAdventOpen({ open:false })} />
+          <div className="relative z-[310] w-[95%] max-w-5xl rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(59,130,246,0.12))', boxShadow: '0 0 50px rgba(59,130,246,0.25), inset 0 0 24px rgba(34,211,238,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            <div className="text-white"><ShinyText text="КОНСТРУКТОР АДВЕНТ‑КАЛЕНДАРЯ" className="text-xl font-bold" /></div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4 flex-1 overflow-hidden">
+              {/* Editor */}
+              <div className="space-y-3 overflow-auto pr-1">
+                <label className="text-sm text-white/80">Название в центре
+                  <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={adventData.centerTitle} onChange={e=>setAdventData(s=>({ ...s, centerTitle: e.target.value }))} />
+                </label>
+                <label className="text-sm text-white/80">Количество дней (ячейки‑планеты)
+                  <input type="number" min={1} max={64} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={adventData.days} onChange={e=>setAdventData(s=>({ ...s, days: Math.max(1, Math.min(64, Number(e.target.value))) }))} />
+                </label>
+                <label className="text-sm text-white/80">Тема оформления
+                  <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={adventData.theme} onChange={e=>setAdventData(s=>({ ...s, theme: e.target.value as any }))}>
+                    <option className="bg-slate-800" value="motivation">Мотивация</option>
+                    <option className="bg-slate-800" value="rewards">Игровые награды</option>
+                    <option className="bg-slate-800" value="tips">Космические советы</option>
+                    <option className="bg-slate-800" value="custom">Своя тема</option>
+                  </select>
+                </label>
+
+                <div className="mt-3 border border-white/10 rounded-lg p-3 max-h-[50vh] overflow-auto">
+                  <div className="text-white/80 text-sm mb-2">Содержимое дней</div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {Array.from({ length: adventData.days }).map((_, idx)=>{
+                      const id = idx+1; const item = adventData.items[id] || {};
+                      return (
+                        <div key={id} className="rounded-md border border-white/10 p-2">
+                          <div className="text-white/80 text-sm mb-1">День {id}</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input placeholder="📜 Фраза" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.phrase||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], phrase: e.target.value } }}))} />
+                            <input placeholder="🎁 Награда" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.reward||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], reward: e.target.value } }}))} />
+                            <input placeholder="🛰 Совет" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.tip||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], tip: e.target.value } }}))} />
+                            <input placeholder="🔧 Задание" className="bg-slate-800/90 border border-white/10 rounded px-2 py-1.5 text-white" value={item.task||''} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], task: e.target.value } }}))} />
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-white/60">
+                            <label className="flex items-center gap-2"><input type="checkbox" checked={!!item.opened} onChange={e=>setAdventData(s=>({ ...s, items: { ...s.items, [id]: { ...s.items[id], opened: e.target.checked } }}))} /> Уже открыт</label>
+                            <button className="ml-auto px-2 py-1 rounded border border-red-400/40 text-red-300 hover:bg-red-500/10" onClick={()=>setAdventData(s=>{ const n={...s}; delete n.items[id]; return n; })}>Очистить</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="border border-white/10 rounded-lg p-3 bg-slate-900/60 overflow-auto max-h-[60vh]">
+                <div className="text-white/80 text-sm mb-2">Предпросмотр</div>
+                <AdventCalendarPreview days={adventData.days} items={adventData.items} centerTitle={adventData.centerTitle} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+              <button onClick={()=>setAdventOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+              <button onClick={()=>{ /* TODO: persist via backend */ setAdventOpen({ open:false }); }} className="px-4 py-2 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Constructor Modal */}
+      {testOpen.open && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={()=>setTestOpen({ open:false })} />
+          <div className="relative z-[310] w-[95%] max-w-6xl rounded-2xl p-4 md:p-5 max-h-[85vh] overflow-hidden flex flex-col" style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgba(2,6,23,0.96) 50%, rgba(167,139,250,0.12))', boxShadow: '0 0 50px rgba(167,139,250,0.25), inset 0 0 24px rgba(34,211,238,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            <div className="text-white"><ShinyText text="КОНСТРУКТОР ТЕСТОВ" className="text-xl font-bold" /></div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4 flex-1 overflow-hidden">
+              {/* Editor */}
+              <div className="space-y-3 overflow-auto pr-1">
+                <label className="text-sm text-white/80">Название теста
+                  <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={testData.title} onChange={e=>setTestData(s=>({ ...s, title: e.target.value }))} />
+                </label>
+                <label className="text-sm text-white/80">Описание
+                  <textarea rows={3} className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-3 py-2 text-white" value={testData.description} onChange={e=>setTestData(s=>({ ...s, description: e.target.value }))} />
+                </label>
+
+                <div className="flex justify-between items-center mt-2">
+                  <div className="text-white/80 text-sm">Вопросы</div>
+                  <button className="px-3 py-1.5 rounded border border-white/20 text-white/80 hover:bg-white/10" onClick={()=>setTestData(s=>({ ...s, questions: [...s.questions, { id: (s.questions.at(-1)?.id||0)+1, text: '', kind: 'Характер', answers: [] }] }))}>Добавить вопрос</button>
+                </div>
+
+                <div className="space-y-3 max-h-[50vh] overflow-auto">
+                  {testData.questions.map((q, qi)=> (
+                    <div key={q.id} className="rounded-lg border border-white/10 p-3 bg-slate-900/60">
+                      <div className="flex items-center justify-between">
+                        <div className="text-white/80 text-sm">Вопрос {q.id}</div>
+                        <button className="text-red-300 border border-red-400/40 rounded px-2 py-1 hover:bg-red-500/10" onClick={()=>setTestData(s=>({ ...s, questions: s.questions.filter(x=>x.id!==q.id) }))}>Удалить</button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                        <label className="text-xs text-white/80">Текст вопроса
+                          <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={q.text} onChange={e=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], text: e.target.value }; return { ...s, questions:a };})} />
+                        </label>
+                        <label className="text-xs text-white/80">Тип
+                          <select className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" value={q.kind} onChange={e=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], kind: e.target.value as any }; return { ...s, questions:a };})}>
+                            {(['Характер','Мотивация','Ценности'] as const).map(k=> <option key={k} value={k} className="bg-slate-800">{k}</option>)}
+                          </select>
+                        </label>
+                        <label className="text-xs text-white/80">Изображение (URL)
+                          <input className="mt-1 w-full bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder="https://..." value={q.image||''} onChange={e=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], image: e.target.value }; return { ...s, questions:a };})} />
+                        </label>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-white/80 text-xs">Варианты ответов</div>
+                        <button className="px-2 py-1 rounded border border-white/20 text-white/80 hover:bg-white/10 text-xs" onClick={()=>setTestData(s=>{ const a=[...s.questions]; a[qi]={ ...a[qi], answers: [...a[qi].answers, { label: '', scores:{ Характер:0, Мотивация:0, Ценности:0 } }] }; return { ...s, questions:a };})}>Добавить ответ</button>
+                      </div>
+                      <div className="space-y-2 mt-2">
+                        {q.answers.map((ans, ai)=> (
+                          <div key={ai} className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                            <input className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white md:col-span-2" placeholder="Текст ответа" value={ans.label} onChange={e=>setTestData(s=>{ const a=[...s.questions]; const qa={ ...a[qi] }; const arr=[...qa.answers]; arr[ai]={ ...arr[ai], label: e.target.value }; qa.answers=arr; a[qi]=qa; return { ...s, questions:a };})} />
+                            {(['Характер','Мотивация','Ценности'] as const).map(cat => (
+                              <input key={cat} type="number" className="bg-slate-800/90 border border-white/15 rounded px-2 py-1.5 text-white" placeholder={cat} value={ans.scores[cat]} onChange={e=>setTestData(s=>{ const a=[...s.questions]; const qa={ ...a[qi] }; const arr=[...qa.answers]; arr[ai]={ ...arr[ai], scores: { ...arr[ai].scores, [cat]: Number(e.target.value) } }; qa.answers=arr; a[qi]=qa; return { ...s, questions:a };})} />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* List Preview (compact, non-interactive) */}
+              <div className="border border-white/10 rounded-lg p-3 bg-slate-900/60 overflow-auto max-h-[60vh]">
+                <div className="text-white/80 text-sm mb-3">Предпросмотр</div>
+                <div className="space-y-2">
+                  {testData.questions.length === 0 && (
+                    <div className="text-white/50 text-sm">Нет вопросов</div>
+                  )}
+                  {testData.questions.map((q)=> (
+                    <div key={q.id} className="flex items-center gap-3 p-2 rounded-md border border-white/10 bg-slate-800/60">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-white text-xs font-semibold">{q.id}</div>
+                      {q.image && <img src={q.image} alt="img" className="w-10 h-10 rounded object-cover border border-white/10" />}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white/90 text-sm truncate">{q.text || 'Без названия'}</div>
+                        <div className="text-white/60 text-xs">Ответов: {q.answers.length}</div>
+                      </div>
+                      <span className="px-2 py-1 rounded-full text-[10px] font-medium border border-white/15 text-white/80">
+                        {q.kind}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-white/10">
+              <button onClick={()=>setTestOpen({ open:false })} className="px-4 py-2 rounded-md border border-white/20 text-gray-300 hover:bg-white/10">Закрыть</button>
+              <button onClick={()=>{ /* TODO persist */ setTestOpen({ open:false }); }} className="px-4 py-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-200 hover:bg-purple-500/30">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default AdminScreen;
- 
+export default AdminScreen; 

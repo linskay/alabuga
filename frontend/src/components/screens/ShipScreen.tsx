@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import ShinyText from '../ShinyText';
 import MainButton from '../MainButton';
-import { backend, ArtifactDTO, CardDTO, UserCardDTO } from '../../api';
+import { backend, ArtifactDTO, CardDTO, UserCardDTO, API_BASE_URL } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
 
 const StyledFlip = styled.div`
-  .container { width: 240px; height: 294px; perspective: 900px; }
+  .container { width: 200px; height: 250px; perspective: 900px; }
   .card { height: 100%; width: 100%; position: relative; transition: transform 1200ms; transform-style: preserve-3d; border-radius: 2rem; }
   .container:hover > .card { cursor: pointer; transform: rotateY(180deg) rotateZ(180deg); }
   .front, .back { height: 100%; width: 100%; border-radius: 2rem; position: absolute; backface-visibility: hidden; color: #e6f7ff; display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 16px; box-shadow: 0 0 14px 2px rgba(0, 174, 239, 0.35); background: linear-gradient(-135deg, #0a1b2a, #016a8a); }
   .back { transform: rotateY(180deg) rotateZ(180deg); }
-  .front-heading, .back-heading { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+  .front-heading, .back-heading { font-size: 12px; font-weight: 700; letter-spacing: .5px; }
 `;
 
 const StyledGlow = styled.div`
@@ -31,10 +31,28 @@ const ShipScreen: React.FC = () => {
   const [userCards, setUserCards] = useState<UserCardDTO[]>([]);
   const [availableCards, setAvailableCards] = useState<CardDTO[]>([]);
   const [artefacts, setArtefacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
-  const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
+  const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean; imageUrl?: string; image_url?: string }[]>([]);
   const [equippedArtifacts, setEquippedArtifacts] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const resolveImageUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+    // Normalize singular 'card' to plural 'cards' to match public folder structure
+    if (url.startsWith('/images/card/')) return url.replace('/images/card/', '/images/cards/');
+    if (url.startsWith('images/card/')) return `/${url.replace('images/card/', 'images/cards/')}`;
+    // Ensure artefact assets load from public folder
+    if (url.startsWith('/images/artefacts/')) return url; // public static (British spelling)
+    if (url.startsWith('images/artefacts/')) return `/${url}`; // ensure leading slash
+    if (url.startsWith('/images/artifacts/')) return url; // support alt spelling if present
+    if (url.startsWith('/images/cards/')) return url; // public static
+    if (url.startsWith('/')) return `${API_BASE_URL}${url}`; // backend static
+    if (url.startsWith('images/')) return `/${url}`; // ensure leading slash for public
+    if (/^\d+$/.test(url)) return `/images/cards/${url}.jpg`; // numeric id → public/images/cards/<id>.jpg
+    if (!url.includes('/')) return `/images/cards/${url}`; // plain filename → assume inside public/images/cards
+    return `/${url}`; // fallback to public with leading slash
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -115,7 +133,8 @@ const ShipScreen: React.FC = () => {
           id: a.id, 
           name: a.name,
           rarity: a.rarity,
-          isEquipped: a.isEquipped || false
+          isEquipped: a.isEquipped || false,
+          imageUrl: a.imageUrl || a.image_url
         }));
         setUserArtifacts(mappedUserArtifacts);
         
@@ -202,7 +221,8 @@ const ShipScreen: React.FC = () => {
         id: a.id, 
         name: a.name,
         rarity: a.rarity,
-        isEquipped: a.isEquipped || false
+        isEquipped: a.isEquipped || false,
+        imageUrl: a.imageUrl || a.image_url
       }));
       setUserArtifacts(mappedUserArtifacts);
       
@@ -268,23 +288,71 @@ const ShipScreen: React.FC = () => {
             <StyledFlip key={userCard.id} onClick={() => handleCardClick(userCard)}>
               <div className="container">
                 <div className="card">
-                  <div className="front" style={{ textAlign: 'center' }}>
-                    {userCard.card.frontImageUrl && (
-                      <img 
-                        src={userCard.card.frontImageUrl} 
-                        alt={userCard.card.name}
-                        style={{
-                          width: '100%',
-                          height: '120px',
-                          objectFit: 'cover',
-                          borderRadius: '8px',
-                          marginBottom: '8px'
-                        }}
-                      />
-                    )}
-                    <p className="front-heading">{userCard.card.name}</p>
-                    <p>{userCard.card.seriesName}</p>
-                    {userCard.isNew && <p style={{color: '#00ff00', fontSize: '12px'}}>НОВАЯ!</p>}
+                  <div className="front" style={{ textAlign: 'center', padding: '8px' }}>
+                    {(() => {
+                      const initial = resolveImageUrl(userCard.card.frontImageUrl) || `/images/cards/${userCard.card.id}.jpg`;
+                      if (!initial) {
+                        return (
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '120px',
+                              borderRadius: '8px',
+                              marginBottom: '8px',
+                              background: 'linear-gradient(135deg, #0a1b2a, #016a8a)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#7dd3fc',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Нет изображения
+                          </div>
+                        );
+                      }
+                      const publicBase = (() => {
+                        const raw = userCard.card.frontImageUrl;
+                        if (raw && /^\d+$/.test(raw)) return `/images/cards/${raw}`;
+                        if (raw && raw.startsWith('/images/')) return resolveImageUrl(raw)?.replace(/\.(jpg|jpeg|png|webp)$/i, '') || `/images/cards/${userCard.card.id}`;
+                        return `/images/cards/${userCard.card.id}`;
+                      })();
+                      return (
+                        <img
+                          src={initial}
+                          loading="lazy"
+                          data-base={publicBase}
+                          data-attempt="0"
+                          onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            const base = img.getAttribute('data-base') || '';
+                            const attempt = parseInt(img.getAttribute('data-attempt') || '0', 10);
+                            const exts = ['jpg','png','webp'];
+                            if (base && attempt < exts.length) {
+                              img.setAttribute('data-attempt', String(attempt + 1));
+                              img.src = `${base}.${exts[attempt]}`;
+                              return;
+                            }
+                            img.onerror = null;
+                            img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220"><rect width="100%" height="100%" fill="%230b1320"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%237dd3fc" font-size="14">Нет изображения</text></svg>';
+                          }}
+                          alt={userCard.card.name}
+                          style={{
+                            width: '100%',
+                            height: '180px',
+                            objectFit: 'contain',
+                            borderRadius: '16px',
+                            marginBottom: '4px',
+                            opacity: 0.85
+                          }}
+                        />
+                      );
+                    })()}
+                    <div style={{ marginTop: 'auto', paddingTop: '4px' }}>
+                      <p className="front-heading">{userCard.card.name}</p>
+                      <p style={{fontSize: '11px'}}>{userCard.card.seriesName}</p>
+                      {userCard.isNew && <p style={{color: '#00ff00', fontSize: '10px'}}>НОВАЯ!</p>}
+                    </div>
                   </div>
                   <div className="back">
                     <p className="back-heading">{userCard.card.name}</p>
@@ -334,7 +402,29 @@ const ShipScreen: React.FC = () => {
               artePageItems.map((a) => (
                 <div key={a.id} className="relative">
                   <StyledGlow>
-                    <div className="card" title={a.name || `Артефакт #${a.id}`} />
+                    <div className="card" title={a.name || `Артефакт #${a.id}`}> 
+                      {(a.imageUrl || a.image_url) && (
+                        <img 
+                          src={resolveImageUrl(a.imageUrl || a.image_url)} 
+                          alt={a.name || `Артефакт #${a.id}`}
+                          style={{
+                            position: 'absolute',
+                            inset: '10px',
+                            width: 'calc(100% - 20px)',
+                            height: 'calc(100% - 20px)',
+                            objectFit: 'contain',
+                            borderRadius: '20px',
+                            opacity: 0.9,
+                            zIndex: 2
+                          }}
+                          onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            img.onerror = null;
+                            img.style.display = 'none';
+                          }}
+                        />
+                      )}
+                    </div>
                   </StyledGlow>
                   <div className="mt-2 text-center">
                     <div className="text-white text-sm font-medium mb-1">{a.name || `Артефакт #${a.id}`}</div>

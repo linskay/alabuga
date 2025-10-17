@@ -53,6 +53,26 @@ export type UserMission = { id: number; missionId?: number; missionName?: string
 export type MissionDTO = { id: number; name: string; description?: string; difficulty?: string; experienceReward?: number; isActive?: boolean; requiredExperience?: number; requiredRank?: number; type?: string };
 export type CardDTO = { id: number; name: string; seriesName: string; frontImageUrl?: string; backDescription?: string; rarity: string; unlockCondition?: string; unlockRank?: number; isActive?: boolean };
 export type UserCardDTO = { id: number; user: any; card: CardDTO; obtainedAt: string; isNew: boolean };
+export type StatisticsDTO = { 
+  activeUsers: number; 
+  activeUsersGrowth: number; 
+  completedMissions: number; 
+  completedMissionsGrowth: number; 
+  averageLevel: number; 
+  averageLevelGrowth: number; 
+  averageTimeInSystem: number; 
+  averageTimeInSystemGrowth: number; 
+};
+
+export type MissionStatisticsDTO = {
+  missionId: number;
+  missionName?: string | null;
+  missionCreatedAt?: string | null;
+  assignedTotal: number;
+  completedTotal: number;
+  inProgressUsers: number;
+  uniqueAssignees: number;
+};
 
 export const backend = {
   auth: {
@@ -120,6 +140,7 @@ export const backend = {
     list: () => api.get<MissionDTO[]>('/api/missions'),
     update: (id: number, body: Partial<MissionDTO>) => api.put<MissionDTO>(`/api/missions/${id}`, body),
     delete: (id: number) => api.delete<void>(`/api/missions/${id}`),
+    moderate: (userId: number, missionId: number, approved: boolean) => api.post(`/api/missions/moderate?userId=${userId}&missionId=${missionId}&approved=${approved}`),
   },
   ranks: {
     list: () => api.get<RankDTO[]>('/api/ranks'),
@@ -135,6 +156,11 @@ export const backend = {
     markViewed: (userId: number, cardId: number) => api.post(`/api/cards/mark-viewed/${userId}/${cardId}`),
     series: () => api.get<string[]>('/api/cards/series'),
     cardsBySeries: (seriesName: string) => api.get<CardDTO[]>(`/api/cards/series/${encodeURIComponent(seriesName)}`),
+  },
+  statistics: {
+    overview: () => api.get<StatisticsDTO>('/api/statistics/overview'),
+    activityChart: () => api.get<any>('/api/statistics/activity-chart'),
+    mission: (missionId: number) => api.get<MissionStatisticsDTO>(`/api/statistics/missions/${missionId}`),
   },
 };
 
