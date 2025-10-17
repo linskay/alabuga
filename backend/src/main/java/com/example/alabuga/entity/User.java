@@ -79,8 +79,8 @@ public class User {
     
     @Column(name = "rank", nullable = false)
     @Builder.Default
-    @Schema(description = "Ранг пользователя", example = "0")
-    private Integer rank = 0;
+    @Schema(description = "Ранг пользователя", example = "1")
+    private Integer rank = 1;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

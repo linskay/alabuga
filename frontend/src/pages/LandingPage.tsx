@@ -63,6 +63,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
 
   // Handlers for individual pages
   const handleNavigateToPage = (page: 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin') => {
+    if (page === 'admin') {
+      try {
+        const raw = localStorage.getItem('currentUser');
+        const u = raw ? JSON.parse(raw) : null;
+        const role = (u?.role || u?.Role || '').toString().toUpperCase();
+        if (role !== 'ADMIN') {
+          setCurrentPage('404');
+          return;
+        }
+      } catch {
+        setCurrentPage('404');
+        return;
+      }
+    }
     setCurrentPage(page);
   };
 

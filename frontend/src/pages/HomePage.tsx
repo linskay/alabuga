@@ -631,8 +631,10 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
           />
         </motion.main>
         
-        {/* Footer: компактный и с плавным появлением */}
-        <Footer onPrivacyClick={onPrivacyClick} onCookiesClick={onCookiesClick} compact />
+        {/* Footer: скрыт на мобильных, виден на sm+ */}
+        <div className="hidden sm:block">
+          <Footer onPrivacyClick={onPrivacyClick} onCookiesClick={onCookiesClick} compact />
+        </div>
       </div>
     </div>
   );
