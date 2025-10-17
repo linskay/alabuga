@@ -6,6 +6,11 @@ interface StonesMenuProps {
 }
 
 const StonesMenu: React.FC<StonesMenuProps> = ({ onNavigateToPage }) => {
+  const raw = typeof window !== 'undefined' ? localStorage.getItem('currentUser') : null;
+  const u = raw ? (() => { try { return JSON.parse(raw); } catch { return null; } })() : null;
+  const role = (u?.role || u?.Role || '').toString().toUpperCase();
+  const isAdmin = role === 'ADMIN';
+
   const stones = [
     { 
       id: 'profile', 
@@ -90,7 +95,7 @@ const StonesMenu: React.FC<StonesMenuProps> = ({ onNavigateToPage }) => {
     <StyledWrapper>
       <div className="card">
         <div className="stones-container">
-          {stones.map((stone) => (
+          {(isAdmin ? stones : stones.filter(s => s.id !== 'admin')).map((stone) => (
             <div key={stone.id} className="stone-item">
               <div className="stone-wrapper" onClick={() => onNavigateToPage(stone.id as 'profile' | 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin')}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="stone">

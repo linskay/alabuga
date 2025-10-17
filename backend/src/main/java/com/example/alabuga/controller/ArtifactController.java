@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import com.example.alabuga.security.AdminGuard;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -71,7 +73,9 @@ public class ArtifactController {
     @PostMapping
     @Operation(summary = "Создать артефакт")
     public ResponseEntity<ArtifactDTO> createArtifact(
+            HttpServletRequest request,
             @Valid @RequestBody ArtifactCreateDTO artifactCreateDTO) {
+        AdminGuard.assertAdmin(request);
         ArtifactDTO artifact = artifactService.createArtifact(artifactCreateDTO);
         return ResponseEntity.ok(artifact);
     }
@@ -79,8 +83,10 @@ public class ArtifactController {
     @PutMapping("/{id}")
     @Operation(summary = "Обновить артефакт")
     public ResponseEntity<ArtifactDTO> updateArtifact(
+            HttpServletRequest request,
             @Parameter(description = "ID артефакта") @PathVariable Long id,
             @RequestBody ArtifactUpdateDTO artifactUpdateDTO) {
+        AdminGuard.assertAdmin(request);
         ArtifactDTO artifact = artifactService.updateArtifact(id, artifactUpdateDTO);
         return ResponseEntity.ok(artifact);
     }
@@ -88,7 +94,9 @@ public class ArtifactController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить артефакт")
     public ResponseEntity<Void> deleteArtifact(
+            HttpServletRequest request,
             @Parameter(description = "ID артефакта") @PathVariable Long id) {
+        AdminGuard.assertAdmin(request);
         artifactService.deleteArtifact(id);
         return ResponseEntity.ok().build();
     }
@@ -96,7 +104,9 @@ public class ArtifactController {
     @PostMapping("/{id}/toggle-status")
     @Operation(summary = "Переключить статус артефакта")
     public ResponseEntity<ArtifactDTO> toggleArtifactStatus(
+            HttpServletRequest request,
             @Parameter(description = "ID артефакта") @PathVariable Long id) {
+        AdminGuard.assertAdmin(request);
         ArtifactDTO artifact = artifactService.toggleArtifactStatus(id);
         return ResponseEntity.ok(artifact);
     }
@@ -122,8 +132,10 @@ public class ArtifactController {
     @PostMapping("/assign")
     @Operation(summary = "Назначить артефакт пользователю")
     public ResponseEntity<UserArtifactDTO> assignArtifactToUser(
+            HttpServletRequest request,
             @Parameter(description = "ID пользователя") @RequestParam Long userId,
             @Parameter(description = "ID артефакта") @RequestParam Long artifactId) {
+        AdminGuard.assertAdmin(request);
         UserArtifactDTO userArtifact = artifactService.assignArtifactToUser(userId, artifactId);
         return ResponseEntity.ok(userArtifact);
     }
@@ -131,8 +143,10 @@ public class ArtifactController {
     @DeleteMapping("/user/{userId}/artifact/{artifactId}")
     @Operation(summary = "Удалить артефакт у пользователя")
     public ResponseEntity<Void> removeArtifactFromUser(
+            HttpServletRequest request,
             @Parameter(description = "ID пользователя") @PathVariable Long userId,
             @Parameter(description = "ID артефакта") @PathVariable Long artifactId) {
+        AdminGuard.assertAdmin(request);
         artifactService.removeArtifactFromUser(userId, artifactId);
         return ResponseEntity.ok().build();
     }

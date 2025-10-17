@@ -9,7 +9,7 @@
     <changeSet id="009-insert-test-users" author="Lins">
         <comment>Вставка тестовых пользователей для системы</comment>
 
-        <!-- Админ (HR) -->
+        <!-- Админ (ADMIN) -->
         <insert tableName="users">
             <column name="login" value="admin"/>
             <column name="email" value="admin@alabuga.tech"/>
@@ -17,7 +17,7 @@
             <column name="first_name" value="Администратор"/>
             <column name="last_name" value="Системы"/>
             <column name="is_active" value="true"/>
-            <column name="role" value="HR"/>
+            <column name="role" value="ADMIN"/>
             <column name="rank" value="5"/>
             <column name="experience" value="10000"/>
         </insert>
@@ -44,7 +44,7 @@
             <column name="last_name" value="Тестовый"/>
             <column name="is_active" value="true"/>
             <column name="role" value="USER"/>
-            <column name="rank" value="0"/>
+            <column name="rank" value="1"/>
             <column name="experience" value="0"/>
         </insert>
     </changeSet>
