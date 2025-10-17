@@ -1,0 +1,30 @@
+# ===== Build stage =====
+FROM maven:3.9.8-eclipse-temurin-17 AS build
+WORKDIR /app
+
+# Кэш зависимостей
+COPY pom.xml .
+RUN mvn -q -e -DskipTests dependency:go-offline
+
+# Исходники
+COPY backend/ backend/
+COPY tapgame/backend/ tapgame/backend/
+
+# Сборка jar
+RUN mvn -q -e -DskipTests package
+
+# ===== Run stage =====
+FROM eclipse-temurin:17-jre AS runtime
+WORKDIR /app
+
+# Основной исполняемый JAR (см. pom.xml: artifactId=alabuga)
+COPY --from=build /app/target/alabuga-0.0.1-SNAPSHOT.jar /app/app.jar
+
+# Открываем порт приложения
+EXPOSE 8080
+
+# В проде используем профиль prod, секреты подаются через ENV платформы
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# Запуск
+ENTRYPOINT ["java","-jar","/app/app.jar"]
