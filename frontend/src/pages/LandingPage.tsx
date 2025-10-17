@@ -71,8 +71,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   };
 
   const handleExit = () => {
+    try {
+      localStorage.removeItem('currentLogin');
+      localStorage.removeItem('currentUser');
+    } catch {}
+    window.location.hash = '#';
     setCurrentPage('home');
+    window.dispatchEvent(new Event('auth:logout'));
   };
+
+  useEffect(() => {
+    const onAuthLogin = () => {
+      setCurrentPage('dashboard');
+    };
+    window.addEventListener('auth:login', onAuthLogin as EventListener);
+    return () => window.removeEventListener('auth:login', onAuthLogin as EventListener);
+  }, []);
 
   const handlePrivacyClick = () => {
     setCurrentPage('privacy');

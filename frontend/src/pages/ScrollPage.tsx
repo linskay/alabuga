@@ -5,6 +5,7 @@ import HorizontalImageScroll from '../components/HorizontalImageScroll';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Loader from '../components/Loader';
+import LoginForm from '../components/LoginForm';
 
 interface ScrollPageProps {
   onBack: () => void;
@@ -17,6 +18,7 @@ const ScrollPage: React.FC<ScrollPageProps> = ({ onBack, onEnterDashboard, onPri
   const [showMenu, setShowMenu] = useState(false);
   const [showLoader, setShowLoader] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     // Проверяем, загружены ли все ресурсы
@@ -83,7 +85,7 @@ const ScrollPage: React.FC<ScrollPageProps> = ({ onBack, onEnterDashboard, onPri
         showBackButton={true} 
         onBack={onBack}
         showLoginButton={true}
-        onLoginClick={onEnterDashboard}
+        onLoginClick={() => setShowLogin(true)}
       />
 
       {/* Horizontal Scroll Content */}
@@ -94,6 +96,29 @@ const ScrollPage: React.FC<ScrollPageProps> = ({ onBack, onEnterDashboard, onPri
       >
         <HorizontalImageScroll />
       </motion.div>
+
+      {/* Login Modal */}
+      <AnimatePresence>
+        {showLogin && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <div className="relative">
+              <button
+                onClick={() => setShowLogin(false)}
+                className="absolute -top-3 -right-3 bg-white/10 border border-white/20 text-white rounded-full w-8 h-8 hover:bg-white/20"
+                aria-label="Закрыть"
+              >
+                ✕
+              </button>
+              <LoginForm />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Footer */}
       <Footer onPrivacyClick={onPrivacyClick} onCookiesClick={onCookiesClick} />

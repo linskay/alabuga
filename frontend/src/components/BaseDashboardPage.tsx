@@ -24,12 +24,10 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
 }) => {
   const [showLoader, setShowLoader] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
-  // Removed global cursor-follow glow
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    // Проверяем, загружены ли все ресурсы
     const checkIfLoaded = () => {
       if (document.readyState === 'complete') {
         setShowLoader(false);
@@ -37,15 +35,12 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
       }
     };
 
-    // Если страница уже загружена
     if (document.readyState === 'complete') {
       setShowLoader(false);
       setIsLoaded(true);
     } else {
-      // Слушаем событие загрузки
       window.addEventListener('load', checkIfLoaded);
       
-      // Fallback таймер на случай, если событие load не сработает
       const fallbackTimer = setTimeout(() => {
         setShowLoader(false);
         setIsLoaded(true);
@@ -58,16 +53,13 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
     }
   }, []);
 
-  // Эффект для скрытия хедера при скролле
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Скролл вниз - скрываем хедер
         setHeaderVisible(false);
       } else {
-        // Скролл вверх - показываем хедер
         setHeaderVisible(true);
       }
       
@@ -81,12 +73,8 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
     };
   }, [lastScrollY]);
 
-  // Removed mousemove listener
-
-
   return (
     <div className="relative w-full min-h-screen bg-gradient-cosmic flex flex-col" style={{ cursor: 'default' }}>
-      {/* Loader */}
       <AnimatePresence>
         {showLoader && (
           <motion.div
@@ -100,7 +88,6 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Animated Cosmic Background (no cursor glow) */}
       <div className="absolute inset-0">
         <AnimatedStars />
         <div className="cosmic-orb cosmic-orb-1"></div>
@@ -108,7 +95,6 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
         <div className="cosmic-orb cosmic-orb-3"></div>
       </div>
 
-      {/* Header */}
       <motion.div
         initial={{ y: 0 }}
         animate={{ y: headerVisible ? 0 : -100 }}
@@ -125,14 +111,12 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
         />
       </motion.div>
 
-      {/* Main Content */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full flex flex-col flex-1"
+        className="relative z-10 w-full flex flex-col flex-1 min-h-[calc(100vh-5rem)]"
       >
-        {/* Stones Menu */}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -144,7 +128,6 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
           />
         </motion.div>
 
-        {/* Main Content Area */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -157,12 +140,11 @@ const BaseDashboardPage: React.FC<BaseDashboardPageProps> = ({
         </motion.div>
       </motion.div>
 
-      {/* Footer */}
       <div className="mt-auto">
         <Footer />
       </div>
     </div>
   );
-};
+}
 
 export default BaseDashboardPage;
