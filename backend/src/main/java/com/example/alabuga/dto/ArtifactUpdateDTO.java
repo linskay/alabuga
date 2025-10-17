@@ -3,6 +3,7 @@ package com.example.alabuga.dto;
 import com.example.alabuga.entity.Artifact.ArtifactRarity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "DTO для обновления артефакта")
 public class ArtifactUpdateDTO {
 
-    @Size(max = 100, message = "Название артефакта не может превышать 100 символов")
+    @Size(min = 1, max = 100, message = "Название артефакта должно содержать от 1 до 100 символов")
     @Schema(description = "Название артефакта", example = "Меч Кодера")
     private String name;
 

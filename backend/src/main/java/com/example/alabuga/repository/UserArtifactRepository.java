@@ -1,7 +1,6 @@
 package com.example.alabuga.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,13 +12,14 @@ import com.example.alabuga.entity.UserArtifact;
 @Repository
 public interface UserArtifactRepository extends JpaRepository<UserArtifact, Long> {
     
-    @Query("SELECT ua FROM UserArtifact ua WHERE ua.user.id = :userId")
-    List<UserArtifact> findByUserId(@Param("userId") Long userId);
+    List<UserArtifact> findByUserId(Long userId);
     
-    List<UserArtifact> findByUserIdAndIsEquipped(Long userId, Boolean isEquipped);
+    List<UserArtifact> findByUserIdAndIsEquippedTrue(Long userId);
     
-    Optional<UserArtifact> findByUserIdAndArtifactId(Long userId, Long artifactId);
+    UserArtifact findByUserIdAndArtifactId(Long userId, Long artifactId);
     
-    @Query("SELECT ua FROM UserArtifact ua WHERE ua.user.id = :userId AND ua.artifact.rarity = :rarity")
-    List<UserArtifact> findByUserIdAndArtifactRarity(@Param("userId") Long userId, @Param("rarity") String rarity);
+    @Query("SELECT COUNT(ua) FROM UserArtifact ua WHERE ua.user.id = :userId AND ua.isEquipped = true")
+    long countEquippedArtifactsByUserId(@Param("userId") Long userId);
+    
+    boolean existsByUserIdAndArtifactId(Long userId, Long artifactId);
 }

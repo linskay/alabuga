@@ -23,7 +23,6 @@ public class ArtifactMapper {
         return ArtifactDTO.builder()
                 .id(artifact.getId())
                 .name(artifact.getName())
-                .shortDescription(artifact.getShortDescription())
                 .imageUrl(artifact.getImageUrl())
                 .rarity(artifact.getRarity())
                 .isActive(artifact.getIsActive())
@@ -36,15 +35,12 @@ public class ArtifactMapper {
         }
         
         return UserArtifactDTO.builder()
-                .id(userArtifact.getId())
-                .userId(userArtifact.getUser() != null ? userArtifact.getUser().getId() : null)
-                .artifactId(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getId() : null)
-                .artifactName(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getName() : null)
-                .artifactShortDescription(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getShortDescription() : null)
-                .artifactImageUrl(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getImageUrl() : null)
-                .artifactRarity(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getRarity().toString() : null)
+                .id(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getId() : null)
+                .name(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getName() : null)
+                .imageUrl(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getImageUrl() : null)
+                .rarity(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getRarity() : null)
                 .isEquipped(userArtifact.getIsEquipped())
-                .isActive(true) // UserArtifact не имеет поля isActive, используем true по умолчанию
+                .acquiredAt(userArtifact.getAcquiredAt() != null ? userArtifact.getAcquiredAt().toString() : null)
                 .build();
     }
     
@@ -75,7 +71,6 @@ public class ArtifactMapper {
 
         return Artifact.builder()
                 .name(dto.getName())
-                .shortDescription(dto.getShortDescription())
                 .imageUrl(dto.getImageUrl())
                 .rarity(dto.getRarity())
                 .isActive(dto.getIsActive())
@@ -89,9 +84,6 @@ public class ArtifactMapper {
 
         if (dto.getName() != null) {
             artifact.setName(dto.getName());
-        }
-        if (dto.getShortDescription() != null) {
-            artifact.setShortDescription(dto.getShortDescription());
         }
         if (dto.getImageUrl() != null) {
             artifact.setImageUrl(dto.getImageUrl());

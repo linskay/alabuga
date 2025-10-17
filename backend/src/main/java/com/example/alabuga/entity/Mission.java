@@ -1,6 +1,8 @@
 package com.example.alabuga.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -58,6 +60,14 @@ public class Mission {
     @Schema(description = "Награда Энергонов", example = "25")
     private Integer energyReward;
 
+    @Column(name = "required_rank")
+    @Schema(description = "Минимальный ранг для доступа")
+    private Integer requiredRank;
+
+    @Column(name = "required_experience")
+    @Schema(description = "Минимальный опыт для доступа")
+    private Integer requiredExperience;
+
     @Column(name = "required_competencies", length = 500)
     @Schema(description = "Требуемые компетенции (JSON)", example = "[\"navigation\", \"engineering\"]")
     private String requiredCompetencies;
@@ -75,4 +85,13 @@ public class Mission {
     @Column(name = "artifact_reward_id")
     @Schema(description = "ID артефакта в качестве награды", example = "1")
     private Long artifactRewardId;
+    
+    @Column(name = "image_url", length = 500)
+    @Schema(description = "URL изображения миссии", example = "https://example.com/images/mission1.jpg")
+    private String imageUrl;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Schema(description = "Дата создания миссии")
+    private LocalDateTime createdAt;
 }

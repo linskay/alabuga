@@ -83,9 +83,14 @@ public class NotificationMapper {
         }
         
         try {
-            NotificationType type = NotificationType.valueOf(notificationType);
-            return type.getDisplayName();
-        } catch (IllegalArgumentException e) {
+            // Находим enum по коду
+            for (NotificationType type : NotificationType.values()) {
+                if (type.getCode().equals(notificationType)) {
+                    return type.getDisplayName();
+                }
+            }
+            return "Неизвестный тип";
+        } catch (Exception e) {
             return "Неизвестный тип";
         }
     }

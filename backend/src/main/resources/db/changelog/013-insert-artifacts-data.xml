@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Artifacts Data -->
+    <changeSet id="013-insert-artifacts-data" author="Lins">
+        <comment>Вставка артефактов</comment>
+
+        <!-- Артефакт 1: Ядро профиля -->
+        <insert tableName="artifacts">
+            <column name="name" value="Ядро профиля"/>
+            <column name="description"
+                    value="Этот кристаллический шлем является квинтэссенцией вашей цифровой личности на платформе. Он пульсирует в ритме вашей активности, а его сияние усиливается по мере заполнения профиля. Храните его в целости — это ваш пропуск в общее пространство."/>
+            <column name="image_url" value="/images/artefacts/1.png"/>
+            <column name="rarity" value="RARE"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Артефакт 2: Динамик данных -->
+        <insert tableName="artifacts">
+            <column name="name" value="Динамик данных"/>
+            <column name="description"
+                    value="Не устройство, а символ усвоенного знания. Этот артефакт материализуется после посещения вебинара, конденсируя полученную информацию в сферу чистого света. Чем ценнее знания, тем ярче его свечение. Используйте его для подзарядки других инструментов."/>
+            <column name="image_url" value="/images/artefacts/2.png"/>
+            <column name="rarity" value="EPIC"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Артефакт 3: Эмблема первопроходца -->
+        <insert tableName="artifacts">
+            <column name="name" value="Эмблема первопроходца"/>
+            <column name="description"
+                    value="Эта эмблема вручается за смелость и распространение сигнала платформы за ее пределы. Она изготовлена из сплава вирального титана и реагирует на упоминания в сети, слегка нагреваясь. Носите ее с гордостью, кадет."/>
+            <column name="image_url" value="/images/artefacts/3.png"/>
+            <column name="rarity" value="RARE"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Артефакт 4: Компас синхронизации -->
+        <insert tableName="artifacts">
+            <column name="name" value="Компас синхронизации"/>
+            <column name="description"
+                    value="Этот древний инструмент не показывает стороны света. Его стрелки всегда ориентированы на других участников платформы с похожими целями и интересами. Держите его при себе, чтобы никогда не терять связь с потенциальными союзниками по миссии."/>
+            <column name="image_url" value="/images/artefacts/4.png"/>
+            <column name="rarity" value="EPIC"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Артефакт 5: Ключ доступа к архивам -->
+        <insert tableName="artifacts">
+            <column name="name" value="Ключ доступа к архивам"/>
+            <column name="description"
+                    value="Не просто ключ, а персональный проводник в базу знаний. Он открывает доступ к скрытым или сложным материалам платформы. Чем выше ваша активность, тем более сложные и ценные замки он способен открыть."/>
+            <column name="image_url" value="/images/artefacts/5.png"/>
+            <column name="rarity" value="LEGENDARY"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+        <!-- Артефакт 6: Стабилизатор репутации -->
+        <insert tableName="artifacts">
+            <column name="name" value="Стабилизатор репутации"/>
+            <column name="description"
+                    value="Пассивный, но крайне важный артефакт. Он аккумулирует положительные отклики и реакции на вашу активность, преобразуя их в стабильное сияние. Чем выше ваша репутация, тем массивнее и прочнее кажется этот куб, защищая ваш цифровой статус."/>
+            <column name="image_url" value="/images/artefacts/6.png"/>
+            <column name="rarity" value="RARE"/>
+            <column name="is_active" value="true"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Goose Game Profile Table -->
+    <changeSet id="003-create-goose-game-profile" author="Lins">
+        <comment>Создание таблицы профиля игры Goose</comment>
+        <createTable tableName="goose_game_profile">
+            <column name="user_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="display_name" type="VARCHAR(100)"/>
+            <column name="first_interaction" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Foreign Key Constraint -->
+        <addForeignKeyConstraint baseTableName="goose_game_profile" baseColumnNames="user_id"
+                                 constraintName="fk_goose_profile_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

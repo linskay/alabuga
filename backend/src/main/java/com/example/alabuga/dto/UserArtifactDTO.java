@@ -1,5 +1,7 @@
 package com.example.alabuga.dto;
 
+import com.example.alabuga.entity.Artifact.ArtifactRarity;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,30 +15,24 @@ import lombok.NoArgsConstructor;
 @Schema(description = "DTO для артефакта пользователя")
 public class UserArtifactDTO {
     
-    @Schema(description = "Уникальный идентификатор записи", example = "1")
+    @Schema(description = "ID артефакта", example = "1")
     private Long id;
     
-    @Schema(description = "ID пользователя", example = "1")
-    private Long userId;
-    
-    @Schema(description = "ID артефакта", example = "1")
-    private Long artifactId;
-    
     @Schema(description = "Название артефакта", example = "Меч Кодера")
-    private String artifactName;
+    private String name;
     
     @Schema(description = "Краткое описание артефакта", example = "Увеличивает скорость программирования")
-    private String artifactShortDescription;
+    private String shortDescription;
     
     @Schema(description = "URL изображения артефакта", example = "https://example.com/images/sword-coder.jpg")
-    private String artifactImageUrl;
+    private String imageUrl;
     
     @Schema(description = "Редкость артефакта", example = "LEGENDARY")
-    private String artifactRarity;
+    private ArtifactRarity rarity;
     
     @Schema(description = "Экипирован ли артефакт", example = "true")
     private Boolean isEquipped;
     
-    @Schema(description = "Активен ли артефакт у пользователя", example = "true")
-    private Boolean isActive;
+    @Schema(description = "Дата получения артефакта", example = "2024-01-15T10:30:00")
+    private String acquiredAt;
 }

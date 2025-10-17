@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -68,6 +69,7 @@ public class Notification {
     private String metadata;
 
     @Schema(description = "Типы системных уведомлений")
+    @Getter
     public enum NotificationType {
         @Schema(description = "Присвоение ранга")
         RANK_ASSIGNMENT("RANK_ASSIGNMENT", "Присвоение ранга"),
@@ -83,6 +85,9 @@ public class Notification {
         
         @Schema(description = "Покупка в магазине")
         SHOP_PURCHASE("SHOP_PURCHASE", "Покупка в магазине"),
+        
+        @Schema(description = "Получение карты")
+        CARD_ACQUIRED("CARD_ACQUIRED", "Получение карты"),
         
         @Schema(description = "Системное сообщение")
         SYSTEM_MESSAGE("SYSTEM_MESSAGE", "Системное сообщение"),
@@ -100,10 +105,6 @@ public class Notification {
 
         public String getCode() {
             return code;
-        }
-
-        public String getDisplayName() {
-            return displayName;
         }
     }
 }

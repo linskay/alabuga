@@ -4,6 +4,7 @@ import com.example.alabuga.entity.UserRole;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,12 +42,15 @@ public class UserUpdateDTO {
     @Schema(description = "Роль пользователя", example = "ADMIN")
     private UserRole role;
     
+    @Min(value = 0, message = "Опыт не может быть отрицательным")
     @Schema(description = "Опыт пользователя", example = "1000")
     private Integer experience;
     
+    @Min(value = 0, message = "Энергон не может быть отрицательным")
     @Schema(description = "Энергоны пользователя", example = "150")
     private Integer energy;
     
+    @Min(value = 1, message = "Ранг начинается с 1")
     @Schema(description = "Ранг пользователя", example = "2")
     private Integer rank;
     

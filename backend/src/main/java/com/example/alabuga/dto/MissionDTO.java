@@ -40,6 +40,12 @@ public class MissionDTO {
     @Schema(description = "Награда Энергонов", example = "25")
     private Integer energyReward;
 
+    @Schema(description = "Минимальный ранг для доступа", example = "2")
+    private Integer requiredRank;
+
+    @Schema(description = "Минимальный опыт для доступа", example = "500")
+    private Integer requiredExperience;
+
     @Schema(description = "Требуемые компетенции", example = "[\"navigation\", \"engineering\"]")
     private String requiredCompetencies;
 
@@ -51,4 +57,7 @@ public class MissionDTO {
 
     @Schema(description = "ID артефакта в качестве награды", example = "1")
     private Long artifactRewardId;
+
+    @Schema(description = "URL изображения миссии", example = "https://example.com/images/mission1.jpg")
+    private String imageUrl;
 }

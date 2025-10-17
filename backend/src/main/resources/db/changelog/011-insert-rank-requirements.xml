@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert Rank Requirements - 9 Competencies System -->
+    <changeSet id="011-insert-rank-requirements" author="Lins">
+        <comment>Вставка требований для повышения ранга пользователей (9 компетенций система)</comment>
+
+        <!-- Уровень 1: Космо Кадет (общий для всех) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="1"/>
+            <column name="rank_name" value="Космо Кадет"/>
+            <column name="branch_category" value="Общий"/>
+            <column name="required_experience" value="0"/>
+            <column name="required_mission_name" value="Регистрация в системе"/>
+            <column name="required_competency_points" value="0"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Начальный ранг для всех новых пользователей системы"/>
+        </insert>
+
+        <!-- Аналитико-Техническая ветка -->
+
+        <!-- Уровень 2: Навигатор Траекторий -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="2"/>
+            <column name="rank_name" value="Навигатор Траекторий"/>
+            <column name="branch_category" value="Аналитико-Техническая"/>
+            <column name="required_experience" value="100"/>
+            <column name="required_mission_name" value="Расчет космических траекторий"/>
+            <column name="required_competency_points" value="100"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Специалист по расчету космических траекторий - Аналитико-Техническая ветка"/>
+        </insert>
+
+        <!-- Уровень 3: Аналитик Орбит -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="3"/>
+            <column name="rank_name" value="Аналитик Орбит"/>
+            <column name="branch_category" value="Аналитико-Техническая"/>
+            <column name="required_experience" value="200"/>
+            <column name="required_mission_name" value="Анализ орбитальных систем"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Эксперт по анализу орбитальных систем - Аналитико-Техническая ветка"/>
+        </insert>
+
+        <!-- Уровень 4: Архитектор Станции -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="4"/>
+            <column name="rank_name" value="Архитектор Станции"/>
+            <column name="branch_category" value="Аналитико-Техническая"/>
+            <column name="required_experience" value="300"/>
+            <column name="required_mission_name" value="Проектирование космических станций"/>
+            <column name="required_competency_points" value="300"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Мастер проектирования космических станций - Аналитико-Техническая ветка"/>
+        </insert>
+
+        <!-- Гуманитарно-Исследовательская ветка -->
+
+        <!-- Уровень 2: Хронист Галактики -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="2"/>
+            <column name="rank_name" value="Хронист Галактики"/>
+            <column name="branch_category" value="Гуманитарно-Исследовательская"/>
+            <column name="required_experience" value="100"/>
+            <column name="required_mission_name" value="Летопись космических событий"/>
+            <column name="required_competency_points" value="100"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Летописец космических событий и истории - Гуманитарно-Исследовательская ветка"/>
+        </insert>
+
+        <!-- Уровень 3: Исследователь Культур -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="3"/>
+            <column name="rank_name" value="Исследователь Культур"/>
+            <column name="branch_category" value="Гуманитарно-Исследовательская"/>
+            <column name="required_experience" value="200"/>
+            <column name="required_mission_name" value="Изучение инопланетных цивилизаций"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Изучатель инопланетных цивилизаций - Гуманитарно-Исследовательская ветка"/>
+        </insert>
+
+        <!-- Уровень 4: Мастер Лектория -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="4"/>
+            <column name="rank_name" value="Мастер Лектория"/>
+            <column name="branch_category" value="Гуманитарно-Исследовательская"/>
+            <column name="required_experience" value="300"/>
+            <column name="required_mission_name" value="Преподавание космических наук"/>
+            <column name="required_competency_points" value="300"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Преподаватель космических наук - Гуманитарно-Исследовательская ветка"/>
+        </insert>
+
+        <!-- Коммуникационно-Лидерская ветка -->
+
+        <!-- Уровень 2: Связист Звёздного Флота -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="2"/>
+            <column name="rank_name" value="Связист Звёздного Флота"/>
+            <column name="branch_category" value="Коммуникационно-Лидерская"/>
+            <column name="required_experience" value="100"/>
+            <column name="required_mission_name" value="Обеспечение межзвездной связи"/>
+            <column name="required_competency_points" value="100"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Специалист по межзвездной связи - Коммуникационно-Лидерская ветка"/>
+        </insert>
+
+        <!-- Уровень 3: Штурман Экипажа -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="3"/>
+            <column name="rank_name" value="Штурман Экипажа"/>
+            <column name="branch_category" value="Коммуникационно-Лидерская"/>
+            <column name="required_experience" value="200"/>
+            <column name="required_mission_name" value="Навигационное управление экипажем"/>
+            <column name="required_competency_points" value="200"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Лидер навигационной команды - Коммуникационно-Лидерская ветка"/>
+        </insert>
+
+        <!-- Уровень 4: Командир Отряда -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="4"/>
+            <column name="rank_name" value="Командир Отряда"/>
+            <column name="branch_category" value="Коммуникационно-Лидерская"/>
+            <column name="required_experience" value="300"/>
+            <column name="required_mission_name" value="Командование космическим отрядом"/>
+            <column name="required_competency_points" value="300"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Командир космического отряда - Коммуникационно-Лидерская ветка"/>
+        </insert>
+
+        <!-- Уровень 5: Хранитель Станции «Алабуга.TECH» (финальный для всех веток) -->
+        <insert tableName="rank_requirements">
+            <column name="rank_level" value="5"/>
+            <column name="rank_name" value="Хранитель Станции «Алабуга.TECH»"/>
+            <column name="branch_category" value="Финальный"/>
+            <column name="required_experience" value="500"/>
+            <column name="required_mission_name" value="Хранение станции Алабуга.TECH"/>
+            <column name="required_competency_points" value="500"/>
+            <column name="competency_names" value="Сила Миссии,Импульс Прорыва,Канал Связи,Модуль Аналитики,Пульт Командования,Кодекс Звёздного Права,Голограммное Мышление,Кредитный Поток,Курс Аэронавигации"/>
+            <column name="is_active" value="true"/>
+            <column name="description" value="Хранитель Станции «Алабуга.TECH» - высший ранг космического специалиста"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

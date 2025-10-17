@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>КосмоГусь: Алабу-га-га</title>
+  <link rel="stylesheet" href="/components/styles.css" />
+</head>
+<body>
+  <div id="stars-bg"></div>
+
+  <div class="header">
+    <div class="score-container">
+      <img class="coin-icon" src="/assets/coin.png" alt="монеты" />
+      <h2 class="score" id="score">0</h2>
+    </div>
+    <div class="level-container">
+      <span class="level-label">Уровень</span>
+      <span class="level" id="level">1</span>
+    </div>
+    <div class="audio-controls">
+      <button id="toggle-sfx" title="Звук">🔊</button>
+      <button id="toggle-music" title="Музыка">🎵</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <section id="screen-home" class="screen active">
+      <div class="game">
+        <div class="game-area">
+          <div class="circle">
+            <img id="circle" class="goose-img" src="/assets/Goose.png" alt="КосмоГусь" />
+          </div>
+        </div>
+
+        <!-- Ежедневный лимит тапов -->
+        <div id="daily-progress" class="progress-section" style="margin-top:12px;">
+          <div id="daily-text" class="progress-text">Тапов сегодня: 0/500</div>
+          <div class="progress-container">
+            <div id="daily-bar" class="progress-bar" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <div id="achievement-toast" class="achievement-toast">
+          <span class="achievement-text"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-rating" class="screen">
+      <h2>Рейтинг (заглушка)</h2>
+      <table class="rating-table">
+        <thead>
+          <tr><th>#</th><th>Пользователь</th><th>Очки</th></tr>
+        </thead>
+        <tbody id="rating-body">
+          <tr><td>1</td><td>alfa_user</td><td>12345</td></tr>
+          <tr><td>2</td><td>beta_user</td><td>9876</td></tr>
+          <tr><td>3</td><td>gamma_user</td><td>5432</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="screen-profile" class="screen">
+      <div class="profile-split">
+        <div class="boosters">
+          <h3>Бустеры</h3>
+          <div class="booster-card">
+            <div class="booster-title">Ускоритель тыков x2 (15 минут)</div>
+            <button id="boost-15min" class="btn">Активировать</button>
+            <div id="boost-timer" class="muted"></div>
+          </div>
+          <div class="booster-card">
+            <div class="booster-title">Увеличитель тапа</div>
+            <div class="booster-row">
+              <button class="tap-mul" data-mul="1">x1</button>
+              <button class="tap-mul" data-mul="2">x2</button>
+              <button class="tap-mul" data-mul="3">x3</button>
+              <button class="tap-mul" data-mul="4">x4</button>
+              <button class="tap-mul" data-mul="5">x5</button>
+            </div>
+          </div>
+          <div class="booster-card">
+            <div class="booster-title">Скин гусевый</div>
+            <div class="muted">Заглушка (скоро)</div>
+          </div>
+        </div>
+        <div class="missions">
+          <h3>Миссии</h3>
+          <ul class="missions-list">
+            <li>
+              <span>Зарегаться в Алабуга Tech</span>
+              <span class="badge">Заглушка</span>
+            </li>
+            <li>
+              <span>Посмотреть пост в Telegram</span>
+              <span class="badge">Заглушка</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-target="home">Главная</button>
+    <button class="nav-btn" data-target="rating">Рейтинг</button>
+    <button class="nav-btn" data-target="profile">Профиль</button>
+  </nav>
+
+  <audio id="clickSound" preload="none">
+    <source src="" type="audio/mpeg" />
+  </audio>
+  <audio id="levelUpSound" preload="none">
+    <source src="" type="audio/mpeg" />
+  </audio>
+  <audio id="achievementSound" preload="none">
+    <source src="" type="audio/mpeg" />
+  </audio>
+  
+
+  <script src="/components/app.js" defer></script>
+</body>
+</html>

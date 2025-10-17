@@ -1,14 +1,7 @@
 package com.example.alabuga.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,9 +25,9 @@ public class Artifact {
     @Schema(description = "Название артефакта", example = "Меч Кодера")
     private String name;
 
-    @Column(name = "short_description", length = 200)
-    @Schema(description = "Краткое описание артефакта", example = "Увеличивает скорость программирования")
-    private String shortDescription;
+    @Column(name = "description", length = 1000)
+    @Schema(description = "Полное описание артефакта", example = "Этот артефакт содержит...")
+    private String description;
 
     @Column(name = "image_url", length = 500)
     @Schema(description = "URL изображения артефакта", example = "https://example.com/images/sword-coder.jpg")
@@ -54,13 +47,13 @@ public class Artifact {
     public enum ArtifactRarity {
         @Schema(description = "Обычный артефакт", example = "COMMON")
         COMMON("Обычный"),
-        
+
         @Schema(description = "Редкий артефакт", example = "RARE")
         RARE("Редкий"),
-        
+
         @Schema(description = "Эпический артефакт", example = "EPIC")
         EPIC("Эпический"),
-        
+
         @Schema(description = "Легендарный артефакт", example = "LEGENDARY")
         LEGENDARY("Легендарный");
 

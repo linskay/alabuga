@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- User Competencies Table -->
+    <changeSet id="008-create-user-competencies-table" author="Lins">
+        <comment>Создание таблицы пользовательских компетенций</comment>
+        <createTable tableName="user_competencies">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="competency_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="experience_points" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="INTEGER" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Key Constraints -->
+        <addForeignKeyConstraint baseTableName="user_competencies" baseColumnNames="user_id"
+                                 constraintName="fk_user_competencies_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        
+        <addForeignKeyConstraint baseTableName="user_competencies" baseColumnNames="competency_id"
+                                 constraintName="fk_user_competencies_competency"
+                                 referencedTableName="competencies" referencedColumnNames="id"/>
+
+        <!-- Unique constraint to prevent duplicate user-competency pairs -->
+        <addUniqueConstraint tableName="user_competencies" columnNames="user_id,competency_id"
+                              constraintName="uk_user_competencies_user_competency"/>
+    </changeSet>
+
+</databaseChangeLog>

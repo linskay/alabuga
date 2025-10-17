@@ -4,6 +4,7 @@ import com.example.alabuga.entity.UserRole;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -49,14 +50,17 @@ public class UserCreateDTO {
     private UserRole role = UserRole.USER;
     
     @Builder.Default
+    @Min(value = 0, message = "Опыт не может быть отрицательным")
     @Schema(description = "Начальный опыт пользователя", example = "0", defaultValue = "0")
     private Integer experience = 0;
     
     @Builder.Default
+    @Min(value = 0, message = "Энергон не может быть отрицательным")
     @Schema(description = "Начальные Энергоны пользователя", example = "100", defaultValue = "100")
     private Integer energy = 100;
     
     @Builder.Default
+    @Min(value = 1, message = "Ранг начинается с 1")
     @Schema(description = "Начальный ранг пользователя", example = "1", defaultValue = "1")
     private Integer rank = 1;
 }

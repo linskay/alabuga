@@ -21,6 +21,7 @@ import com.example.alabuga.mapper.MissionMapper;
 import com.example.alabuga.repository.MissionRepository;
 import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
+import com.example.alabuga.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +33,7 @@ public class MissionService {
     private final UserMissionRepository userMissionRepository;
     private final UserRepository userRepository;
     private final MissionMapper missionMapper;
+    private final NotificationService notificationService;
     
     public List<MissionDTO> getAllMissions() {
         List<Mission> missions = missionRepository.findByIsActive(true);
@@ -152,6 +154,10 @@ public class MissionService {
         userRepository.save(user);
         
         UserMission savedUserMission = userMissionRepository.save(userMission);
+        
+        // Создаем уведомление о завершении миссии
+        notificationService.createMissionCompletedNotification(user, mission.getName(), mission.getExperienceReward(), mission.getEnergyReward());
+        
         return missionMapper.toUserMissionDTO(savedUserMission);
     }
 

@@ -1,26 +1,79 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AnimatedStars from '../components/AnimatedStars';
+import Loader from '../components/Loader';
 
 interface PrivacyPolicyPageProps {
   onBack?: () => void;
 }
 
 const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onBack }) => {
+  const [showLoader, setShowLoader] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Проверяем, загружены ли все ресурсы
+    const checkIfLoaded = () => {
+      if (document.readyState === 'complete') {
+        setShowLoader(false);
+        setIsLoaded(true);
+      }
+    };
+
+    // Если страница уже загружена
+    if (document.readyState === 'complete') {
+      setShowLoader(false);
+      setIsLoaded(true);
+    } else {
+      // Слушаем событие загрузки
+      window.addEventListener('load', checkIfLoaded);
+      
+      // Fallback таймер на случай, если событие load не сработает
+      const fallbackTimer = setTimeout(() => {
+        setShowLoader(false);
+        setIsLoaded(true);
+      }, 1000);
+
+      return () => {
+        window.removeEventListener('load', checkIfLoaded);
+        clearTimeout(fallbackTimer);
+      };
+    }
+  }, []);
+
   const handleMenuToggle = () => {
     // Handle menu toggle if needed
   };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gradient-cosmic" style={{ cursor: 'default' }}>
+      {/* Loader */}
+      <AnimatePresence>
+        {showLoader && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center"
+          >
+            <Loader />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Animated Stars */}
       <AnimatedStars />
       
       <Header onMenuToggle={handleMenuToggle} showBackButton={true} onBack={onBack} />
       
-      <main className="relative z-20 pt-20 pb-8 max-h-screen overflow-y-auto">
+      <motion.main 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-20 pt-20 pb-8 max-h-screen overflow-y-auto"
+      >
         <div className="max-w-4xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -254,7 +307,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onBack }) => {
             </div>
           </motion.div>
         </div>
-      </main>
+      </motion.main>
       
       <Footer />
     </div>
