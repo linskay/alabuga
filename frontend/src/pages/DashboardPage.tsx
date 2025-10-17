@@ -65,8 +65,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         showLoginButton={false} 
         showExitButton={true}
         onExitClick={onExit}
-        show404Button={true}
-        on404Click={show404}
+        show404Button={false}
       />
 
       {/* Stones Menu */}
