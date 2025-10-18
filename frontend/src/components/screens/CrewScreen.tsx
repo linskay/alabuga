@@ -4,6 +4,8 @@ import { backend, UserDTO, StatisticsDTO } from '../../api';
 import MainButton from '../MainButton';
 import ShinyText from '../ShinyText';
 import styled from 'styled-components';
+import GooseHint from '../GooseHint';
+import { useOneTimeHint } from '../../hooks/useOneTimeHint';
 
 const PodiumCard = styled.div<{ $gradient: string }>`
   .container {
@@ -81,6 +83,10 @@ const TopPlaceCard: React.FC<{ place: 1|2|3; login?: string; energy?: number; xp
     <PodiumCard $gradient={gradient}>
       <div className="container">
         <div className="box">
+          {/* XP floating window */}
+          <div className="absolute top-2 right-2 bg-black/60 border border-yellow-400/40 text-yellow-200 rounded-lg px-2 py-1 text-xs shadow-[0_0_12px_rgba(234,179,8,0.25)]">
+            <span className="font-semibold">XP</span> {Number(xp||0).toLocaleString()}
+          </div>
           <div className="content">
             <div className={`mb-1 text-sm ${place===1?'text-yellow-300':'text-gray-300'}`}>{place} место</div>
             <div className="w-full h-20 rounded-lg relative overflow-hidden" style={{ background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,.15), transparent 60%)' }} />
@@ -97,6 +103,7 @@ const TopPlaceCard: React.FC<{ place: 1|2|3; login?: string; energy?: number; xp
 const CrewScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ranking'>('ranking');
   const [timeframe, setTimeframe] = useState<'all' | 'week'>('all');
+  const ratingHint = useOneTimeHint('rating');
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [loadingRank, setLoadingRank] = useState(false);
   const [statistics, setStatistics] = useState<StatisticsDTO | null>(null);
@@ -240,39 +247,9 @@ const CrewScreen: React.FC = () => {
 
       {/* Activity Chart — скрыт по ТЗ для экрана экипажа */}
 
-      {/* Ranking Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { title: 'Режим', value: timeframe === 'all' ? 'ВЕСЬ ВРЕМЯ' : 'НЕДЕЛЯ', color: 'from-yellow-400 to-orange-500' },
-          { title: 'Всего пилотов', value: users.length.toString(), color: 'from-blue-400 to-cyan-500' },
-          { title: timeframe === 'all' ? 'Топ‑1 XP' : 'Топ‑1 XP (неделя)', value: (rankingData[0]?.xp || 0).toLocaleString(), color: 'from-purple-400 to-violet-500' }
-        ].map((stat, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
-            className="bg-black/30 backdrop-blur-md border border-white/20 rounded-xl p-4"
-          >
-            <div className="text-center">
-              <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                {stat.value}
-              </div>
-              <div className="text-gray-300 text-sm mt-1">{stat.title}</div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* Ranking Stats removed by request */}
 
-      {/* Toggle All / Week */}
-      <div className="flex items-center justify-center gap-4">
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setTimeframe('all')} className={`px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${timeframe==='all' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20' : 'border border-white/20 text-white/90 hover:bg-white/10'}`}>
-          ВЕСЬ
-        </motion.button>
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setTimeframe('week')} className={`px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${timeframe==='week' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20' : 'border border-white/20 text-white/90 hover:bg-white/10'}`}>
-          НЕДЕЛЯ
-        </motion.button>
-      </div>
+      {/* Lower toggle removed by request (keep only top pretty buttons) */}
 
       {/* Top 3 podium */}
       <div className="bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl p-6">
@@ -331,6 +308,11 @@ const CrewScreen: React.FC = () => {
           <MainButton onClick={() => setTimeframe('week')} className={timeframe==='week' ? '' : 'opacity-70'}>РЕЙТИНГ (НЕДЕЛЯ)</MainButton>
         </div>
       </div>
+      <GooseHint
+        text={'«Лучшие из лучших — здесь! Ищи себя в топе!»'}
+        visible={ratingHint.visible}
+        className="top-28 right-6"
+      />
 
       {/* Tab Content */}
       <motion.div

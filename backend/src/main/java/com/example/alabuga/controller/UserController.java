@@ -2,7 +2,10 @@ package com.example.alabuga.controller;
 
 import com.example.alabuga.dto.*;
 import com.example.alabuga.entity.UserRole;
-import com.example.alabuga.service.UserService;
+import com.example.alabuga.service.user.UserManagementService;
+import com.example.alabuga.service.user.UserProgressService;
+import com.example.alabuga.service.user.UserCompetencyService;
+import com.example.alabuga.service.user.UserMissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,14 +28,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserManagementService userManagementService;
+    private final UserProgressService userProgressService;
+    private final UserCompetencyService userCompetencyService;
+    private final UserMissionService userMissionService;
 
     // ========== USER CRUD ENDPOINTS ==========
 
     @GetMapping
     @Operation(summary = "Получить всех пользователей")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.getAllUsers();
+        List<UserDTO> users = userManagementService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
@@ -52,7 +58,7 @@ public class UserController {
             @PathVariable
             @Positive(message = "ID пользователя должен быть положительным")
             Long id) {
-        Optional<UserDTO> user = userService.getUserById(id);
+        Optional<UserDTO> user = userManagementService.getUserById(id);
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -61,7 +67,7 @@ public class UserController {
     @Operation(summary = "Получить пользователя по логину")
     public ResponseEntity<UserDTO> getUserByLogin(
             @Parameter(description = "Логин пользователя") @PathVariable String login) {
-        Optional<UserDTO> user = userService.getUserByLogin(login);
+        Optional<UserDTO> user = userManagementService.getUserByLogin(login);
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -70,7 +76,7 @@ public class UserController {
     @Operation(summary = "Получить пользователя по email")
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(description = "Email пользователя") @PathVariable String email) {
-        Optional<UserDTO> user = userService.getUserByEmail(email);
+        Optional<UserDTO> user = userManagementService.getUserByEmail(email);
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -78,7 +84,7 @@ public class UserController {
     @PostMapping
     @Operation(summary = "Создать нового пользователя")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
-        UserDTO savedUser = userService.createUser(userCreateDTO);
+        UserDTO savedUser = userManagementService.createUser(userCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
@@ -87,7 +93,7 @@ public class UserController {
     public ResponseEntity<UserDTO> updateUser(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
-        UserDTO updatedUser = userService.updateUser(id, userUpdateDTO);
+        UserDTO updatedUser = userManagementService.updateUser(id, userUpdateDTO);
         return ResponseEntity.ok(updatedUser);
     }
 
@@ -95,7 +101,7 @@ public class UserController {
     @Operation(summary = "Удалить пользователя")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID пользователя") @PathVariable Long id) {
-        userService.deleteUser(id);
+        userManagementService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -103,7 +109,7 @@ public class UserController {
     @Operation(summary = "Деактивировать пользователя")
     public ResponseEntity<UserDTO> deactivateUser(
             @Parameter(description = "ID пользователя") @PathVariable Long id) {
-        UserDTO user = userService.deactivateUser(id);
+        UserDTO user = userManagementService.deactivateUser(id);
         return ResponseEntity.ok(user);
     }
 
@@ -113,7 +119,7 @@ public class UserController {
     @Operation(summary = "Поиск пользователей по имени")
     public ResponseEntity<List<UserDTO>> searchUsersByName(
             @Parameter(description = "Имя для поиска") @RequestParam String name) {
-        List<UserDTO> users = userService.searchUsersByName(name);
+        List<UserDTO> users = userManagementService.searchUsersByName(name);
         return ResponseEntity.ok(users);
     }
 
@@ -121,14 +127,14 @@ public class UserController {
     @Operation(summary = "Получить пользователей по роли")
     public ResponseEntity<List<UserDTO>> getUsersByRole(
             @Parameter(description = "Роль пользователя") @PathVariable UserRole role) {
-        List<UserDTO> users = userService.getUsersByRole(role);
+        List<UserDTO> users = userManagementService.getUsersByRole(role);
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/active")
     @Operation(summary = "Получить активных пользователей")
     public ResponseEntity<List<UserDTO>> getActiveUsers() {
-        List<UserDTO> users = userService.getActiveUsers();
+        List<UserDTO> users = userManagementService.getActiveUsers();
         return ResponseEntity.ok(users);
     }
 
@@ -136,7 +142,7 @@ public class UserController {
     @Operation(summary = "Получить пользователей с минимальным рангом")
     public ResponseEntity<List<UserDTO>> getUsersByMinRank(
             @Parameter(description = "Минимальный ранг") @PathVariable Integer minRank) {
-        List<UserDTO> users = userService.getUsersByMinRank(minRank);
+        List<UserDTO> users = userManagementService.getUsersByMinRank(minRank);
         return ResponseEntity.ok(users);
     }
 
@@ -144,7 +150,7 @@ public class UserController {
     @Operation(summary = "Получить пользователей с минимальным опытом")
     public ResponseEntity<List<UserDTO>> getUsersByMinExperience(
             @Parameter(description = "Минимальный опыт") @PathVariable Integer minExperience) {
-        List<UserDTO> users = userService.getUsersByMinExperience(minExperience);
+        List<UserDTO> users = userManagementService.getUsersByMinExperience(minExperience);
         return ResponseEntity.ok(users);
     }
 
@@ -155,7 +161,7 @@ public class UserController {
     public ResponseEntity<UserDTO> addExperience(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "Количество опыта") @RequestParam Integer experience) {
-        UserDTO user = userService.addExperience(id, experience);
+        UserDTO user = userProgressService.addExperience(id, experience);
         return ResponseEntity.ok(user);
     }
 
@@ -164,7 +170,7 @@ public class UserController {
     public ResponseEntity<UserDTO> addEnergy(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "Количество Энергонов") @RequestParam Integer energy) {
-        UserDTO user = userService.addEnergy(id, energy);
+        UserDTO user = userProgressService.addEnergy(id, energy);
         return ResponseEntity.ok(user);
     }
 
@@ -173,7 +179,7 @@ public class UserController {
     public ResponseEntity<UserDTO> spendEnergy(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "Количество Энергонов для траты") @RequestParam Integer energy) {
-        UserDTO user = userService.spendEnergy(id, energy);
+        UserDTO user = userProgressService.spendEnergy(id, energy);
         return ResponseEntity.ok(user);
     }
 
@@ -182,7 +188,7 @@ public class UserController {
     @GetMapping("/competencies")
     @Operation(summary = "Получить все компетенции")
     public ResponseEntity<List<CompetencyDTO>> getAllCompetencies() {
-        List<CompetencyDTO> competencies = userService.getAllCompetencies();
+        List<CompetencyDTO> competencies = userCompetencyService.getAllCompetencies();
         return ResponseEntity.ok(competencies);
     }
 
@@ -190,7 +196,7 @@ public class UserController {
     @Operation(summary = "Получить компетенции пользователя")
     public ResponseEntity<List<UserCompetencyDTO>> getUserCompetencies(
             @Parameter(description = "ID пользователя") @PathVariable Long id) {
-        List<UserCompetencyDTO> competencies = userService.getUserCompetencies(id);
+        List<UserCompetencyDTO> competencies = userCompetencyService.getUserCompetencies(id);
         return ResponseEntity.ok(competencies);
     }
 
@@ -200,7 +206,7 @@ public class UserController {
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "ID компетенции") @RequestParam Long competencyId,
             @Parameter(description = "Начальный уровень") @RequestParam(required = false) Integer initialLevel) {
-        UserCompetencyDTO userCompetency = userService.addUserCompetency(id, competencyId, initialLevel);
+        UserCompetencyDTO userCompetency = userCompetencyService.addUserCompetency(id, competencyId, initialLevel);
         return ResponseEntity.status(HttpStatus.CREATED).body(userCompetency);
     }
 
@@ -210,30 +216,9 @@ public class UserController {
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "ID компетенции") @PathVariable Long competencyId,
             @Parameter(description = "Очки опыта (максимум 500)") @RequestParam Integer experiencePoints) {
-        UserCompetencyDTO userCompetency = userService.updateCompetencyExperience(id, competencyId, experiencePoints);
+        UserCompetencyDTO userCompetency = userCompetencyService.updateCompetencyExperience(id, competencyId, experiencePoints);
         return ResponseEntity.ok(userCompetency);
     }
-
-    // ========== ARTIFACT ENDPOINTS ==========
-
-    @GetMapping("/artifacts")
-    @Operation(summary = "Получить все артефакты")
-    public ResponseEntity<List<ArtifactDTO>> getAllArtifacts() {
-        List<ArtifactDTO> artifacts = userService.getAllArtifacts();
-        return ResponseEntity.ok(artifacts);
-    }
-
-    @PostMapping("/{id}/artifacts")
-    @Operation(summary = "Добавить артефакт пользователю")
-    public ResponseEntity<UserArtifactDTO> addUserArtifact(
-            @Parameter(description = "ID пользователя") @PathVariable Long id,
-            @Parameter(description = "ID артефакта") @RequestParam Long artifactId) {
-        UserArtifactDTO userArtifact = userService.addUserArtifact(id, artifactId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userArtifact);
-    }
-
-
-    // ========== COMPETENCY TRACKING ENDPOINTS ==========
 
     @PostMapping("/{id}/competencies/{competencyId}/experience")
     @Operation(summary = "Добавить опыт к компетенции")
@@ -241,7 +226,7 @@ public class UserController {
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "ID компетенции") @PathVariable Long competencyId,
             @Parameter(description = "Количество очков опыта") @RequestParam Integer experiencePoints) {
-        UserCompetencyDTO userCompetency = userService.addExperienceToCompetency(id, competencyId, experiencePoints);
+        UserCompetencyDTO userCompetency = userCompetencyService.addExperienceToCompetency(id, competencyId, experiencePoints);
         return ResponseEntity.ok(userCompetency);
     }
 
@@ -251,7 +236,7 @@ public class UserController {
     @Operation(summary = "Получить миссии пользователя")
     public ResponseEntity<List<com.example.alabuga.dto.UserMissionDTO>> getUserMissions(
             @Parameter(description = "ID пользователя") @PathVariable Long id) {
-        List<com.example.alabuga.dto.UserMissionDTO> missions = userService.getUserMissions(id);
+        List<com.example.alabuga.dto.UserMissionDTO> missions = userMissionService.getUserMissions(id);
         return ResponseEntity.ok(missions);
     }
 
@@ -260,7 +245,7 @@ public class UserController {
     public ResponseEntity<com.example.alabuga.dto.UserMissionDTO> takeMission(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "ID миссии") @PathVariable Long missionId) {
-        com.example.alabuga.dto.UserMissionDTO userMission = userService.takeMission(id, missionId);
+        com.example.alabuga.dto.UserMissionDTO userMission = userMissionService.takeMission(id, missionId);
         return ResponseEntity.ok(userMission);
     }
 
@@ -269,7 +254,7 @@ public class UserController {
     public ResponseEntity<Void> removeMissionFromUser(
             @Parameter(description = "ID пользователя") @PathVariable Long id,
             @Parameter(description = "ID миссии") @PathVariable Long missionId) {
-        userService.removeMissionFromUser(id, missionId);
+        userMissionService.removeMissionFromUser(id, missionId);
         return ResponseEntity.ok().build();
     }
 }

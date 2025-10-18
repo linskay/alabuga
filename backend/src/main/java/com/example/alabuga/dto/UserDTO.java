@@ -64,6 +64,9 @@ public class UserDTO {
     @Min(value = 1, message = "Ранг должен быть не менее 1")
     private Integer rank;
 
+    @Schema(description = "ID выбранной ветки миссий для рангов 2-4", example = "2")
+    private Long selectedBranchId;
+
     @Schema(description = "ID ветки", example = "1")
     private Long branchId;
 

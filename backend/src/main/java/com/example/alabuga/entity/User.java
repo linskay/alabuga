@@ -82,6 +82,10 @@ public class User {
     @Schema(description = "Ранг пользователя", example = "1")
     private Integer rank = 1;
     
+    @Column(name = "selected_branch_id")
+    @Schema(description = "ID выбранной ветки миссий для рангов 2-4", example = "2")
+    private Long selectedBranchId;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     @Schema(description = "Дата создания", example = "2025-09-20T12:34:27.818026")

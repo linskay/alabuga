@@ -19,9 +19,14 @@ import Energon from '../Energon';
 import MissionIcon from '../MissionIcon';
 import ExperienceIcon from '../ExperienceIcon';
 import RankIcon from '../RankIcon';
+import BranchSelectionModal from '../BranchSelectionModal';
 import { backend, UserDTO, UserCompetency, UserMission, API_BASE_URL } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
 import { motion as m } from 'framer-motion';
+import { useBranchSelection } from '../../hooks/useBranchSelection';
+import GooseHint from '../GooseHint';
+import { useOneTimeHint } from '../../hooks/useOneTimeHint';
+import { combineHint } from '../../constants/gooseHints';
 
 const DEFAULT_COMPETENCIES: { name: string; max: number }[] = [
   { name: 'Сила Миссии', max: 500 },
@@ -157,6 +162,10 @@ const ProfileScreen: React.FC = () => {
   } = useNotifications();
   
   const { refreshUserData } = useAppContext();
+  // One-time hints
+  const notifHint = useOneTimeHint('notifications');
+  const mainPanelHint = useOneTimeHint('mainPanel');
+  const skillsHint = useOneTimeHint('skills');
 
   const resolveArtifactImageUrl = (url?: string): string | undefined => {
     if (!url) return undefined;
@@ -204,6 +213,17 @@ const ProfileScreen: React.FC = () => {
       return (rankResp.name as string) || null;
     }
     return null;
+  };
+
+  const getBranchNameFromId = (branchId?: number): string | null => {
+    if (!branchId) return null;
+    const branchNames: { [key: number]: string } = {
+      1: 'Док Лунной Базы',    // GENERAL branch
+      2: 'Кольцо Посланцев',   // ANALYTICAL_TECHNICAL branch  
+      3: 'Академия Звёздного Флота', // HUMANITARIAN_RESEARCH branch
+      4: 'Пояс Испытаний'      // COMMUNICATION_LEADERSHIP branch
+    };
+    return branchNames[branchId] || null;
   };
 
   useEffect(() => {
@@ -314,6 +334,11 @@ const ProfileScreen: React.FC = () => {
           onClick={togglePanel}
         />
       </motion.div>
+      <GooseHint
+        text={combineHint('notifications')}
+        visible={notifHint.visible}
+        className="top-28 left-16"
+      />
 
       {/* Profile Content (bounded like ЦУП) */}
       <div className="mx-auto w-full max-w-screen-lg grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -329,7 +354,7 @@ const ProfileScreen: React.FC = () => {
           )}
           <AstronautCard 
             login={user?.login || 'КОМАНДИР НЕКСУС'} 
-            rank={(currentRank?.level ?? user?.rank ?? 0) + 1} 
+            rank={currentRank?.level ?? user?.rank ?? 0} 
             experience={user?.experience ?? 15420} 
           />
           
@@ -412,20 +437,41 @@ const ProfileScreen: React.FC = () => {
                     <MissionIcon size={18} color="#51e4dc" />
                     Миссии (выполнено)
                   </span>
-                  <span className="text-cyan-400 font-bold text-xl">{userMissions.filter(m => (m.status || '').toLowerCase() === 'completed').length}</span>
+                  <span className="text-cyan-400 font-bold">{userMissions.filter(m => (m.status || '').toLowerCase() === 'completed').length}</span>
                 </div>
               </NeonGradientCard>
               <NeonGradientCard>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300 flex items-center gap-2">
                     <RankIcon size={22} />
-                    Текущий ранг
+                    Ветка
                   </span>
                   <span className="text-cyan-400 font-bold">{
                     (() => {
-                      const level = user?.rank ?? 0; // backend 0-based
-                      const byResp = getRankNameFromResponse(currentRank, level);
-                      return byResp || (currentRank?.name as string) || `Ранг ${level + 1}`;
+                      const level = user?.rank ?? 0;
+                      const branchId = user?.branchId;
+                      
+                      // Определяем ветку на основе ранга и branchId пользователя
+                      let displayBranch = null;
+                      
+                      if (level === 0) {
+                        // Космо-Кадет - всегда Док Лунной Базы
+                        displayBranch = 'Док Лунной Базы';
+                      } else if (level === 10) {
+                        // Хранитель Станции - всегда Док Лунной Базы
+                        displayBranch = 'Док Лунной Базы';
+                      } else if (level >= 1 && level <= 3 && branchId) {
+                        // Ранги 1-3: используем branchId пользователя
+                        displayBranch = getBranchNameFromId(branchId);
+                      } else if (level >= 4 && level <= 6 && branchId) {
+                        // Ранги 4-6: используем branchId пользователя  
+                        displayBranch = getBranchNameFromId(branchId);
+                      } else if (level >= 7 && level <= 9 && branchId) {
+                        // Ранги 7-9: используем branchId пользователя
+                        displayBranch = getBranchNameFromId(branchId);
+                      }
+                      
+                      return displayBranch || 'Не выбрана';
                     })()
                   }</span>
                 </div>
@@ -473,11 +519,13 @@ const ProfileScreen: React.FC = () => {
             <div className="mb-6 flex items-center">
               <ShinyText text="НАВЫКИ И КОМПЕТЕНЦИИ" className="text-2xl font-bold" />
             </div>
+            <GooseHint
+              text={combineHint('skills')}
+              visible={skillsHint.visible}
+              className="top-28 right-10"
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-              {DEFAULT_COMPETENCIES.map((base, index) => {
-                const found = competencies.find(c => (c.name || '').toLowerCase() === base.name.toLowerCase());
-                const value = (found?.points ?? found?.level ?? 0) as number;
-                const maxValue = (found?.maxPoints ?? base.max) as number;
+              {(() => {
                 const tooltipMap: Record<string,string> = {
                   'Сила Миссии': 'Вера в дело',
                   'Импульс Прорыва': 'Стремление к большему',
@@ -489,30 +537,43 @@ const ProfileScreen: React.FC = () => {
                   'Кредитный Поток': 'Базовая экономика',
                   'Курс Аэронавигации': 'Основы аэронавигации'
                 };
-                const tooltipLabel = tooltipMap[base.name] || base.name;
-                return (
-                <motion.div
-                  key={base.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                  className="w-full"
-                  style={{ minWidth: '200px' }}
-                >
-                  <CosmicTooltip tooltip={tooltipLabel}>
-                    <CosmicProgressBar
-                      value={value}
-                      maxValue={maxValue}
-                      size="md"
-                      label={base.name}
-                      color="from-cyan-400 to-purple-500"
-                      animated={true}
-                      showValue={true}
-                      className="w-full"
-                    />
-                  </CosmicTooltip>
-                </motion.div>
-              );})}
+                const items = (competencies && competencies.length > 0)
+                  ? competencies.map((c, idx) => ({
+                      id: Number((c as any).id ?? (c as any).competencyId ?? idx),
+                      name: (c as any).name ?? (c as any).competencyName ?? 'Без названия',
+                      value: Number((c as any).points ?? (c as any).level ?? (c as any).experiencePoints ?? 0),
+                      maxValue: Number((c as any).maxPoints ?? 500),
+                    }))
+                  : DEFAULT_COMPETENCIES.map((base, idx) => ({
+                      id: idx,
+                      name: base.name,
+                      value: 0,
+                      maxValue: base.max,
+                    }));
+                return items.map((it, index) => (
+                  <motion.div
+                    key={`${it.id}-${it.name}-${index}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                    className="w-full"
+                    style={{ minWidth: '200px' }}
+                  >
+                    <CosmicTooltip tooltip={tooltipMap[it.name] || it.name}>
+                      <CosmicProgressBar
+                        value={it.value}
+                        maxValue={it.maxValue}
+                        size="md"
+                        label={it.name}
+                        color="from-cyan-400 to-purple-500"
+                        animated={true}
+                        showValue={true}
+                        className="w-full"
+                      />
+                    </CosmicTooltip>
+                  </motion.div>
+                ));
+              })()}
             </div>
           </NeonGradientCard>
 

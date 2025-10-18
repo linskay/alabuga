@@ -38,6 +38,7 @@ const AdventCalendarPreview: React.FC<{ days: number; items: Record<number, any>
 
 const AdminScreen: React.FC = () => {
   const { refreshUserData } = useAppContext();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts' | 'ranks' | 'events'>('crew');
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
@@ -180,6 +181,15 @@ const AdminScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
+        // try resolve current user id (for conditional refresh)
+        try {
+          const login = localStorage.getItem('currentLogin');
+          if (login) {
+            const me = await backend.users.byLogin(login).catch(() => null);
+            if (me && (me as any).id) setCurrentUserId((me as any).id);
+          }
+        } catch {}
+
         const [list, rolesResp, shopItemsResp] = await Promise.all([
           backend.users.list(), 
           backend.users.roles().catch(() => []),
@@ -198,6 +208,10 @@ const AdminScreen: React.FC = () => {
   const [editUser, setEditUser] = useState<any | null>(null);
   const [userBranches, setUserBranches] = useState<any[]>([]);
   const [userMissions, setUserMissions] = useState<any[]>([]);
+  const [userCompetencies, setUserCompetencies] = useState<any[]>([]);
+  const [compEdit, setCompEdit] = useState<Record<number, number>>({});
+  const [compAdd, setCompAdd] = useState<{ competencyId?: number; experiencePoints: number }>({ experiencePoints: 0 });
+  const [compsLoading, setCompsLoading] = useState<boolean>(false);
   const [showUserMissions, setShowUserMissions] = useState(false);
   const [confirmCompleteMission, setConfirmCompleteMission] = useState<{ open: boolean; userMissionId?: number; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
   const [confirmRemoveMission, setConfirmRemoveMission] = useState<{ open: boolean; missionId?: number; missionName?: string; title?: string; message?: string }>({ open: false });
@@ -321,15 +335,21 @@ const AdminScreen: React.FC = () => {
     
     // Загружаем ветки и миссии пользователя
     try {
-      const [branches, missions] = await Promise.all([
+      setCompsLoading(true);
+      const [branches, missions, comps, allComps] = await Promise.all([
         backend.branches.list().catch(() => []),
-        backend.users.missions(u.id).catch(() => [])
+        backend.users.missions(u.id).catch(() => []),
+        backend.users.competencies(u.id).catch(() => []),
+        backend.competencies.list().catch(() => [])
       ]);
       setUserBranches(branches || []);
       setUserMissions(missions || []);
+      setUserCompetencies(comps || []);
+      setAllCompetencies(allComps || []);
+      setCompEdit((comps || []).reduce((acc: any, c: any) => { acc[c.id] = c.points ?? c.experiencePoints ?? 0; return acc; }, {}));
     } catch (e) {
       console.error('Ошибка загрузки данных пользователя:', e);
-    }
+    } finally { setCompsLoading(false); }
   };
   const saveEditUser = async () => {
     if (!editUser?.id) return;
@@ -351,6 +371,10 @@ const AdminScreen: React.FC = () => {
       } : u));
       setNotif({ open: true, title: 'Пользователь обновлён', message: 'Пользователь успешно обновлён', variant: 'success' });
       setEditUserOpen(false);
+      // refresh profile data if we edited current user
+      if (currentUserId && editUser.id === currentUserId) {
+        try { refreshUserData(); } catch {}
+      }
     } catch (e: any) {
       setNotif({ open: true, title: 'Ошибка обновления', message: 'Не удалось обновить пользователя', variant: 'error' });
     }
@@ -2095,11 +2119,11 @@ const AdminScreen: React.FC = () => {
                   </div>
                 </div>
                 <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={createMission.requiredRank || 1} onChange={e => setCreateMission((v: any) => ({ ...v, requiredRank: Number(e.target.value) }))}>
-                  <option value={1} className="bg-slate-800 text-white">1</option>
-                  <option value={2} className="bg-slate-800 text-white">2</option>
-                  <option value={3} className="bg-slate-800 text-white">3</option>
-                  <option value={4} className="bg-slate-800 text-white">4</option>
-                  <option value={5} className="bg-slate-800 text-white">5</option>
+                  <option value={1} className="bg-slate-800 text-white">1 - Космо-Кадет</option>
+                  <option value={2} className="bg-slate-800 text-white">2 - Навигатор Траекторий / Исследователь Культур / Штурман Экипажа</option>
+                  <option value={3} className="bg-slate-800 text-white">3 - Аналитик Орбит / Мастер Лектория / Командир Отряда</option>
+                  <option value={4} className="bg-slate-800 text-white">4 - Архитектор Станции / Хронист Галактики / Связист Звёздного Флота</option>
+                  <option value={5} className="bg-slate-800 text-white">5 - Хранитель Станции</option>
                 </select>
               </label>
               <label className="text-sm text-white/80">Требуемый опыт (≥0)
@@ -2292,17 +2316,11 @@ const AdminScreen: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <label className="text-sm text-white/80">Ранг
                   <select className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white hover:bg-slate-700/90 focus:bg-slate-700/90 focus:border-blue-400/50 transition-colors" value={editUser.level ?? 1} onChange={e => setEditUser((v: any) => ({ ...v, level: Number(e.target.value) }))}>
-                    <option value={1} className="bg-slate-800 text-white">1 - Космо-кадет</option>
-                    <option value={2} className="bg-slate-800 text-white">2 - Аналитик орбит</option>
-                    <option value={3} className="bg-slate-800 text-white">2 - Архитектор станций</option>
-                    <option value={4} className="bg-slate-800 text-white">2 - Навигатор</option>
-                    <option value={5} className="bg-slate-800 text-white">3 - Специалист</option>
-                    <option value={6} className="bg-slate-800 text-white">3 - Координатор</option>
-                    <option value={7} className="bg-slate-800 text-white">3 - Оператор</option>
-                    <option value={8} className="bg-slate-800 text-white">4 - Мастер</option>
-                    <option value={9} className="bg-slate-800 text-white">4 - Эксперт</option>
-                    <option value={10} className="bg-slate-800 text-white">4 - Лидер</option>
-                    <option value={11} className="bg-slate-800 text-white">5 - Командор</option>
+                    <option value={1} className="bg-slate-800 text-white">1 - Космо-Кадет</option>
+                    <option value={2} className="bg-slate-800 text-white">2 - Навигатор Траекторий / Исследователь Культур / Штурман Экипажа</option>
+                    <option value={3} className="bg-slate-800 text-white">3 - Аналитик Орбит / Мастер Лектория / Командир Отряда</option>
+                    <option value={4} className="bg-slate-800 text-white">4 - Архитектор Станции / Хронист Галактики / Связист Звёздного Флота</option>
+                    <option value={5} className="bg-slate-800 text-white">5 - Хранитель Станции</option>
                   </select>
                 </label>
                 <label className="text-sm text-white/80">Ветка
@@ -2330,6 +2348,97 @@ const AdminScreen: React.FC = () => {
               </label>
             </div>
             
+            {/* Управление компетенциями пользователя */}
+            <div className="mt-6 border-t border-white/10 pt-4">
+              <h4 className="text-lg font-semibold text-cyan-300 mb-4">Компетенции пользователя</h4>
+              {compsLoading ? (
+                <div className="text-gray-400">Загрузка...</div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {userCompetencies.length === 0 ? (
+                    <p className="text-gray-400 text-center py-4">Нет компетенций</p>
+                  ) : (
+                    userCompetencies.map((c: any) => (
+                      <div key={c.id} className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between gap-3">
+                        <div className="text-white/90">
+                          <div className="font-medium">{c.name}</div>
+                          <div className="text-xs text-gray-400">ID: {c.id}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            className="w-28 bg-white/5 border border-white/10 rounded px-2 py-1 text-white"
+                            value={compEdit[c.id] ?? 0}
+                            onChange={e => setCompEdit(s => ({ ...s, [c.id]: Math.max(0, Number(e.target.value)) }))}
+                          />
+                          <button
+                            className="px-3 py-1 bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 rounded hover:bg-cyan-500/30 transition"
+                            onClick={async () => {
+                              try {
+                                const points = Number(compEdit[c.id] ?? 0);
+                                await backend.users.updateCompetencyExperience(editUser.id, c.id, points);
+                                setUserCompetencies(prev => prev.map(x => x.id === c.id ? { ...x, points } : x));
+                                setNotif({ open: true, title: 'Компетенция обновлена', variant: 'success' });
+                                if (currentUserId && editUser.id === currentUserId) { try { refreshUserData(); } catch {} }
+                              } catch (e: any) {
+                                setNotif({ open: true, title: 'Ошибка обновления компетенции', message: getErrorMessage(e), variant: 'error' });
+                              }
+                            }}
+                          >Сохранить</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Добавить компетенцию */}
+            <div className="mt-4 flex items-end gap-3">
+              <label className="flex-1 text-sm text-white/80">Добавить компетенцию
+                <select
+                  className="mt-1 w-full bg-slate-800/90 border border-white/20 rounded px-3 py-2 text-white"
+                  value={compAdd.competencyId ?? ''}
+                  onChange={e => setCompAdd(s => ({ ...s, competencyId: e.target.value ? Number(e.target.value) : undefined }))}
+                >
+                  <option value="">Выбрать компетенцию</option>
+                  {allCompetencies
+                    .filter((ac: any) => !userCompetencies.some((uc: any) => uc.id === ac.id))
+                    .map((ac: any) => (
+                      <option key={ac.id} value={ac.id} className="bg-slate-800 text-white">{ac.name}</option>
+                    ))}
+                </select>
+              </label>
+              <label className="text-sm text-white/80">Очки
+                <input
+                  type="number"
+                  className="mt-1 w-28 bg-white/5 border border-white/10 rounded px-2 py-2 text-white"
+                  value={compAdd.experiencePoints}
+                  onChange={e => setCompAdd(s => ({ ...s, experiencePoints: Math.max(0, Number(e.target.value)) }))}
+                />
+              </label>
+              <button
+                className="px-3 py-2 bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 rounded hover:bg-emerald-500/30 transition"
+                onClick={async () => {
+                  if (!compAdd.competencyId) { setNotif({ open: true, title: 'Выберите компетенцию', variant: 'warning' }); return; }
+                  try {
+                    const created = await backend.users.addUserCompetency(editUser.id, compAdd.competencyId, undefined);
+                    const points = Number(compAdd.experiencePoints || 0);
+                    if (points > 0) {
+                      await backend.users.updateCompetencyExperience(editUser.id, compAdd.competencyId, points);
+                    }
+                    setUserCompetencies(prev => [{ id: compAdd.competencyId, name: (allCompetencies.find((x: any) => x.id === compAdd.competencyId)?.name) || `ID ${compAdd.competencyId}`, points }, ...prev]);
+                    setCompEdit(s => ({ ...s, [compAdd.competencyId!]: points }));
+                    setCompAdd({ experiencePoints: 0 });
+                    setNotif({ open: true, title: 'Компетенция добавлена', variant: 'success' });
+                    if (currentUserId && editUser.id === currentUserId) { try { refreshUserData(); } catch {} }
+                  } catch (e: any) {
+                    setNotif({ open: true, title: 'Ошибка добавления компетенции', message: getErrorMessage(e), variant: 'error' });
+                  }
+                }}
+              >Добавить</button>
+            </div>
+
             {/* Управление миссиями пользователя */}
             <div className="mt-6 border-t border-white/10 pt-4">
               <div className="flex items-center justify-between mb-4">

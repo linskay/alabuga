@@ -8,16 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.alabuga.dto.ArtifactCreateDTO;
 import com.example.alabuga.dto.ArtifactDTO;
 import com.example.alabuga.dto.ArtifactUpdateDTO;
-import com.example.alabuga.dto.UserArtifactDTO;
 import com.example.alabuga.entity.Artifact;
-import com.example.alabuga.entity.User;
-import com.example.alabuga.entity.UserArtifact;
-import com.example.alabuga.exception.BusinessLogicException;
 import com.example.alabuga.exception.ResourceNotFoundException;
 import com.example.alabuga.mapper.ArtifactMapper;
 import com.example.alabuga.repository.ArtifactRepository;
-import com.example.alabuga.repository.UserArtifactRepository;
-import com.example.alabuga.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class ArtifactService {
     
     private final ArtifactRepository artifactRepository;
-    private final UserArtifactRepository userArtifactRepository;
-    private final UserRepository userRepository;
     private final ArtifactMapper artifactMapper;
     
     public List<ArtifactDTO> getAllArtifacts() {
@@ -96,61 +88,4 @@ public class ArtifactService {
         return artifactMapper.toDTO(savedArtifact);
     }
     
-    // ========== USER ARTIFACT MANAGEMENT ==========
-    
-    public List<UserArtifactDTO> getUserArtifacts(Long userId) {
-        List<UserArtifact> userArtifacts = userArtifactRepository.findByUserId(userId);
-        return artifactMapper.toUserArtifactDTOList(userArtifacts);
-    }
-    
-    public List<UserArtifactDTO> getOtherUserArtifacts(Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
-        
-        List<UserArtifact> userArtifacts = userArtifactRepository.findByUserId(userId);
-        return artifactMapper.toUserArtifactDTOList(userArtifacts);
-    }
-    
-    @Transactional
-    public UserArtifactDTO assignArtifactToUser(Long userId, Long artifactId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь", userId));
-        
-        Artifact artifact = artifactRepository.findById(artifactId)
-                .orElseThrow(() -> new ResourceNotFoundException("Артефакт", artifactId));
-        if (userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId) != null) {
-            throw new BusinessLogicException("Пользователь уже имеет этот артефакт");
-        }
-        
-        UserArtifact userArtifact = UserArtifact.builder()
-                .user(user)
-                .artifact(artifact)
-                .isEquipped(false)
-                .build();
-        
-        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
-        return artifactMapper.toDTO(savedUserArtifact);
-    }
-    
-    @Transactional
-    public void removeArtifactFromUser(Long userId, Long artifactId) {
-        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId);
-        if (userArtifact == null) {
-            throw new ResourceNotFoundException("Артефакт пользователя", artifactId);
-        }
-        
-        userArtifactRepository.delete(userArtifact);
-    }
-    
-    @Transactional
-    public UserArtifactDTO toggleArtifactEquip(Long userId, Long artifactId) {
-        UserArtifact userArtifact = userArtifactRepository.findByUserIdAndArtifactId(userId, artifactId);
-        if (userArtifact == null) {
-            throw new ResourceNotFoundException("Артефакт пользователя", artifactId);
-        }
-        
-        userArtifact.setIsEquipped(!userArtifact.getIsEquipped());
-        UserArtifact savedUserArtifact = userArtifactRepository.save(userArtifact);
-        return artifactMapper.toDTO(savedUserArtifact);
-    }
 }

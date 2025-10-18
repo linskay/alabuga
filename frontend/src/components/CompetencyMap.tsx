@@ -16,9 +16,9 @@ type Competency = {
 };
 
 const branchMeta: Record<BranchKey, { label: string; color: string; short: string }>= {
-  tech: { label: 'Аналитико-Техническая', color: '#06B6D4', short: 'Тех' },
-  humanities: { label: 'Гуманитарно-Исследовательская', color: '#F59E0B', short: 'Гум' },
-  leadership: { label: 'Коммуникационно-Лидерская', color: '#22C55E', short: 'Лид' },
+  tech: { label: 'Кольцо Посланцев', color: '#06B6D4', short: 'Кольцо' },
+  humanities: { label: 'Академия Звёздного Флота', color: '#F59E0B', short: 'Академия' },
+  leadership: { label: 'Пояс Испытаний', color: '#22C55E', short: 'Пояс' },
 };
 
 const defaultCompetencies: Competency[] = [

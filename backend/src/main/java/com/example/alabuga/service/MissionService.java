@@ -21,7 +21,6 @@ import com.example.alabuga.mapper.MissionMapper;
 import com.example.alabuga.repository.MissionRepository;
 import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
-import com.example.alabuga.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 

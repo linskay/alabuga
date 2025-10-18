@@ -8,9 +8,7 @@ import org.springframework.stereotype.Component;
 import com.example.alabuga.dto.ArtifactCreateDTO;
 import com.example.alabuga.dto.ArtifactDTO;
 import com.example.alabuga.dto.ArtifactUpdateDTO;
-import com.example.alabuga.dto.UserArtifactDTO;
 import com.example.alabuga.entity.Artifact;
-import com.example.alabuga.entity.UserArtifact;
 
 @Component
 public class ArtifactMapper {
@@ -29,37 +27,12 @@ public class ArtifactMapper {
                 .build();
     }
     
-    public UserArtifactDTO toDTO(UserArtifact userArtifact) {
-        if (userArtifact == null) {
-            return null;
-        }
-        
-        return UserArtifactDTO.builder()
-                .id(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getId() : null)
-                .name(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getName() : null)
-                .imageUrl(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getImageUrl() : null)
-                .rarity(userArtifact.getArtifact() != null ? userArtifact.getArtifact().getRarity() : null)
-                .isEquipped(userArtifact.getIsEquipped())
-                .acquiredAt(userArtifact.getAcquiredAt() != null ? userArtifact.getAcquiredAt().toString() : null)
-                .build();
-    }
-    
     public List<ArtifactDTO> toDTOList(List<Artifact> artifacts) {
         if (artifacts == null) {
             return null;
         }
         
         return artifacts.stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-    
-    public List<UserArtifactDTO> toUserArtifactDTOList(List<UserArtifact> userArtifacts) {
-        if (userArtifacts == null) {
-            return null;
-        }
-        
-        return userArtifacts.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

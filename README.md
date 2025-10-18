@@ -232,93 +232,121 @@ erDiagram
 ### Компонентная диаграмма приложения
 
 ```mermaid
+%%{init: {
+  'theme': 'dark',
+  'themeVariables': {
+    'primaryColor': '#0b1320',
+    'primaryBorderColor': '#22d3ee',
+    'primaryTextColor': '#e6f7ff',
+    'lineColor': '#22d3ee',
+    'secondaryColor': '#0f172a',
+    'tertiaryColor': '#0f172a'
+  }
+}}%%
 graph TB
-    subgraph "Frontend (React + TypeScript)"
-        A[Landing Page] --> B[Home Page]
-        B --> C[Dashboard]
-        C --> D[Profile Screen]
-        C --> E[Crew Screen]
-        C --> F[Missions Screen]
-        C --> G[Ship Screen]
-        C --> H[Admin Screen]
-        
-        subgraph "UI Components"
-            I[AnimatedBackground]
-            J[CosmicButton]
-            K[ShinyText]
-            L[MainButton]
-            M[NeonGradientCard]
-            N[Goose Assistant]
-            O[Ranking Cards]
-            P[Notification Panel]
-        end
-        
-        subgraph "Hooks & Utils"
-            Q[useNotifications]
-            R[use404]
-            S[errorHandler]
-            T[API Client]
-        end
+  %% --------- КЛАССЫ ---------
+  classDef neon fill:#0b1320,stroke:#22d3ee,stroke-width:1.5px,color:#e6f7ff;
+  classDef neonSoft fill:#0f172a,stroke:#22d3ee,stroke-dasharray:3 3,color:#c7e9fb,stroke-width:1.2px;
+  classDef pill fill:#0b1320,stroke:#60a5fa,color:#e6f7ff,stroke-width:1.2px;
+  linkStyle default stroke:#22d3ee,stroke-width:1.3px;
+
+  %% --------- ФРОНТЕНД ---------
+  subgraph FE[Frontend React+TS]
+    direction TB
+    FE_LP[Стартовый экран]:::neon --> FE_HOME[Домашний экран]:::neon
+    FE_HOME --> FE_DASH[Дэшборд]:::neon
+    FE_DASH --> FE_PROFILE[Профиль]:::neon
+    FE_DASH --> FE_CREW[Экипаж]:::neon
+    FE_DASH --> FE_MISS[Миссии]:::neon
+    FE_DASH --> FE_SHIP[Корабль]:::neon
+    FE_DASH --> FE_ADMIN[Админ]:::neon
+
+    subgraph FE_UI[UI Компоненты]
+      direction LR
+      UI_BG[AnimatedBackground]:::pill
+      UI_BTN[MainButton]:::pill
+      UI_SHINY[ShinyText]:::pill
+      UI_NOTE[NotificationPanel]:::pill
+      UI_GOOSE[Goose Assistant]:::pill
     end
-    
-    subgraph "Backend (Spring Boot)"
-        U[Auth Controller]
-        V[User Controller]
-        W[Mission Controller]
-        X[Shop Controller]
-        Y[Rank Controller]
-        Z[Card Controller]
-        AA[Message Controller]
-        
-        subgraph "Services"
-            BB[UserService]
-            CC[MissionService]
-            DD[NotificationService]
-            EE[RankService]
-            FF[ShopService]
-        end
-        
-        subgraph "Repositories"
-            GG[UserRepository]
-            HH[MissionRepository]
-            II[RankRepository]
-            JJ[ShopRepository]
-        end
+
+    subgraph FE_UTIL[Хуки и утилиты]
+      direction LR
+      FE_NOTIF[useNotifications]:::neonSoft
+      FE_ERR[errorHandler]:::neonSoft
+      FE_API[API Client]:::neonSoft
     end
-    
-    subgraph "External Services"
-        KK[Telegram Bot API]
-        LL[PostgreSQL Database]
+  end
+
+  %% --------- БЭКЕНД ---------
+  subgraph BE[Backend Spring Boot]
+    direction TB
+    BE_AUTH[AuthController]:::neon
+    BE_USER[UserController]:::neon
+    BE_MISS[MissionController]:::neon
+    BE_SHOP[ShopController]:::neon
+    BE_RANK[RankController]:::neon
+    BE_CARD[CardController]:::neon
+    BE_MSG[MessageController]:::neon
+
+    subgraph BE_SVC[Сервисы]
+      direction LR
+      S_USER[UserService]:::pill
+      S_MISS[MissionService]:::pill
+      S_NOTE[NotificationService]:::pill
+      S_RANK[RankService]:::pill
+      S_SHOP[ShopService]:::pill
     end
-    
-    subgraph "Telegram App"
-        MM[Tap Game with Goose Gaga]
-        NN[Telegram Bot Interface]
+
+    subgraph BE_REP[Репозитории]
+      direction LR
+      R_USER[UserRepository]:::neonSoft
+      R_MISS[MissionRepository]:::neonSoft
+      R_RANK[RankRepository]:::neonSoft
+      R_SHOP[ShopRepository]:::neonSoft
     end
-    
-    A --> U
-    D --> V
-    F --> W
-    H --> V
-    H --> W
-    
-    U --> BB
-    V --> BB
-    W --> CC
-    X --> FF
-    
-    BB --> GG
-    CC --> HH
-    EE --> II
-    FF --> JJ
-    
-    GG --> LL
-    HH --> LL
-    II --> LL
-    JJ --> LL
-    
-    NN --> KK
-    MM --> NN
+  end
+
+  %% --------- ВНЕШНИЕ СИСТЕМЫ ---------
+  subgraph EXT[Внешние сервисы]
+    EXT_TG[Telegram Bot API]:::neon
+    EXT_DB[(PostgreSQL)]:::neon
+  end
+
+  %% --------- TELEGRAM APP ---------
+  subgraph TG_APP[Telegram приложение]
+    TG_GAME[Tap игра с гусем Гага]:::neon
+    TG_BOT[Интерфейс бота]:::neon
+  end
+
+  %% --------- СВЯЗИ (FE → BE) ---------
+  FE_LP --> BE_AUTH
+  FE_PROFILE --> BE_USER
+  FE_MISS --> BE_MISS
+  FE_ADMIN --> BE_USER
+  FE_ADMIN --> BE_MISS
+  FE_SHIP --> BE_CARD
+
+  %% --------- СВЯЗИ (BE ВНУТРИ) ---------
+  BE_AUTH --> S_USER
+  BE_USER --> S_USER
+  BE_MISS --> S_MISS
+  BE_SHOP --> S_SHOP
+  BE_RANK --> S_RANK
+  S_USER --> R_USER
+  S_MISS --> R_MISS
+  S_RANK --> R_RANK
+  S_SHOP --> R_SHOP
+
+  %% --------- ХРАНИЛИЩЕ ---------
+  R_USER --> EXT_DB
+  R_MISS --> EXT_DB
+  R_RANK --> EXT_DB
+  R_SHOP --> EXT_DB
+
+  %% --------- TELEGRAM ИНТЕГРАЦИЯ ---------
+  TG_BOT --> EXT_TG
+  TG_GAME --> TG_BOT
 ```
 
 ## ⚡ Реализованные механики

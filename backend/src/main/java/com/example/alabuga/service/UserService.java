@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.alabuga.dto.ArtifactDTO;
 import com.example.alabuga.dto.CompetencyDTO;
+import com.example.alabuga.dto.NotificationCreateDTO;
 import com.example.alabuga.dto.UserArtifactDTO;
 import com.example.alabuga.dto.UserCompetencyDTO;
 import com.example.alabuga.dto.UserCreateDTO;
@@ -18,6 +19,7 @@ import com.example.alabuga.dto.UserUpdateDTO;
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.entity.Competency;
 import com.example.alabuga.entity.Mission;
+import com.example.alabuga.entity.Notification;
 import com.example.alabuga.entity.Rank;
 import com.example.alabuga.entity.User;
 import com.example.alabuga.entity.UserArtifact;
@@ -38,7 +40,7 @@ import com.example.alabuga.repository.UserArtifactRepository;
 import com.example.alabuga.repository.UserCompetencyRepository;
 import com.example.alabuga.repository.UserMissionRepository;
 import com.example.alabuga.repository.UserRepository;
-import com.example.alabuga.service.NotificationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -59,8 +61,8 @@ public class UserService {
     private final ArtifactMapper artifactMapper;
     private final NotificationService notificationService;
     private final UserArtifactMapper userArtifactMapper;
+    private final ObjectMapper objectMapper;
     
-  
     public List<UserDTO> getAllUsers() {
         List<User> users = userRepository.findAll();
         return userMapper.toDTOList(users);
@@ -192,7 +194,24 @@ public class UserService {
         
         // Обновляем ранг на основе опыта (каждые 1000 опыта = +1 ранг)
         int newRank = (user.getExperience() / 1000) + 1;
-        user.setRank(newRank);
+        
+        // Проверяем, был ли повышен ранг
+        if (newRank > user.getRank()) {
+            int oldRank = user.getRank();
+            user.setRank(newRank);
+            
+            // Создаем уведомление о повышении ранга
+            Rank oldRankObj = Rank.fromLevel(oldRank);
+            Rank newRankObj = Rank.fromLevel(newRank);
+            notificationService.createRankPromotionNotification(user, oldRankObj, newRankObj);
+            
+            // Для рангов 2-4 создаем уведомление о необходимости выбора ветки миссий
+            if (newRank >= 2 && newRank <= 4 && user.getSelectedBranchId() == null) {
+                createBranchSelectionNotification(user, newRank);
+            }
+        } else {
+            user.setRank(newRank);
+        }
         
         User savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
@@ -452,4 +471,77 @@ public class UserService {
                 .build();
     }
     
+    @Transactional
+    public void createBranchSelectionNotification(User user, int newRank) {
+        String title = "СИСТЕМНЫЙ ЖУРНАЛ: ВЫБОР СПЕЦИАЛИЗАЦИИ";
+        String content = generateBranchSelectionContent(newRank);
+        String metadata = createBranchSelectionMetadata(newRank);
+
+        NotificationCreateDTO dto = NotificationCreateDTO.builder()
+                .userId(user.getId())
+                .title(title)
+                .content(content)
+                .notificationType(Notification.NotificationType.SYSTEM_MESSAGE.getCode())
+                .metadata(metadata)
+                .build();
+
+        notificationService.createNotification(dto);
+    }
+
+    private String generateBranchSelectionContent(int rank) {
+        return switch (rank) {
+            case 2 -> """
+                    📨 Сообщение 2.0: Специализация Навигатора
+                    
+                    // АКТИВАЦИЯ ПРОТОКОЛА СПЕЦИАЛИЗАЦИИ //
+                    Поздравляем с достижением ранга Навигатора!
+                    
+                    Теперь вам доступны специализированные ветки миссий:
+                    • Кольцо Посланцев (техническая специализация)
+                    • Академия Звёздного Флота (исследовательская специализация)  
+                    • Пояс Испытаний (лидерская специализация)
+                    
+                    Выберите ветку миссий в разделе "Миссии" для продолжения развития.
+                    """;
+            case 3 -> """
+                    📨 Сообщение 3.0: Специализация Аналитика
+                    
+                    // АКТИВАЦИЯ ПРОТОКОЛА СПЕЦИАЛИЗАЦИИ //
+                    Поздравляем с достижением ранга Аналитика!
+                    
+                    Теперь вам доступны специализированные ветки миссий:
+                    • Кольцо Посланцев (техническая специализация)
+                    • Академия Звёздного Флота (исследовательская специализация)
+                    • Пояс Испытаний (лидерская специализация)
+                    
+                    Выберите ветку миссий в разделе "Миссии" для продолжения развития.
+                    """;
+            case 4 -> """
+                    📨 Сообщение 4.0: Специализация Архитектора
+                    
+                    // АКТИВАЦИЯ ПРОТОКОЛА СПЕЦИАЛИЗАЦИИ //
+                    Поздравляем с достижением ранга Архитектора!
+                    
+                    Теперь вам доступны специализированные ветки миссий:
+                    • Кольцо Посланцев (техническая специализация)
+                    • Академия Звёздного Флота (исследовательская специализация)
+                    • Пояс Испытаний (лидерская специализация)
+                    
+                    Выберите ветку миссий в разделе "Миссии" для продолжения развития.
+                    """;
+            default -> "Неизвестный ранг: " + rank;
+        };
+    }
+    
+    private String createBranchSelectionMetadata(int rank) {
+        try {
+            return objectMapper.writeValueAsString(new BranchSelectionMetadata(rank));
+        } catch (Exception e) {
+            // Если сериализация не удалась, возвращаем простую строку
+            return "{\"rank\": " + rank + "}";
+        }
+    }
+
+    private record BranchSelectionMetadata(int rank) {
+    }
 }

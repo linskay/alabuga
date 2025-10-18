@@ -3,7 +3,6 @@ package com.example.alabuga.controller;
 import com.example.alabuga.dto.ArtifactCreateDTO;
 import com.example.alabuga.dto.ArtifactDTO;
 import com.example.alabuga.dto.ArtifactUpdateDTO;
-import com.example.alabuga.dto.UserArtifactDTO;
 import com.example.alabuga.entity.Artifact;
 import com.example.alabuga.service.ArtifactService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -111,44 +110,5 @@ public class ArtifactController {
         return ResponseEntity.ok(artifact);
     }
 
-    // ========== USER ARTIFACT MANAGEMENT ==========
-
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Получить артефакты пользователя")
-    public ResponseEntity<List<UserArtifactDTO>> getUserArtifacts(
-            @Parameter(description = "ID пользователя") @PathVariable Long userId) {
-        List<UserArtifactDTO> userArtifacts = artifactService.getUserArtifacts(userId);
-        return ResponseEntity.ok(userArtifacts);
-    }
-
-    @GetMapping("/user/{userId}/public")
-    @Operation(summary = "Получить артефакты другого пользователя (публичный просмотр)")
-    public ResponseEntity<List<UserArtifactDTO>> getOtherUserArtifacts(
-            @Parameter(description = "ID пользователя") @PathVariable Long userId) {
-        List<UserArtifactDTO> userArtifacts = artifactService.getOtherUserArtifacts(userId);
-        return ResponseEntity.ok(userArtifacts);
-    }
-
-    @PostMapping("/assign")
-    @Operation(summary = "Назначить артефакт пользователю")
-    public ResponseEntity<UserArtifactDTO> assignArtifactToUser(
-            HttpServletRequest request,
-            @Parameter(description = "ID пользователя") @RequestParam Long userId,
-            @Parameter(description = "ID артефакта") @RequestParam Long artifactId) {
-        AdminGuard.assertAdmin(request);
-        UserArtifactDTO userArtifact = artifactService.assignArtifactToUser(userId, artifactId);
-        return ResponseEntity.ok(userArtifact);
-    }
-
-    @DeleteMapping("/user/{userId}/artifact/{artifactId}")
-    @Operation(summary = "Удалить артефакт у пользователя")
-    public ResponseEntity<Void> removeArtifactFromUser(
-            HttpServletRequest request,
-            @Parameter(description = "ID пользователя") @PathVariable Long userId,
-            @Parameter(description = "ID артефакта") @PathVariable Long artifactId) {
-        AdminGuard.assertAdmin(request);
-        artifactService.removeArtifactFromUser(userId, artifactId);
-        return ResponseEntity.ok().build();
-    }
 
 }

@@ -123,6 +123,9 @@ export const backend = {
     update: (id: number, body: Partial<UserDTO>) => api.put<UserDTO>(`/api/users/${id}`, body),
     delete: (id: number) => api.delete<void>(`/api/users/${id}`),
     competencies: (userId: number) => api.get<UserCompetency[]>(`/api/users/${userId}/competencies`),
+    addUserCompetency: (userId: number, competencyId: number, initialLevel?: number) => api.post(`/api/users/${userId}/competencies?competencyId=${competencyId}${initialLevel != null ? `&initialLevel=${initialLevel}` : ''}`),
+    updateCompetencyExperience: (userId: number, competencyId: number, experiencePoints: number) => api.put(`/api/users/${userId}/competencies/${competencyId}?experiencePoints=${experiencePoints}`),
+    addExperienceToCompetency: (userId: number, competencyId: number, experiencePoints: number) => api.post(`/api/users/${userId}/competencies/${competencyId}/experience?experiencePoints=${experiencePoints}`),
     missions: (userId: number) => api.get<UserMission[]>(`/api/missions/user/${userId}`),
     takeMission: (userId: number, missionId: number) => api.post(`/api/users/${userId}/missions/${missionId}/take`),
     completeMission: (userId: number, missionId: number) => api.post(`/api/missions/complete?userId=${userId}&missionId=${missionId}`),
@@ -130,6 +133,14 @@ export const backend = {
     artifacts: (userId: number) => api.get<any[]>(`/api/users/${userId}/artifacts`),
     equipArtifact: (userId: number, artifactId: number) => api.post(`/api/users/${userId}/artifacts/${artifactId}/equip`),
     giveArtifact: (userId: number, artifactId: number) => api.post(`/api/users/${userId}/artifacts/${artifactId}/give`),
+    // Branch selection endpoints
+    branches: {
+      available: (userId: number) => api.get<string[]>(`/api/users/${userId}/branches/available`),
+      current: (userId: number) => api.get<string>(`/api/users/${userId}/branches/current`),
+      select: (userId: number, branch: string) => api.post<UserDTO>(`/api/users/${userId}/branches/select`, { branch }),
+      canPromote: (userId: number) => api.get<boolean>(`/api/users/${userId}/branches/can-promote`),
+      nextRank: (userId: number) => api.get<any>(`/api/users/${userId}/branches/next-rank`),
+    },
   },
   branches: {
     list: () => api.get<any[]>('/api/branches'),
@@ -147,6 +158,7 @@ export const backend = {
     byLevel: (level: number) => api.get<any>(`/api/ranks/level/${level}`),
     requirements: () => api.get<any[]>('/api/ranks/requirements'),
     requirementsByLevel: (level: number) => api.get<any>(`/api/ranks/requirements/level/${level}`),
+    promote: (userId: number) => api.post<UserDTO>(`/api/ranks/promote?userId=${userId}`),
   },
   cards: {
     available: (userId: number) => api.get<CardDTO[]>(`/api/cards/available/${userId}`),

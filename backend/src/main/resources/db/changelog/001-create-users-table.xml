@@ -145,9 +145,10 @@
             <column name="energy" type="INTEGER" defaultValue="100">
                 <constraints nullable="false"/>
             </column>
-            <column name="rank" type="INTEGER" defaultValue="0">
+            <column name="rank" type="INTEGER" defaultValue="1">
                 <constraints nullable="false"/>
             </column>
+            <column name="selected_branch_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 

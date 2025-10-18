@@ -43,13 +43,21 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Пользователь не найден"));
         }
         
-        // Проверяем, что пользователь активен
-        if (!user.get().getIsActive()) {
+        // Проверяем, что пользователь активен (null-safe)
+        Boolean isActive = user.get().getIsActive();
+        if (isActive != null && !isActive) {
             return ResponseEntity.status(401).body(Map.of("error", "Пользователь деактивирован"));
         }
         
-        // TODO: заменить на проверку BCrypt-хеша и JWT-токены.
-        // Для тестовой среды допускаем пароль == логин для пользователей admin/organizer/user
+        // TODO: ВРЕМЕННОЕ РЕШЕНИЕ ДЛЯ ТЕСТИРОВАНИЯ
+        // Текущая реализация использует упрощённую аутентификацию без Spring Security.
+        // Для полной реализации аутентификации необходимо:
+        // 1. Добавить зависимость spring-boot-starter-security в pom.xml
+        // 2. Настроить @EnableMethodSecurity и @Configuration класс с SecurityConfig
+        // 3. Заменить текущую логику на JWT-токены и BCrypt-хеши паролей
+        // 4. Добавить @PreAuthorize аннотации для защиты эндпоинтов
+        // 5. Реализовать UserDetailsService для загрузки пользователей
+        // Пока используем тестовые логины: admin/admin, user/user
         String normalized = login.trim().toLowerCase();
         boolean allowedTestUser = normalized.equals("admin") || normalized.equals("organizer") || normalized.equals("user");
         if (allowedTestUser) {

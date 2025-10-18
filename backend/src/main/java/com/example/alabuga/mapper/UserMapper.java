@@ -10,19 +10,38 @@ import com.example.alabuga.dto.UserDTO;
 import com.example.alabuga.dto.UserUpdateDTO;
 import com.example.alabuga.entity.User;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
 public class UserMapper {
     
     private final CompetencyMapper competencyMapper;
-    private final ArtifactMapper artifactMapper;
+    
+    public UserMapper(CompetencyMapper competencyMapper) {
+        this.competencyMapper = competencyMapper;
+    }
+    
+    private Long determineBranchId(User user) {
+        if (user == null || user.getRank() == null) return null;
+        
+        // Для рангов 1 и 5 всегда используется LUNAR_DOCK
+        if (user.getRank() == 1 || user.getRank() == 5) {
+            return 1L; // LUNAR_DOCK
+        }
+        
+        // Для рангов 2-4 используется выбранная пользователем ветка
+        if (user.getRank() >= 2 && user.getRank() <= 4) {
+            return user.getSelectedBranchId(); // Может быть null, если ветка не выбрана
+        }
+        
+        return null; // Для других рангов ветка не определена
+    }
     
     public UserDTO toDTO(User user) {
         if (user == null) {
             return null;
         }
+        
+        // Логика определения ветки на основе ранга и выбранной ветки
+        Long branchId = determineBranchId(user);
         
         return UserDTO.builder()
                 .id(user.getId())
@@ -34,6 +53,8 @@ public class UserMapper {
                 .experience(user.getExperience())
                 .energy(user.getEnergy())
                 .rank(user.getRank())
+                .selectedBranchId(user.getSelectedBranchId())
+                .branchId(branchId)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .isActive(user.getIsActive())
@@ -41,10 +62,7 @@ public class UserMapper {
                     user.getCompetencies().stream()
                         .map(competencyMapper::toDTO)
                         .collect(Collectors.toList()) : null)
-                .artifacts(user.getArtifacts() != null ? 
-                    user.getArtifacts().stream()
-                        .map(artifactMapper::toDTO)
-                        .collect(Collectors.toList()) : null)
+                // Убираем маппинг артефактов, так как это должно быть в UserArtifactMapper
                 .build();
     }
     

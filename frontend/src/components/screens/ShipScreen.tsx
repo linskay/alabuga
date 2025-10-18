@@ -7,6 +7,9 @@ import { backend, ArtifactDTO, CardDTO, UserCardDTO, API_BASE_URL } from '../../
 import { handleApiError } from '../../utils/errorHandler';
 import Energon from '../Energon';
 import { useAppContext } from '../../contexts/AppContext';
+import GooseHint from '../GooseHint';
+import { useOneTimeHint } from '../../hooks/useOneTimeHint';
+import { combineHint } from '../../constants/gooseHints';
 
 const StyledFlip = styled.div`
   .container { width: 200px; height: 250px; perspective: 900px; }
@@ -25,6 +28,13 @@ const StyledGlow = styled.div`
 
 const ShipScreen: React.FC = () => {
   const { refreshUserData } = useAppContext();
+  const cardsHint = useOneTimeHint('cards');
+  const artifactsHint = useOneTimeHint('artifacts');
+  const [activateArtifacts, setActivateArtifacts] = useState(false);
+  // When cards hint finishes (hasSeen becomes true), activate artifacts hint sequentially
+  useEffect(() => {
+    if (cardsHint.hasSeen) setActivateArtifacts(true);
+  }, [cardsHint.hasSeen]);
   const [pageCosmo, setPageCosmo] = useState(1);
   const [pageArte, setPageArte] = useState(1);
   const pageSize = 6; // 3x2
@@ -294,6 +304,11 @@ const ShipScreen: React.FC = () => {
   return (
     <div className="h-full pb-8">
       <div className="max-w-7xl mx-auto px-4">
+        <GooseHint
+          text={combineHint('cards')}
+          visible={cardsHint.visible}
+          className="top-20 right-6"
+        />
         {/* Подзаголовок */}
         <div className="mt-6 mb-6">
           <h2 className="text-center">
@@ -490,7 +505,14 @@ const ShipScreen: React.FC = () => {
           </MainButton>
         </div>
 
-        {/* Коллекция артефактов */}
+        {/* Коллекция артефактов (sequential after cards hint) */}
+        {activateArtifacts && (
+          <GooseHint
+            text={combineHint('artifacts')}
+            visible={artifactsHint.visible}
+            className="top-40 right-10"
+          />
+        )}
         <div className="mt-12 mb-6 text-center">
           <h2 className="text-center">
             <ShinyText text="КОЛЛЕКЦИЯ АРТЕФАКТОВ" className="text-2xl font-bold" speed={6} />

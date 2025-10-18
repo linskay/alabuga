@@ -6,6 +6,9 @@ import { backend, MissionDTO, UserDTO, UserMission } from '../../api';
 import SystemNotification from '../SystemNotification';
 import { handleApiError } from '../../utils/errorHandler';
 import ShinyText from '../ShinyText';
+import GooseHint from '../GooseHint';
+import { useOneTimeHint } from '../../hooks/useOneTimeHint';
+import { combineHint } from '../../constants/gooseHints';
 
 type StatusId = 'active' | 'available' | 'soon' | 'history';
 
@@ -152,6 +155,7 @@ const StyledCard = styled.div`
 `;
 
 const MissionsScreen: React.FC = () => {
+  const missionsHint = useOneTimeHint('missions');
   const [status, setStatus] = useState<StatusId>('active');
   const [page, setPage] = useState<number>(1);
   const pageSize = 6; // 3x2 на десктопе
@@ -370,6 +374,11 @@ const MissionsScreen: React.FC = () => {
 
   return (
     <div className="pb-8">
+      <GooseHint
+        text={combineHint('missions')}
+        visible={missionsHint.visible}
+        className="top-20 right-6"
+      />
       <DecoOrb>
         <div className="ring r1" />
         <div className="ring r2" />
