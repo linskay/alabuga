@@ -1,0 +1,27 @@
+version: 1
+
+projects:
+
+  # ---- Backend ----
+  backend:
+    path: backend
+    runtime: docker
+    dockerfile: backend/Dockerfile
+    env:
+      SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      APP_FRONTEND_URL: ${{ secrets.APP_FRONTEND_URL }}
+
+  # ---- Frontend ----
+  frontend:
+    path: frontend
+    runtime: node
+    build:
+      command: npm ci && npm run build
+      publish_dir: build
+    env:
+      REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
