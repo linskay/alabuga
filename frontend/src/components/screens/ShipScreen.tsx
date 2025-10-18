@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import ShinyText from '../ShinyText';
+import CosmicTooltip from '../CosmicTooltip';
 import MainButton from '../MainButton';
 import { backend, ArtifactDTO, CardDTO, UserCardDTO, API_BASE_URL } from '../../api';
 import { handleApiError } from '../../utils/errorHandler';
@@ -30,11 +31,15 @@ const ShipScreen: React.FC = () => {
 
   const [userCards, setUserCards] = useState<UserCardDTO[]>([]);
   const [availableCards, setAvailableCards] = useState<CardDTO[]>([]);
+  const [allCards, setAllCards] = useState<CardDTO[]>([]);
   const [artefacts, setArtefacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean }[]>([]);
   const [userArtifacts, setUserArtifacts] = useState<{ id: number; name?: string; rarity?: string; isEquipped?: boolean; imageUrl?: string; image_url?: string }[]>([]);
   const [equippedArtifacts, setEquippedArtifacts] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cardsTab, setCardsTab] = useState<'owned' | 'locked'>('owned');
+  const [artifactsTab, setArtifactsTab] = useState<'owned' | 'locked'>('owned');
+  const [allArtifactsCatalog, setAllArtifactsCatalog] = useState<ArtifactDTO[]>([]);
 
   const resolveImageUrl = (url?: string): string | undefined => {
     if (!url) return undefined;
@@ -67,16 +72,19 @@ const ShipScreen: React.FC = () => {
         // Сначала проверим, что API карт работает
         try {
           console.log('Проверяем доступность API карт...');
-          const debugCards = await backend.cards.series();
-          console.log('Серии карт:', debugCards);
+          const series = await backend.cards.series();
+          console.log('Серии карт:', series);
+          const lists = await Promise.all((series || []).map((s: string) => backend.cards.cardsBySeries(s).catch(() => [])));
+          const merged: CardDTO[] = ([] as CardDTO[]).concat(...lists).filter(Boolean);
+          setAllCards(merged);
         } catch (e) {
-          console.error('Ошибка при получении серий карт:', e);
+          console.error('Ошибка при получении полного каталога карт:', e);
           console.error('Возможно, бекенд не запущен или API недоступен');
           throw new Error(`API карт недоступен: ${(e as any)?.message || 'Неизвестная ошибка'}`);
         }
         
         // Загружаем данные по отдельности для лучшей диагностики
-        let allArtifacts, userArtifactsData, userCardsData, availableCardsData;
+        let allArtifacts, userArtifactsData, userCardsData, availableCardsData, artifactsCatalog;
         
         try {
           console.log('Загружаем артефакты...');
@@ -127,6 +135,7 @@ const ShipScreen: React.FC = () => {
           isEquipped: false
         }));
         setArtefacts(mappedArtifacts);
+        setAllArtifactsCatalog(artifactsCatalog || []);
         
         // Артефакты пользователя
         const mappedUserArtifacts = userArtifactsData.map((a: any) => ({ 
@@ -241,9 +250,20 @@ const ShipScreen: React.FC = () => {
   };
 
   const totalCosmo = Math.max(1, Math.ceil(userCards.length / pageSize));
-  const totalArte = Math.max(1, Math.ceil(userArtifacts.length / pageSize));
+  const totalArteOwnedPages = Math.max(1, Math.ceil(userArtifacts.length / pageSize));
   const cosmoPageItems = userCards.slice((pageCosmo-1)*pageSize, pageCosmo*pageSize);
-  const artePageItems = userArtifacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
+  const artePageItemsOwned = userArtifacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
+
+  const ownedIds = new Set(userCards.map(uc => uc.card.id));
+  const lockedCards = (allCards.length ? allCards : availableCards).filter(c => !ownedIds.has(c.id));
+  const totalLockedPages = Math.max(1, Math.ceil(lockedCards.length / pageSize));
+  const lockedPageItems = lockedCards.slice((pageCosmo-1)*pageSize, pageCosmo*pageSize);
+  // Artifacts locked
+  const ownedArtifactIds = new Set(userArtifacts.map(a => a.id));
+  const artifactsUniverse = allArtifactsCatalog.length ? allArtifactsCatalog : (artefacts.length ? artefacts : []);
+  const lockedArtifacts = artifactsUniverse.filter(a => !ownedArtifactIds.has(a.id));
+  const totalArtifactsLockedPages = Math.max(1, Math.ceil(lockedArtifacts.length / pageSize));
+  const artePageItemsLocked = lockedArtifacts.slice((pageArte-1)*pageSize, pageArte*pageSize);
 
   if (loading) {
     return (
@@ -281,14 +301,74 @@ const ShipScreen: React.FC = () => {
           </h2>
         </div>
 
-        {/* Космокарты: 3 в ряд + пагинация */}
+        {/* Космокарты: вкладки + сетка + пагинация */}
         <div className="mx-auto" style={{ maxWidth: '820px' }}>
+          {/* Tabs (styled like Missions) */}
+          <div className="flex flex-wrap gap-3 mb-6 justify-center">
+            <MainButton onClick={() => { setCardsTab('owned'); setPageCosmo(1); }} className={cardsTab === 'owned' ? '' : 'opacity-70'}>
+              Моя коллекция
+            </MainButton>
+            <MainButton onClick={() => { setCardsTab('locked'); setPageCosmo(1); }} className={cardsTab === 'locked' ? '' : 'opacity-70'}>
+              Заблокировано
+            </MainButton>
+          </div>
+
+          {/* Story text */}
+          {cardsTab === 'owned' ? (
+            <p className="text-center text-white/80 text-sm mb-6">
+              Сектор полученных карт. Капитан Марк Стивенс первым собрал полную коллекцию карт сектора "Альфа" в 2087 году, что позволило расшифровать координаты заброшенной космической станции.
+            </p>
+          ) : (
+            <p className="text-center text-white/80 text-sm mb-6">
+              Архив ещё не полученных карт. Штурман Юми Кошикава годами изучала этот раздел, чтобы точно определить, какие миссии принесут ей недостающие экземпляры для завершения "Колоды Первопроходца".
+            </p>
+          )}
+
+          {/* Cosmic counter like Missions (small mono) */}
+          <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+            <div className="text-[11px] md:text-xs tracking-wide text-white/70 font-mono opacity-90 mb-4 text-center">
+              <span>
+                Получено {userCards.length} из {(allCards.length ? allCards.length : (userCards.length + lockedCards.length))}
+              </span>
+            </div>
+          </div>
+
+          {/* Motivation text */}
+          {cardsTab === 'owned' && userCards.length === 0 && (
+            <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+              <div className="flex flex-col items-center text-center gap-3 py-4">
+                <img src="/images/gaga.gif" alt="gaga" className="w-16 h-16 object-contain opacity-90" />
+                <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono">
+                  <span>АНАЛИЗ КОЛЛЕКЦИИ: КАРТЫ ОТСУТСТВУЮТ. ДЛЯ ПОЛУЧЕНИЯ ПЕРВЫХ КАРТ ВЫПОЛНИТЕ СТАРТОВЫЕ МИССИИ. КАЖДАЯ КАРТА — УНИКАЛЬНЫЙ АРТЕФАКТ, ХРАНЯЩИЙ ЧАСТЬ ИСТОРИИ КОСМОСА.</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {cardsTab === 'owned' && userCards.length > 0 && (
+            <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+              <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono text-center mb-4">
+                <span>СИСТЕМНЫЙ ОТЧЁТ: ВАША КОЛЛЕКЦИЯ СОБИРАЕТСЯ. ИЗУЧАЙТЕ КАРТЫ, ЧТОБЫ РАСКРЫТЬ ИХ СКРЫТЫЕ СВОЙСТВА И СЕКРЕТЫ ВСЕЛЕННОЙ.</span>
+              </div>
+            </div>
+          )}
+          {cardsTab === 'locked' && (
+            <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+              <div className="flex flex-col items-center text-center gap-3 py-4">
+                <img src="/images/gaga.gif" alt="gaga" className="w-16 h-16 object-contain opacity-90" />
+                <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono whitespace-pre-line">
+                  <span>{`СКАНЕР БУДУЩИХ ПОЛУЧЕНИЙ: ЗДЕСЬ ОТОБРАЖАЮТСЯ КАРТЫ, КОТОРЫЕ ВЫ СМОЖЕТЕ ПОЛУЧИТЬ. ДЛЯ ИХ ПРИОБРЕТЕНИЯ ВЫПОЛНИТЕ УСЛОВИЯ, УКАЗАННЫЕ НА КАРТАХ. КАЖДАЯ НОВАЯ КАРТА ПРИБЛИЖАЕТ ВАС К ПОЛНОЙ КОЛЛЕКЦИИ!`}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-8 gap-x-4 justify-items-center">
-          {cosmoPageItems.map((userCard) => (
-            <StyledFlip key={userCard.id} onClick={() => handleCardClick(userCard)}>
-              <div className="container">
-                <div className="card">
-                  <div className="front" style={{ textAlign: 'center', padding: '8px' }}>
+          {cardsTab === 'owned' ? (
+            cosmoPageItems.map((userCard) => (
+              <StyledFlip key={userCard.id} onClick={() => handleCardClick(userCard)}>
+                <div className="container">
+                  <div className="card">
+                    <div className="front" style={{ textAlign: 'center', padding: '8px' }}>
                     {(() => {
                       const initial = resolveImageUrl(userCard.card.frontImageUrl) || `/images/cards/${userCard.card.id}.jpg`;
                       if (!initial) {
@@ -348,22 +428,46 @@ const ShipScreen: React.FC = () => {
                         />
                       );
                     })()}
-                    <div style={{ marginTop: 'auto', paddingTop: '4px' }}>
-                      <p className="front-heading">{userCard.card.name}</p>
-                      <p style={{fontSize: '11px'}}>{userCard.card.seriesName}</p>
-                      {userCard.isNew && <p style={{color: '#00ff00', fontSize: '10px'}}>НОВАЯ!</p>}
+                      <div style={{ marginTop: 'auto', paddingTop: '4px' }}>
+                        <p className="front-heading">{userCard.card.name}</p>
+                        <p style={{fontSize: '11px'}}>{userCard.card.seriesName}</p>
+                        {userCard.isNew && <p style={{color: '#00ff00', fontSize: '10px'}}>НОВАЯ!</p>}
+                      </div>
+                    </div>
+                    <div className="back">
+                      <p className="back-heading">{userCard.card.name}</p>
+                      <p style={{fontSize: '12px', textAlign: 'center', padding: '0 10px', fontStyle: 'italic'}}>
+                        {userCard.card.backDescription}
+                      </p>
                     </div>
                   </div>
-                  <div className="back">
-                    <p className="back-heading">{userCard.card.name}</p>
-                    <p style={{fontSize: '12px', textAlign: 'center', padding: '0 10px', fontStyle: 'italic'}}>
-                      {userCard.card.backDescription}
-                    </p>
-                  </div>
                 </div>
-              </div>
-            </StyledFlip>
-          ))}
+              </StyledFlip>
+            ))
+          ) : (
+            lockedPageItems.map((card) => {
+              const tip = [
+                (card as any)?.requirementDescription || '',
+                card.unlockCondition ? `Условие: ${card.unlockCondition}` : '',
+                typeof card.unlockRank === 'number' ? `Ранг: ${card.unlockRank}` : '',
+                card.seriesName ? `Серия: ${card.seriesName}` : ''
+              ].filter(Boolean).join(' \n ')
+                || 'Для получения выполните условия карты';
+              return (
+                <CosmicTooltip key={card.id} tooltip={tip}>
+                  <div className="w-[200px] h-[250px] rounded-2xl relative border border-white/10 bg-white/5 overflow-hidden">
+                    <div className="absolute inset-0 bg-black/60" />
+                    <div className="absolute inset-2 rounded-xl border border-white/10 flex items-center justify-center">
+                      <div className="text-white/70 text-5xl select-none">?</div>
+                    </div>
+                    <div className="absolute bottom-2 left-0 right-0 text-center text-white/60 text-xs px-2">
+                      {card.name}
+                    </div>
+                  </div>
+                </CosmicTooltip>
+              );
+            })
+          )}
           </div>
         </div>
         <div className="mt-6 flex items-center justify-center space-x-4">
@@ -375,11 +479,11 @@ const ShipScreen: React.FC = () => {
             ← Назад
           </MainButton>
           <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
-            Страница {pageCosmo} из {totalCosmo}
+            Страница {pageCosmo} из {cardsTab === 'owned' ? totalCosmo : totalLockedPages}
           </span>
           <MainButton
-            onClick={() => setPageCosmo(p => Math.min(totalCosmo, p + 1))}
-            disabled={pageCosmo === totalCosmo}
+            onClick={() => setPageCosmo(p => Math.min(cardsTab === 'owned' ? totalCosmo : totalLockedPages, p + 1))}
+            disabled={pageCosmo === (cardsTab === 'owned' ? totalCosmo : totalLockedPages)}
             className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
           >
             Вперёд →
@@ -392,59 +496,137 @@ const ShipScreen: React.FC = () => {
             <ShinyText text="КОЛЛЕКЦИЯ АРТЕФАКТОВ" className="text-2xl font-bold" speed={6} />
           </h2>
         </div>
-        <div className="mx-auto" style={{ maxWidth: '660px' }}>
+        <div className="mx-auto" style={{ maxWidth: '820px' }}>
+          {/* Tabs (artifacts) */}
+          <div className="flex flex-wrap gap-3 mb-6 justify-center">
+            <MainButton onClick={() => { setArtifactsTab('owned'); setPageArte(1); }} className={artifactsTab === 'owned' ? '' : 'opacity-70'}>
+              Мои артефакты
+            </MainButton>
+            <MainButton onClick={() => { setArtifactsTab('locked'); setPageArte(1); }} className={artifactsTab === 'locked' ? '' : 'opacity-70'}>
+              Заблокировано
+            </MainButton>
+          </div>
+
+          {/* Story text */}
+          {artifactsTab === 'owned' ? (
+            <p className="text-center text-white/80 text-sm mb-6">
+              Сектор полученных артефактов. Именно здесь хранятся космические реликвии, добытые членами экипажа во время исследований. Полная коллекция артефактов сектора "Ксилотрон" была собрана в 2087 году, что позволило открыть портал в соседнюю галактику.
+            </p>
+          ) : (
+            <p className="text-center text-white/80 text-sm mb-6">
+              Архив ещё не полученных артефактов. Доступ к уникальным реликвиям открывается после выполнения специальных задач и достижения нужного ранга.
+            </p>
+          )}
+
+          {/* Counter */}
+          <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+            <div className="text-[11px] md:text-xs tracking-wide text-white/70 font-mono opacity-90 mb-4 text-center">
+              <span>
+                Получено {userArtifacts.length} из {allArtifactsCatalog.length || artefacts.length || userArtifacts.length}
+              </span>
+            </div>
+          </div>
+
+          {/* Motivation */}
+          {artifactsTab === 'owned' && userArtifacts.length === 0 && (
+            <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+              <div className="flex flex-col items-center text-center gap-3 py-4">
+                <img src="/images/gaga.gif" alt="gaga" className="w-16 h-16 object-contain opacity-90" />
+                <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono">
+                  <span>СКАНЕР АРТЕФАКТОВ: КОЛЛЕКЦИЯ ПУСТА. ДЛЯ ПОЛУЧЕНИЯ ПЕРВЫХ АРТЕФАКТОВ ВЫПОЛНИТЕ СТАРТОВЫЕ МИССИИ. КАЖДЫЙ АРТЕФАКТ — УНИКАЛЬНЫЙ НОСИТЕЛЬ КОСМИЧЕСКОЙ ЭНЕРГИИ.</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {artifactsTab === 'owned' && userArtifacts.length > 0 && (
+            <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+              <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono text-center mb-4">
+                <span>СИСТЕМНЫЙ АНАЛИЗ: АРТЕФАКТЫ АКТИВИРОВАНЫ. ИЗУЧАЙТЕ ИХ СВОЙСТВА ДЛЯ РАСКРЫТИЯ ПОЛНОГО ПОТЕНЦИАЛА. КОМБИНАЦИЯ АРТЕФАКТОВ МОЖЕТ СОЗДАТЬ СИНЕРГЕТИЧЕСКИЙ ЭФФЕКТ.</span>
+              </div>
+            </div>
+          )}
+          {artifactsTab === 'locked' && (
+            <div className="max-w-3xl mx-auto px-6 md:px-8 lg:px-10">
+              <div className="flex flex-col items-center text-center gap-3 py-4">
+                <img src="/images/gaga.gif" alt="gaga" className="w-16 h-16 object-contain opacity-90" />
+                <div className="text-[11px] md:text-xs tracking-wide text-white/80 font-mono whitespace-pre-line text-center">
+                  <span>{`ДОСТУП К РЕЛИКВИЯМ: ЗДЕСЬ УКАЗАНЫ АРТЕФАКТЫ, КОТОРЫЕ МОЖНО ПОЛУЧИТЬ. ВЫПОЛНЯЙТЕ МИССИИ И ДОСТИГАЙТЕ НЕОБХОДИМОГО РАНГА, ЧТОБЫ ОТКРЫТЬ ДОСТУП.`}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-8 gap-x-4 justify-items-center">
             {loading ? (
               <div className="col-span-full text-center text-white/60">Загрузка артефактов...</div>
-            ) : artePageItems.length === 0 ? (
-              <div className="col-span-full text-center text-white/60">У вас пока нет артефактов</div>
-            ) : (
-              artePageItems.map((a) => (
-                <div key={a.id} className="relative">
-                  <StyledGlow>
-                    <div className="card" title={a.name || `Артефакт #${a.id}`}> 
-                      {(a.imageUrl || a.image_url) && (
-                        <img 
-                          src={resolveImageUrl(a.imageUrl || a.image_url)} 
-                          alt={a.name || `Артефакт #${a.id}`}
-                          style={{
-                            position: 'absolute',
-                            inset: '10px',
-                            width: 'calc(100% - 20px)',
-                            height: 'calc(100% - 20px)',
-                            objectFit: 'contain',
-                            borderRadius: '20px',
-                            opacity: 0.9,
-                            zIndex: 2
-                          }}
-                          onError={(e) => {
-                            const img = e.currentTarget as HTMLImageElement;
-                            img.onerror = null;
-                            img.style.display = 'none';
-                          }}
-                        />
-                      )}
+            ) : artifactsTab === 'owned' ? (
+              artePageItemsOwned.length === 0 ? (
+                <div className="col-span-full text-center text-white/60">У вас пока нет артефактов</div>
+              ) : (
+                artePageItemsOwned.map((a) => (
+                  <div key={a.id} className="relative">
+                    <StyledGlow>
+                      <div className="card" title={a.name || `Артефакт #${a.id}`}> 
+                        {(a.imageUrl || a.image_url) && (
+                          <img 
+                            src={resolveImageUrl(a.imageUrl || a.image_url)} 
+                            alt={a.name || `Артефакт #${a.id}`}
+                            style={{
+                              position: 'absolute',
+                              inset: '10px',
+                              width: 'calc(100% - 20px)',
+                              height: 'calc(100% - 20px)',
+                              objectFit: 'contain',
+                              borderRadius: '20px',
+                              opacity: 0.9,
+                              zIndex: 2
+                            }}
+                            onError={(e) => {
+                              const img = e.currentTarget as HTMLImageElement;
+                              img.onerror = null;
+                              img.style.display = 'none';
+                            }}
+                          />
+                        )}
+                      </div>
+                    </StyledGlow>
+                    <div className="mt-2 text-center">
+                      <div className="text-white text-sm font-medium mb-1">{a.name || `Артефакт #${a.id}`}</div>
+                      <div className="text-white/60 text-xs mb-2">{a.rarity || 'COMMON'}</div>
+                      <MainButton
+                        onClick={() => handleEquipArtifact(a.id)}
+                        className={`px-3 py-1 text-xs rounded ${
+                          a.isEquipped 
+                            ? 'bg-red-500 hover:bg-red-600' 
+                            : equippedArtifacts.length >= 3 
+                              ? 'bg-gray-500 cursor-not-allowed' 
+                              : 'bg-green-500 hover:bg-green-600'
+                        } text-white font-medium transition-colors`}
+                        disabled={!a.isEquipped && equippedArtifacts.length >= 3}
+                      >
+                        {a.isEquipped ? 'Снять' : 'Экипировать'}
+                      </MainButton>
                     </div>
-                  </StyledGlow>
-                  <div className="mt-2 text-center">
-                    <div className="text-white text-sm font-medium mb-1">{a.name || `Артефакт #${a.id}`}</div>
-                    <div className="text-white/60 text-xs mb-2">{a.rarity || 'COMMON'}</div>
-                    <MainButton
-                      onClick={() => handleEquipArtifact(a.id)}
-                      className={`px-3 py-1 text-xs rounded ${
-                        a.isEquipped 
-                          ? 'bg-red-500 hover:bg-red-600' 
-                          : equippedArtifacts.length >= 3 
-                            ? 'bg-gray-500 cursor-not-allowed' 
-                            : 'bg-green-500 hover:bg-green-600'
-                      } text-white font-medium transition-colors`}
-                      disabled={!a.isEquipped && equippedArtifacts.length >= 3}
-                    >
-                      {a.isEquipped ? 'Снять' : 'Экипировать'}
-                    </MainButton>
                   </div>
-                </div>
-              ))
+                ))
+              )
+            ) : (
+              artePageItemsLocked.length === 0 ? (
+                <div className="col-span-full text-center text-white/60">Пока нет заблокированных артефактов</div>
+              ) : (
+                artePageItemsLocked.map((a) => (
+                  <div key={a.id} className="w-[190px] h-[254px] rounded-2xl relative border border-white/10 bg-white/5 overflow-hidden">
+                    <div className="absolute inset-0 bg-black/60" />
+                    <div className="absolute inset-2 rounded-xl border border-white/10 flex items-center justify-center">
+                      <div className="text-white/70 text-5xl select-none">?</div>
+                    </div>
+                    <div className="absolute bottom-2 left-0 right-0 text-center text-white/60 text-xs px-2">
+                      {a.name || `Артефакт #${a.id}`}
+                    </div>
+                  </div>
+                ))
+              )
             )}
           </div>
         </div>
@@ -457,11 +639,11 @@ const ShipScreen: React.FC = () => {
             ← Назад
           </MainButton>
           <span className="text-white/80 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
-            Страница {pageArte} из {totalArte}
+            Страница {pageArte} из {artifactsTab === 'owned' ? totalArteOwnedPages : totalArtifactsLockedPages}
           </span>
           <MainButton
-            onClick={() => setPageArte(p => Math.min(totalArte, p + 1))}
-            disabled={pageArte === totalArte}
+            onClick={() => setPageArte(p => Math.min(artifactsTab === 'owned' ? totalArteOwnedPages : totalArtifactsLockedPages, p + 1))}
+            disabled={pageArte === (artifactsTab === 'owned' ? totalArteOwnedPages : totalArtifactsLockedPages)}
             className="px-4 py-2 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
           >
             Вперёд →

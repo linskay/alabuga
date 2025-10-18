@@ -18,11 +18,9 @@ interface DashboardPageProps {
 const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage, onExit }) => {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('profile');
   const [isLoaded, setIsLoaded] = useState(false);
-  // No cursor-following effects; background stars animate independently
   const { show404 } = use404();
 
   useEffect(() => {
-    // Анимация загрузки
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 500);
@@ -30,24 +28,29 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
     return () => clearTimeout(timer);
   }, []);
 
-  // Removed mousemove listener (no mouse-tied background)
+  // Блокируем прокрутку body, чтобы избежать двойного скролла при первом входе
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   const handleScreenChange = (screen: ScreenType) => {
     if (screen === 'profile') {
       setCurrentScreen(screen);
     } else if (onNavigateToPage) {
-      // Navigate to separate page for other screens
+      // Переход на отдельные страницы для остальных экранов
       onNavigateToPage(screen as 'map' | 'missions' | 'ship' | 'crew' | 'terminal' | 'admin');
     }
   };
 
   const renderCurrentScreen = () => {
-    // Only render ProfileScreen since other screens are now separate pages
+    // Рендерим только профиль, другие экраны вынесены на отдельные страницы
     return <ProfileScreen />;
   };
 
   return (
-      <div className="relative w-full min-h-screen overflow-x-hidden bg-gradient-cosmic flex flex-col" style={{ cursor: 'default' }}>
+      <div className="relative w-full min-h-screen overflow-hidden bg-gradient-cosmic flex flex-col" style={{ cursor: 'default' }}>
       {/* Animated Cosmic Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <AnimatedStars />
@@ -62,8 +65,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         showLoginButton={false} 
         showExitButton={true}
         onExitClick={onExit}
-        show404Button={true}
-        on404Click={show404}
+        show404Button={false}
       />
 
       {/* Stones Menu */}
@@ -71,19 +73,20 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onBack, onNavigateToPage,
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="w-full flex justify-center pt-20 pb-4 z-50"
+        className="w-full flex justify-center pt-20 pb-4 z-10"
       >
         <StonesMenu 
           onNavigateToPage={onNavigateToPage || (() => {})}
         />
       </motion.div>
 
-      {/* Main Content */}
+      {/* Main Content (scrolls inside) */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full flex-1 flex flex-col"
+        className="relative z-10 w-full flex-1 flex flex-col overflow-y-auto"
+        style={{ minHeight: 'calc(100vh - 5rem)', paddingTop: '0.5rem' }}
       >
 
         <AnimatePresence mode="wait">

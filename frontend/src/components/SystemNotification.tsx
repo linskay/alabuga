@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
 type NotificationVariant = 'success' | 'info' | 'warning' | 'error';
@@ -83,7 +84,7 @@ const SystemNotification: React.FC<SystemNotificationProps> = ({
 
   const v = variantClasses[variant];
 
-  return (
+  const content = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -91,7 +92,7 @@ const SystemNotification: React.FC<SystemNotificationProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 12, scale: 0.98 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className={`fixed bottom-6 right-6 z-[9999] max-w-sm w-[22rem] select-none`}
+          className={`fixed bottom-6 right-6 z-[2147483000] max-w-sm w-[22rem] select-none`}
         >
           <div className={`relative h-auto w-full border ${v.border} rounded-2xl bg-gradient-to-br ${v.from} ${v.to} text-white font-sans p-4 flex flex-col gap-3 backdrop-blur-xl ${v.glow}`}
             style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.03)' }}
@@ -131,8 +132,6 @@ const SystemNotification: React.FC<SystemNotificationProps> = ({
                 </button>
               </div>
             )}
-
-            {/* Decorative glow ring */}
             <div className="pointer-events-none absolute -z-10 -inset-2 rounded-3xl opacity-60"
               style={{ background: 'radial-gradient(120% 120% at 80% 0%, rgba(255,255,255,0.08), transparent 60%)' }}
             />
@@ -141,8 +140,8 @@ const SystemNotification: React.FC<SystemNotificationProps> = ({
       )}
     </AnimatePresence>
   );
+
+  return ReactDOM.createPortal(content, document.body);
 };
 
 export default SystemNotification;
-
-

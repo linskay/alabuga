@@ -93,6 +93,7 @@ public class MissionController {
 
     @PostMapping
     @Operation(summary = "Создать миссию")
+    // TODO: @PreAuthorize("hasRole('ADMIN')") после внедрения Spring Security
     public ResponseEntity<MissionDTO> createMission(@RequestBody MissionCreateDTO missionCreateDTO) {
         MissionDTO mission = missionService.createMission(missionCreateDTO);
         return ResponseEntity.ok(mission);
@@ -100,6 +101,7 @@ public class MissionController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить миссию")
+    // TODO: @PreAuthorize("hasRole('ADMIN')") после внедрения Spring Security
     public ResponseEntity<MissionDTO> updateMission(
             @Parameter(description = "ID миссии") @PathVariable Long id,
             @RequestBody MissionUpdateDTO missionUpdateDTO) {
@@ -109,6 +111,7 @@ public class MissionController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить миссию")
+    // TODO: @PreAuthorize("hasRole('ADMIN')") после внедрения Spring Security
     public ResponseEntity<Void> deleteMission(
             @Parameter(description = "ID миссии") @PathVariable Long id) {
         missionService.deleteMission(id);
@@ -117,6 +120,7 @@ public class MissionController {
 
     @PostMapping("/moderate")
     @Operation(summary = "Модерировать миссию")
+    // TODO: @PreAuthorize("hasRole('ADMIN')") после внедрения Spring Security
     public ResponseEntity<UserMissionDTO> moderateMission(
             @Parameter(description = "ID пользователя") @RequestParam Long userId,
             @Parameter(description = "ID миссии") @RequestParam Long missionId,

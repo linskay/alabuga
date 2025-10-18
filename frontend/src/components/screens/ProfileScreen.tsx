@@ -329,7 +329,7 @@ const ProfileScreen: React.FC = () => {
           )}
           <AstronautCard 
             login={user?.login || 'КОМАНДИР НЕКСУС'} 
-            rank={currentRank?.level ?? user?.rank ?? 0} 
+            rank={(currentRank?.level ?? user?.rank ?? 0) + 1} 
             experience={user?.experience ?? 15420} 
           />
           
@@ -423,9 +423,9 @@ const ProfileScreen: React.FC = () => {
                   </span>
                   <span className="text-cyan-400 font-bold">{
                     (() => {
-                      const level = user?.rank ?? 0;
+                      const level = user?.rank ?? 0; // backend 0-based
                       const byResp = getRankNameFromResponse(currentRank, level);
-                      return byResp || (currentRank?.name as string) || `Ранг ${level}`;
+                      return byResp || (currentRank?.name as string) || `Ранг ${level + 1}`;
                     })()
                   }</span>
                 </div>

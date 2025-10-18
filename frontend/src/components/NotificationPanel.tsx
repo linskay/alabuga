@@ -59,6 +59,10 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               transition={{ duration: 0.2 }}
               className="panel"
             >
+              {/* Background robot as decorative layer */}
+              <div className="panel-bg-robot">
+                <SpaceLoader />
+              </div>
               <div className="panel-stars">
                 <div className="stars stars-near" />
                 <div className="stars stars-mid" />
@@ -67,9 +71,17 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
             {/* Header */}
             <div className="panel-header">
               <h3 className="panel-title">
-                <span className="mr-2">🔔</span>
-                Уведомления Нексус
+                <span className="mr-2 inline-block align-middle" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2Z"/>
+                    <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 7h18s-3 0-3-7Z"/>
+                  </svg>
+                </span>
+                Уведомления Алабуга.TECH
               </h3>
+              <div className="panel-subtitle">
+                <span className="typewriter" aria-hidden="true">Центр уведомлений</span>
+              </div>
               <div className="panel-actions">
                 {unreadCount > 0 && (
                   <button
@@ -122,7 +134,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               )}
             </div>
 
-            {/* Footer with robot */}
+            {/* Footer (stats only) */}
             <div className="panel-footer">
               <div className="stats">
                 <span className="total-count">
@@ -133,9 +145,6 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                     Непрочитанных: {unreadCount}
                   </span>
                 )}
-              </div>
-              <div className="robot-container">
-                <SpaceLoader />
               </div>
             </div>
             </motion.div>
@@ -210,21 +219,13 @@ const SpaceLoader: React.FC = () => {
             <div className="orbit-path path-3" />
           </div>
         </div>
-        <div className="loading-container">
-          <div className="loading-progress">
-            <div className="progress-bar" />
-          </div>
-          <div className="loading-text">
-            LOADING SPACE MISSION<span>.</span><span>.</span><span>.</span>
-          </div>
-        </div>
       </div>
     </SpaceLoaderWrapper>
   );
 };
 
 const SpaceLoaderWrapper = styled.div`
-  .space-loader { position: relative; width: 300px; height: 300px; background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1e 50%, #080810 100%); border-radius: 50%; box-shadow: 0 0 60px rgba(0,0,0,0.6), inset 0 0 50px rgba(255,255,255,0.05); overflow: hidden; margin: 0 auto; }
+  .space-loader { position: relative; width: 300px; height: 300px; background: transparent; border-radius: 0; box-shadow: none; overflow: visible; margin: 0 auto; }
   .astronaut { position: absolute; left: 50%; top: 50%; width: 70px; height: 90px; transform: translate(-50%, -50%); animation: float 4s ease-in-out infinite; }
   .astronaut-helmet { position: absolute; width: 45px; height: 45px; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 50%; top: 0; left: 50%; transform: translateX(-50%); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.2), 2px 2px 4px rgba(255,255,255,0.1); }
   .helmet-glass { position: absolute; width: 35px; height: 25px; background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(0,0,255,0.1)); border-radius: 50% 50% 45% 45%; top: 12px; left: 5px; overflow: hidden; }
@@ -246,8 +247,8 @@ const StyledWrapper = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background: radial-gradient(120% 120% at 50% 30%, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.68));
+    backdrop-filter: blur(8px);
     z-index: 9999;
   }
 
@@ -255,14 +256,25 @@ const StyledWrapper = styled.div`
     position: relative;
     width: min(680px, 92vw);
     max-height: 80vh;
-    background: radial-gradient(circle at center, #121428 0%, #0c0f20 60%, #090b18 100%);
-    border: 2px solid rgba(0, 174, 239, 0.3);
-    box-shadow: 0 0 40px rgba(0, 174, 239, 0.25);
+    background: radial-gradient(120% 120% at 50% 10%, rgba(16,23,48,0.95), rgba(9,11,24,0.98) 60%, rgba(7,9,18,1) 100%);
+    border: 1px solid rgba(0, 174, 239, 0.25);
+    box-shadow: 0 0 24px rgba(0, 174, 239, 0.2), inset 0 0 40px rgba(0, 174, 239, 0.06);
     z-index: 10000;
     display: flex;
     flex-direction: column;
     border-radius: 16px;
     overflow: hidden;
+  }
+
+  .panel-bg-robot {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.25;
+    pointer-events: none;
   }
 
   .panel-stars {
@@ -272,7 +284,7 @@ const StyledWrapper = styled.div`
     pointer-events: none;
   }
 
-  .panel > *:not(.panel-stars) {
+  .panel > *:not(.panel-stars):not(.panel-bg-robot) {
     position: relative;
     z-index: 1;
   }
@@ -306,7 +318,7 @@ const StyledWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(180deg, rgba(0,174,239,0.08), transparent);
+    background: linear-gradient(180deg, rgba(0,174,239,0.12), transparent);
   }
 
   .panel-title {
@@ -315,6 +327,27 @@ const StyledWrapper = styled.div`
     font-weight: bold;
     margin: 0;
   }
+
+  .panel-subtitle {
+    position: absolute;
+    left: 20px;
+    top: 42px;
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+  }
+
+  .typewriter {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid rgba(255,255,255,0.6);
+    width: 12ch;
+    animation: typing 2.2s steps(12), blink .9s step-end infinite alternate, erase 2.2s steps(12) 3.2s forwards;
+  }
+
+  @keyframes typing { from { width: 0; } to { width: 12ch; } }
+  @keyframes erase { from { width: 12ch; } to { width: 0; } }
+  @keyframes blink { 50% { border-color: transparent; } }
 
   .panel-actions {
     display: flex;
@@ -464,10 +497,10 @@ const StyledWrapper = styled.div`
     width: 100%;
     height: 320px;
     margin-top: 12px;
-    border: 1px solid rgba(0, 174, 239, 0.2);
-    border-radius: 10px;
-    overflow: hidden;
-    background: radial-gradient(ellipse at bottom, rgba(0, 174, 239, 0.12), rgba(15, 17, 26, 0.35));
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -8,6 +8,7 @@ import AnimatedStars from '../components/AnimatedStars';
 import AnimatedText from '../components/AnimatedText';
 import ScrollHint from '../components/ScrollHint';
 import styled from 'styled-components';
+import LoginForm from '../components/LoginForm';
 
 interface HomePageProps {
   onEnter: () => void;
@@ -276,6 +277,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
   const [showVideo, setShowVideo] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [showText, setShowText] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     // В дев-режиме инициируем сразу, без ожидания события load
@@ -292,6 +294,16 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
     };
   }, []);
 
+  // Закрываем модалку и переходим на dashboard при успешном входе
+  useEffect(() => {
+    const onAuthLogin = () => {
+      setShowLogin(false);
+      onEnter();
+    };
+    window.addEventListener('auth:login', onAuthLogin as EventListener);
+    return () => window.removeEventListener('auth:login', onAuthLogin as EventListener);
+  }, [onEnter]);
+
   // Removed mousemove listener (no cursor-bound visuals)
 
   useEffect(() => {
@@ -307,7 +319,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
   }, [onScroll]);
 
   const handleLearnMore = () => {
-    onEnter(); // Переходим сразу на Dashboard
+    setShowLogin(true); // показываем модалку входа
   };
 
   const toggleMenu = () => {
@@ -383,6 +395,29 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
                   >
                     <source src="/images/cosmosstart.mp4" type="video/mp4" />
                   </video>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Login Modal */}
+          <AnimatePresence>
+            {showLogin && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+              >
+                <div className="relative">
+                  <button
+                    onClick={() => setShowLogin(false)}
+                    className="absolute -top-3 -right-3 bg-white/10 border border-white/20 text-white rounded-full w-8 h-8 hover:bg-white/20"
+                    aria-label="Закрыть"
+                  >
+                    ✕
+                  </button>
+                  <LoginForm />
                 </div>
               </motion.div>
             )}
@@ -596,8 +631,10 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter, onScroll, onPrivacyClick, 
           />
         </motion.main>
         
-        {/* Footer: компактный и с плавным появлением */}
-        <Footer onPrivacyClick={onPrivacyClick} onCookiesClick={onCookiesClick} compact />
+        {/* Footer: скрыт на мобильных, виден на sm+ */}
+        <div className="hidden sm:block">
+          <Footer onPrivacyClick={onPrivacyClick} onCookiesClick={onCookiesClick} compact />
+        </div>
       </div>
     </div>
   );
