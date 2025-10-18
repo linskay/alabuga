@@ -18,7 +18,7 @@ public class GameController {
         this.profileRepository = profileRepository;
     }
 
-    // Первый тап: создаём профиль, если его нет, и сохраняем время первого тапа
+
     @PostMapping("/tap/{userId}")
     public GooseGameProfile tap(@PathVariable Long userId, @RequestParam String username) {
         Optional<GooseGameProfile> optionalProfile = profileRepository.findById(userId);
