@@ -4,8 +4,15 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
+  const roleHeader = typeof window !== 'undefined' ? localStorage.getItem('X-ROLE') : null;
+  const method = ((options.method as string) || 'GET').toUpperCase();
+  const includeRole = method !== 'GET' && method !== 'HEAD';
+  const defaultHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(includeRole && roleHeader ? { 'X-ROLE': roleHeader } : {}),
+  };
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    headers: { ...defaultHeaders, ...(options.headers || {}) },
     credentials: 'include',
     ...options,
   });

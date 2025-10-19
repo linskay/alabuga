@@ -42,6 +42,11 @@ const AdminScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'crew' | 'missions' | 'analytics' | 'shop' | 'artifacts' | 'ranks' | 'events'>('crew');
   const [notif, setNotif] = useState<{ open: boolean; title: string; message?: string; variant?: 'success' | 'info' | 'warning' | 'error' }>({ open: false, title: '' });
 
+  useEffect(() => {
+    try { localStorage.setItem('X-ROLE', 'ADMIN'); } catch {}
+    return () => { try { localStorage.removeItem('X-ROLE'); } catch {} };
+  }, []);
+
   // Универсальная функция для обработки ошибок
   const getErrorMessage = (e: any): string => {
     if (e?.response?.data?.message) {
